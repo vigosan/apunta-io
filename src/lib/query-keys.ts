@@ -1,0 +1,4 @@
+export const queryKeys = {
+  list: (id: string) => ["list", id] as const,
+  items: (listId: string) => ["items", listId] as const,
+};
