@@ -28,12 +28,9 @@ function ExplorePage() {
     <div className="min-h-screen bg-white flex items-start justify-center px-6 py-12">
       <div className="w-full max-w-sm space-y-8">
 
-        <div className="flex items-baseline gap-4">
-          <Link to="/" className="text-sm text-gray-400 hover:text-gray-900 transition shrink-0">
-            ← Welist
-          </Link>
-          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">Explorar</h1>
-        </div>
+        <Link to="/" className="text-sm text-gray-400 hover:text-gray-900 transition">
+          ← Welist
+        </Link>
 
         <form onSubmit={handleSearch} className="flex gap-2 p-1.5 border border-gray-200 rounded-2xl">
           <input
