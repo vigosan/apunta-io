@@ -4,7 +4,7 @@ import { useList, useUpdateSlug, useUpdateName, useTogglePublic } from "@/hooks/
 import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem } from "@/hooks/useItems";
 import { ItemRow } from "@/components/items/ItemRow";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { parseTags } from "@/lib/tags";
+import { parseTags, tagColor } from "@/lib/tags";
 
 export const Route = createFileRoute("/lists/$listId/")({
   component: ListDetailPage,
@@ -245,10 +245,8 @@ function ListDetailPage() {
                   key={tag}
                   data-testid={`tag-filter-${tag}`}
                   onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition ${
-                    activeTag === tag
-                      ? "bg-gray-900 text-white"
-                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition ${tagColor(tag)} ${
+                    activeTag === tag ? "ring-2 ring-offset-1 ring-current" : ""
                   }`}
                 >
                   #{tag}

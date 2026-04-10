@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Item } from "@/hooks/useItems";
-import { parseTags } from "@/lib/tags";
+import { parseTags, tagColor } from "@/lib/tags";
 
 interface Props {
   item: Item;
@@ -76,7 +76,7 @@ export function ItemRow({ item, onToggle, onDelete, onEdit, onTagClick }: Props)
                 key={tag}
                 data-testid={`item-tag-${item.id}-${tag}`}
                 onClick={() => onTagClick?.(tag)}
-                className="text-xs text-gray-400 hover:text-gray-600 shrink-0 transition"
+                className={`shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium transition ${tagColor(tag)}`}
               >
                 #{tag}
               </button>

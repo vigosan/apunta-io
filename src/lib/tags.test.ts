@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTags } from "./tags";
+import { parseTags, tagColor } from "./tags";
 
 describe("parseTags", () => {
   it("returns empty tags and full text when no hashtags", () => {
@@ -30,5 +30,20 @@ describe("parseTags", () => {
   it("handles accented characters in tags", () => {
     const { tags } = parseTags("algo #montaña");
     expect(tags).toContain("montaña");
+  });
+});
+
+describe("tagColor", () => {
+  it("returns a non-empty string", () => {
+    expect(tagColor("viajes").length).toBeGreaterThan(0);
+  });
+
+  it("returns the same color for the same tag", () => {
+    expect(tagColor("viajes")).toBe(tagColor("viajes"));
+  });
+
+  it("can return different colors for different tags", () => {
+    const colors = new Set(["viajes", "urgente", "trabajo", "casa", "compras"].map(tagColor));
+    expect(colors.size).toBeGreaterThan(1);
   });
 });
