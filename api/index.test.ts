@@ -31,7 +31,7 @@ describe("POST /api/lists", () => {
     });
 
     expect(res.status).toBe(201);
-    const body = await res.json();
+    const body = await res.json() as Record<string, unknown>;
     expect(body.name).toBe("Mi lista");
     expect(body.id).toBe("abc-123");
   });
@@ -55,7 +55,7 @@ describe("GET /api/lists/:listId", () => {
 
     const res = await app.request("/api/lists/abc-123");
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await res.json() as Record<string, unknown>;
     expect(body.id).toBe("abc-123");
   });
 
@@ -78,7 +78,7 @@ describe("GET /api/lists/:listId/items", () => {
 
     const res = await app.request("/api/lists/abc/items");
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await res.json() as Record<string, unknown>;
     expect(body).toHaveLength(2);
     expect(body[0].text).toBe("Primero");
   });
@@ -105,7 +105,7 @@ describe("POST /api/lists/:listId/items", () => {
     });
 
     expect(res.status).toBe(201);
-    const body = await res.json();
+    const body = await res.json() as Record<string, unknown>;
     expect(body.text).toBe("Nueva tarea");
   });
 
@@ -132,7 +132,7 @@ describe("PATCH /api/lists/:listId/items/:itemId/toggle", () => {
 
     const res = await app.request("/api/lists/abc/items/i1/toggle", { method: "PATCH" });
     expect(res.status).toBe(200);
-    const body = await res.json();
+    const body = await res.json() as Record<string, unknown>;
     expect(body.done).toBe(true);
   });
 

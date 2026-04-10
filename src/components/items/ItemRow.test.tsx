@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ItemRow } from "./ItemRow";
 
-const baseItem = { id: "i1", listId: "l1", text: "Comprar leche", done: false, position: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+const baseItem = { id: "i1", listId: "l1", text: "Comprar leche", done: false, position: 0, createdAt: new Date(), updatedAt: new Date() };
 
 describe("ItemRow", () => {
   it("renders item text", () => {
