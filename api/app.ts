@@ -7,9 +7,17 @@ import { lists, items } from "../src/db/schema/index.js";
 
 export const app = new Hono().basePath("/api");
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function listWhere(param: string) {
+  return UUID_RE.test(param)
+    ? or(eq(lists.id, param), eq(lists.slug, param))
+    : eq(lists.slug, param);
+}
+
 async function resolveListId(param: string): Promise<string | null> {
   const list = await db.query.lists.findFirst({
-    where: or(eq(lists.id, param), eq(lists.slug, param)),
+    where: listWhere(param),
     columns: { id: true },
   });
   return list?.id ?? null;
@@ -28,7 +36,7 @@ app.post(
 app.get("/lists/:listId", async (c) => {
   const listId = c.req.param("listId");
   const list = await db.query.lists.findFirst({
-    where: or(eq(lists.id, listId), eq(lists.slug, listId)),
+    where: listWhere(listId),
   });
   if (!list) return c.json({ error: "Not found" }, 404);
   return c.json(list);
@@ -52,7 +60,7 @@ app.patch(
       const [updated] = await db
         .update(lists)
         .set(patch)
-        .where(or(eq(lists.id, listId), eq(lists.slug, listId)))
+        .where(listWhere(listId))
         .returning();
       if (!updated) return c.json({ error: "Not found" }, 404);
       return c.json(updated);
@@ -142,7 +150,7 @@ app.get("/explore", async (c) => {
 app.post("/lists/:listId/clone", async (c) => {
   const listId = c.req.param("listId");
   const source = await db.query.lists.findFirst({
-    where: or(eq(lists.id, listId), eq(lists.slug, listId)),
+    where: listWhere(listId),
   });
   if (!source) return c.json({ error: "Not found" }, 404);
 
