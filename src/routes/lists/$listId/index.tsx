@@ -24,6 +24,7 @@ function ListDetailPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
   const [paletteOpen, setPaletteOpen] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,8 +102,10 @@ function ListDetailPage() {
   }
 
   const filteredItems = useMemo(
-    () => activeTag ? items.filter((i) => parseTags(i.text).tags.includes(activeTag)) : items,
-    [items, activeTag],
+    () => items
+      .filter((i) => statusFilter === "all" || (statusFilter === "pending" ? !i.done : i.done))
+      .filter((i) => !activeTag || parseTags(i.text).tags.includes(activeTag)),
+    [items, statusFilter, activeTag],
   );
 
   useEffect(() => {
@@ -130,6 +133,9 @@ function ListDetailPage() {
       label: `Filtrar por #${tag}`,
       onSelect: () => setActiveTag(activeTag === tag ? null : tag),
     })),
+    { id: "filter-all", label: "Mostrar todos los elementos", onSelect: () => setStatusFilter("all") },
+    { id: "filter-pending", label: "Mostrar solo pendientes", onSelect: () => setStatusFilter("pending") },
+    { id: "filter-done", label: "Mostrar solo completados", onSelect: () => setStatusFilter("done") },
     ...(activeTag ? [{ id: "clear-filter", label: "Limpiar filtro de tags", onSelect: () => setActiveTag(null) }] : []),
     { id: "confetti", label: "Probar confetti", onSelect: fireConfetti },
   ];
@@ -292,8 +298,27 @@ function ListDetailPage() {
             </div>
           )}
 
+          {!itemsLoading && items.length > 0 && (
+            <div className="flex items-center gap-1 mt-3">
+              {(["all", "pending", "done"] as const).map((s) => (
+                <button
+                  key={s}
+                  data-testid={`status-filter-${s}`}
+                  onClick={() => setStatusFilter(s)}
+                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition ${
+                    statusFilter === s
+                      ? "bg-gray-900 text-white"
+                      : "text-gray-400 hover:text-gray-700"
+                  }`}
+                >
+                  {s === "all" ? "Todos" : s === "pending" ? "Pendientes" : "Hechos"}
+                </button>
+              ))}
+            </div>
+          )}
+
           {!itemsLoading && allTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-1.5 mt-2">
               {allTags.map((tag) => (
                 <button
                   key={tag}
@@ -340,7 +365,9 @@ function ListDetailPage() {
             </div>
           ) : filteredItems.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-10">
-              {activeTag ? `No hay elementos con #${activeTag}.` : "Añade el primer elemento a tu lista."}
+              {activeTag || statusFilter !== "all"
+                ? "No hay elementos con ese filtro."
+                : "Añade el primer elemento a tu lista."}
             </p>
           ) : (
             <div className="space-y-1">
