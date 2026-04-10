@@ -7,6 +7,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import type { Action } from "@/components/CommandPalette";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { parseTags, tagColor, getPartialTag } from "@/lib/tags";
+import { fireConfetti } from "@/lib/confetti";
 
 export const Route = createFileRoute("/lists/$listId/")({
   component: ListDetailPage,
@@ -130,10 +131,19 @@ function ListDetailPage() {
       onSelect: () => setActiveTag(activeTag === tag ? null : tag),
     })),
     ...(activeTag ? [{ id: "clear-filter", label: "Limpiar filtro de tags", onSelect: () => setActiveTag(null) }] : []),
+    { id: "confetti", label: "Probar confetti", onSelect: fireConfetti },
   ];
 
   const doneCount = items.filter((i) => i.done).length;
   const progress = items.length > 0 ? (doneCount / items.length) * 100 : 0;
+
+  const prevProgress = useRef(0);
+  useEffect(() => {
+    if (progress === 100 && prevProgress.current < 100 && items.length > 0) {
+      fireConfetti();
+    }
+    prevProgress.current = progress;
+  }, [progress, items.length]);
   const currentSlug = list?.slug ?? listId;
 
   return (
