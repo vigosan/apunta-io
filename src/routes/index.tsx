@@ -25,16 +25,16 @@ function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-blue-100 flex items-center justify-center px-4">
-      <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-10 space-y-8">
+    <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4">
+      <div className="bg-white rounded-3xl shadow-sm ring-1 ring-black/[0.06] w-full max-w-md p-10 space-y-8">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50 mb-2">
-            <svg className="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 mb-2">
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Apunta</h1>
-          <p className="text-sm text-gray-400">Crea una lista y comparte el enlace con quien quieras.</p>
+          <h1 className="text-3xl font-bold text-gray-900 text-balance">Apunta</h1>
+          <p className="text-sm text-gray-400 text-pretty">Crea una lista y comparte el enlace con quien quieras.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl">
@@ -50,7 +50,7 @@ function HomePage() {
             type="submit"
             disabled={!name.trim() || createList.isPending}
             data-testid="create-list-btn"
-            className="px-5 py-2.5 text-sm font-semibold bg-indigo-500 text-white rounded-xl hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2.5 text-sm font-semibold bg-gray-950 text-white rounded-xl hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed transition active:scale-[0.96]"
           >
             {createList.isPending ? "…" : "Crear →"}
           </button>
