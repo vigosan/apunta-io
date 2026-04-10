@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { eq, max, sql, and, or } from "drizzle-orm";
-import { db } from "../src/db/client";
-import { lists, items } from "../src/db/schema";
+import { db } from "../src/db/client.js";
+import { lists, items } from "../src/db/schema/index.js";
 
 export const app = new Hono().basePath("/api");
 

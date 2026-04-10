@@ -1,1 +1,1 @@
-export * from "./lists.schema";
+export * from "./lists.schema.js";
