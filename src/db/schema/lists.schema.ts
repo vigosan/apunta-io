@@ -4,8 +4,11 @@ export const lists = pgTable("lists", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").unique(),
+  public: boolean("public").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (t) => [
+  index("lists_public_idx").on(t.public),
+]);
 
 export const items = pgTable(
   "items",
