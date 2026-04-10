@@ -10,8 +10,10 @@
     "preview": "vite preview",
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:migrate:prod": "DATABASE_URL=$DATABASE_URL_PROD drizzle-kit migrate",
+    "db:migrate": "node scripts/db-migrate.mjs dev",
+    "db:migrate:prod": "node scripts/db-migrate.mjs prod",
+    "db:status": "node scripts/db-status.mjs dev",
+    "db:status:prod": "node scripts/db-status.mjs prod",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
