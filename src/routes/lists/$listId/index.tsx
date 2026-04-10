@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useList, useUpdateSlug, useUpdateName, useTogglePublic } from "@/hooks/useList";
 import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem } from "@/hooks/useItems";
 import { ItemRow } from "@/components/items/ItemRow";
+import { CommandPalette } from "@/components/CommandPalette";
+import type { Action } from "@/components/CommandPalette";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { parseTags, tagColor, getPartialTag } from "@/lib/tags";
 
@@ -21,6 +23,7 @@ function ListDetailPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
 
   const { data: list, isLoading: listLoading, refetch: refetchList } = useList(listId);
@@ -101,11 +104,40 @@ function ListDetailPage() {
     [items, activeTag],
   );
 
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const paletteActions: Action[] = [
+    { id: "add-item", label: "Añadir elemento", onSelect: () => addInputRef.current?.focus() },
+    { id: "share", label: "Copiar enlace", onSelect: handleShare },
+    {
+      id: "toggle-public",
+      label: list?.public ? "Hacer privada" : "Hacer pública",
+      onSelect: () => togglePublic.mutate(!list?.public),
+    },
+    { id: "rename", label: "Cambiar nombre", onSelect: () => { setNameValue(list?.name ?? ""); setEditingName(true); } },
+    ...allTags.map((tag) => ({
+      id: `filter-${tag}`,
+      label: `Filtrar por #${tag}`,
+      onSelect: () => setActiveTag(activeTag === tag ? null : tag),
+    })),
+    ...(activeTag ? [{ id: "clear-filter", label: "Limpiar filtro de tags", onSelect: () => setActiveTag(null) }] : []),
+  ];
+
   const doneCount = items.filter((i) => i.done).length;
   const progress = items.length > 0 ? (doneCount / items.length) * 100 : 0;
   const currentSlug = list?.slug ?? listId;
 
   return (
+    <>
     <div className="h-dvh bg-[#FAFAF8] flex flex-col sm:items-center sm:p-6">
       <div className="flex-1 flex flex-col w-full sm:max-w-md bg-white sm:rounded-3xl sm:border sm:border-gray-100 overflow-hidden">
 
@@ -352,5 +384,12 @@ function ListDetailPage() {
 
       </div>
     </div>
+
+    <CommandPalette
+      open={paletteOpen}
+      onClose={() => setPaletteOpen(false)}
+      actions={paletteActions}
+    />
+    </>
   );
 }
