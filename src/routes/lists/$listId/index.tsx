@@ -26,6 +26,7 @@ function ListDetailPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [sortedIds, setSortedIds] = useState<string[] | null>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
   const { data: list, isLoading: listLoading, refetch: refetchList } = useList(listId);
@@ -37,8 +38,28 @@ function ListDetailPage() {
 
   const { data: items = [], isLoading: itemsLoading, refetch: refetchItems } = useItems(listId);
   const { containerRef: pullRef, pullDistance, refreshing } = usePullToRefresh(
-    useCallback(() => Promise.all([refetchList(), refetchItems()]), [refetchList, refetchItems]),
+    useCallback(async () => {
+      setSortedIds(null);
+      await Promise.all([refetchList(), refetchItems()]);
+    }, [refetchList, refetchItems]),
   );
+
+  useEffect(() => {
+    if (!itemsLoading && sortedIds === null && items.length > 0) {
+      setSortedIds(
+        [...items].sort((a, b) => Number(a.done) - Number(b.done)).map((i) => i.id),
+      );
+    }
+  }, [items, itemsLoading, sortedIds]);
+
+  const stableItems = useMemo(() => {
+    if (!sortedIds) return items;
+    const byId = new Map(items.map((i) => [i.id, i]));
+    const sortedSet = new Set(sortedIds);
+    const inOrder = sortedIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
+    const newItems = items.filter((i) => !sortedSet.has(i.id));
+    return [...inOrder, ...newItems];
+  }, [items, sortedIds]);
   const addItem = useAddItem(listId);
   const toggleItem = useToggleItem(listId);
   const deleteItem = useDeleteItem(listId);
@@ -86,9 +107,9 @@ function ListDetailPage() {
 
   const allTags = useMemo(() => {
     const seen = new Set<string>();
-    items.forEach((i) => parseTags(i.text).tags.forEach((t) => seen.add(t)));
+    stableItems.forEach((i) => parseTags(i.text).tags.forEach((t) => seen.add(t)));
     return [...seen].sort();
-  }, [items]);
+  }, [stableItems]);
 
   const partialTag = useMemo(() => getPartialTag(newItem), [newItem]);
   const tagSuggestions = useMemo(
@@ -102,10 +123,10 @@ function ListDetailPage() {
   }
 
   const filteredItems = useMemo(
-    () => items
+    () => stableItems
       .filter((i) => statusFilter === "all" || (statusFilter === "pending" ? !i.done : i.done))
       .filter((i) => !activeTag || parseTags(i.text).tags.includes(activeTag)),
-    [items, statusFilter, activeTag],
+    [stableItems, statusFilter, activeTag],
   );
 
   useEffect(() => {
@@ -299,26 +320,21 @@ function ListDetailPage() {
           )}
 
           {!itemsLoading && items.length > 0 && (
-            <div className="flex items-center gap-1 mt-3">
-              {(["all", "pending", "done"] as const).map((s) => (
+            <div className="flex flex-wrap gap-1.5 mt-3">
+              {(["pending", "done"] as const).map((s) => (
                 <button
                   key={s}
                   data-testid={`status-filter-${s}`}
-                  onClick={() => setStatusFilter(s)}
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium transition ${
+                  onClick={() => setStatusFilter(statusFilter === s ? "all" : s)}
+                  className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition ${
                     statusFilter === s
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-400 hover:text-gray-700"
+                      ? "border-gray-900 bg-gray-900 text-white"
+                      : "border-gray-200 text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700"
                   }`}
                 >
-                  {s === "all" ? "Todos" : s === "pending" ? "Pendientes" : "Hechos"}
+                  #{s === "pending" ? "pendientes" : "hechos"}
                 </button>
               ))}
-            </div>
-          )}
-
-          {!itemsLoading && allTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2">
               {allTags.map((tag) => (
                 <button
                   key={tag}
