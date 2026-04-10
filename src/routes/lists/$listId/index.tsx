@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useList, useUpdateSlug, useUpdateName, useTogglePublic } from "@/hooks/useList";
 import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem } from "@/hooks/useItems";
 import { ItemRow } from "@/components/items/ItemRow";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 export const Route = createFileRoute("/lists/$listId/")({
   component: ListDetailPage,
@@ -19,14 +20,17 @@ function ListDetailPage() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
 
-  const { data: list, isLoading: listLoading } = useList(listId);
+  const { data: list, isLoading: listLoading, refetch: refetchList } = useList(listId);
 
   useEffect(() => {
     if (list?.name) document.title = `${list.name} — Welist`;
     return () => { document.title = "Welist"; };
   }, [list?.name]);
 
-  const { data: items = [], isLoading: itemsLoading } = useItems(listId);
+  const { data: items = [], isLoading: itemsLoading, refetch: refetchItems } = useItems(listId);
+  const { containerRef: pullRef, pullDistance, refreshing } = usePullToRefresh(
+    useCallback(() => Promise.all([refetchList(), refetchItems()]), [refetchList, refetchItems]),
+  );
   const addItem = useAddItem(listId);
   const toggleItem = useToggleItem(listId);
   const deleteItem = useDeleteItem(listId);
@@ -222,8 +226,21 @@ function ListDetailPage() {
           )}
         </div>
 
+        {/* Pull to refresh indicator */}
+        <div
+          className="shrink-0 flex items-end justify-center overflow-hidden"
+          style={{
+            height: refreshing ? 36 : pullDistance,
+            transition: pullDistance === 0 ? "height 0.2s ease" : "none",
+          }}
+        >
+          <div
+            className={`mb-2 w-5 h-5 rounded-full border-2 border-gray-200 border-t-gray-600 ${refreshing ? "animate-spin" : ""}`}
+          />
+        </div>
+
         {/* Items — scrollable, fills remaining space */}
-        <div className="flex-1 overflow-y-auto px-3 py-1">
+        <div ref={pullRef} className="flex-1 overflow-y-auto overscroll-none px-3 py-1">
           {itemsLoading ? (
             <div className="space-y-1">
               {Array.from({ length: 4 }).map((_, i) => (
