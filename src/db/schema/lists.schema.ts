@@ -3,6 +3,7 @@ import { boolean, index, integer, pgTable, text, timestamp, uuid } from "drizzle
 export const lists = pgTable("lists", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
+  slug: text("slug").unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
