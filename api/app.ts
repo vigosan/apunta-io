@@ -125,7 +125,7 @@ app.patch(
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = await getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
+    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden", debug: { userId, ownerId: list.ownerId, collaborative: list.collaborative } }, 403);
     const patch: Record<string, unknown> = {};
     if (body.name !== undefined) patch.name = body.name;
     if ("slug" in body) patch.slug = body.slug ?? null;
