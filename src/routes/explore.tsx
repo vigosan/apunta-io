@@ -10,8 +10,10 @@ function ExplorePage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
-  const { data: lists = [], isLoading } = useExplore(search || undefined);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useExplore(search || undefined);
   const cloneList = useCloneList();
+
+  const lists = data?.pages.flatMap((p) => p.items) ?? [];
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +81,19 @@ function ExplorePage() {
               </div>
             ))}
           </div>
+
+          {hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                data-testid="load-more-btn"
+                className="px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:border-gray-400 hover:text-gray-700 disabled:opacity-40 transition"
+              >
+                {isFetchingNextPage ? "Cargando…" : "Cargar más"}
+              </button>
+            </div>
+          )}
         </div>
 
       </div>

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { eq, max, sql, and, or, ilike, count } from "drizzle-orm";
+import { eq, max, sql, and, or, ilike, count, gt } from "drizzle-orm";
 import { db } from "../src/db/client.js";
 import { lists, items } from "../src/db/schema/index.js";
 
@@ -139,17 +139,29 @@ app.delete("/lists/:listId/items/:itemId", async (c) => {
   return c.body(null, 204);
 });
 
+const EXPLORE_PAGE_SIZE = 20;
+
 app.get("/explore", async (c) => {
   const q = c.req.query("q")?.trim();
+  const cursor = c.req.query("cursor");
+
+  const baseWhere = q ? and(eq(lists.public, true), ilike(lists.name, `%${q}%`)) : eq(lists.public, true);
+  const where = cursor ? and(baseWhere, gt(lists.createdAt, new Date(cursor))) : baseWhere;
+
   const rows = await db
     .select({ id: lists.id, name: lists.name, slug: lists.slug, createdAt: lists.createdAt, itemCount: count(items.id) })
     .from(lists)
     .leftJoin(items, eq(items.listId, lists.id))
-    .where(q ? and(eq(lists.public, true), ilike(lists.name, `%${q}%`)) : eq(lists.public, true))
+    .where(where)
     .groupBy(lists.id)
     .orderBy(lists.createdAt)
-    .limit(50);
-  return c.json(rows);
+    .limit(EXPLORE_PAGE_SIZE);
+
+  const nextCursor = rows.length === EXPLORE_PAGE_SIZE
+    ? rows[rows.length - 1].createdAt.toISOString()
+    : null;
+
+  return c.json({ items: rows, nextCursor });
 });
 
 app.post("/lists/:listId/clone", async (c) => {

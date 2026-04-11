@@ -189,3 +189,53 @@ describe("DELETE /api/lists/:listId/items/:itemId", () => {
     expect(res.status).toBe(204);
   });
 });
+
+describe("GET /api/explore", () => {
+  const chainMock = (rows: unknown[]) => ({
+    from: vi.fn().mockReturnThis(),
+    leftJoin: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    groupBy: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue(rows),
+  });
+
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns { items, nextCursor: null } when results fit within limit", async () => {
+    const rows = [
+      { id: "l1", name: "Lista A", slug: null, createdAt: new Date("2024-01-01"), itemCount: 2 },
+    ];
+    mockDb.select.mockReturnValue(chainMock(rows));
+
+    const res = await app.request("/api/explore");
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(Array.isArray(body.items)).toBe(true);
+    expect(body.nextCursor).toBeNull();
+  });
+
+  it("returns nextCursor when results equal the limit", async () => {
+    const rows = Array.from({ length: 20 }, (_, i) => ({
+      id: `l${i}`,
+      name: `Lista ${i}`,
+      slug: null,
+      createdAt: new Date(`2024-01-${String(i + 1).padStart(2, "0")}`),
+      itemCount: 0,
+    }));
+    mockDb.select.mockReturnValue(chainMock(rows));
+
+    const res = await app.request("/api/explore");
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.nextCursor).not.toBeNull();
+  });
+
+  it("accepts cursor param to paginate", async () => {
+    mockDb.select.mockReturnValue(chainMock([]));
+
+    const res = await app.request("/api/explore?cursor=2024-06-01T00:00:00.000Z");
+    expect(res.status).toBe(200);
+    const chain = mockDb.select.mock.results[0].value;
+    expect(chain.where).toHaveBeenCalled();
+  });
+});

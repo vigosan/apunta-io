@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { notFound } from "@tanstack/react-router";
 import { listsService } from "@/services/lists.service";
 import { queryKeys } from "@/lib/query-keys";
@@ -72,9 +72,11 @@ export function useTogglePublic(listId: string) {
 }
 
 export function useExplore(q?: string) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.explore(q),
-    queryFn: () => listsService.explore(q),
+    queryFn: ({ pageParam }) => listsService.explore(q, pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 }
 
