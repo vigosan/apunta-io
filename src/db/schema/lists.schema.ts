@@ -1,4 +1,5 @@
 import { boolean, index, integer, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { users } from "./auth.schema";
 
 export const lists = pgTable("lists", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -6,6 +7,7 @@ export const lists = pgTable("lists", {
   slug: text("slug").unique(),
   description: text("description"),
   public: boolean("public").notNull().default(false),
+  ownerId: text("owner_id").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (t) => [
   index("lists_public_idx").on(t.public),

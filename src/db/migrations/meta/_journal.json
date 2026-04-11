@@ -29,6 +29,13 @@
       "when": 1775885623712,
       "tag": "0003_chunky_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775893768596,
+      "tag": "0004_huge_microchip",
+      "breakpoints": true
     }
   ]
 }
