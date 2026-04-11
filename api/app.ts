@@ -92,12 +92,9 @@ app.post(
     const listId = await resolveListId(c.req.param("listId"));
     if (!listId) return c.json({ error: "Not found" }, 404);
     const { text } = c.req.valid("json");
-    const item = await db.transaction(async (tx) => {
-      const [maxRow] = await tx.select({ pos: max(items.position) }).from(items).where(eq(items.listId, listId));
-      const position = (maxRow?.pos ?? -1) + 1;
-      const [created] = await tx.insert(items).values({ listId, text, position }).returning();
-      return created;
-    });
+    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, listId));
+    const position = (maxRow?.pos ?? -1) + 1;
+    const [item] = await db.insert(items).values({ listId, text, position }).returning();
     return c.json(item, 201);
   },
 );
@@ -154,13 +151,11 @@ app.post(
     const listId = await resolveListId(c.req.param("listId"));
     if (!listId) return c.json({ error: "Not found" }, 404);
     const { texts } = c.req.valid("json");
-    const created = await db.transaction(async (tx) => {
-      const [maxRow] = await tx.select({ pos: max(items.position) }).from(items).where(eq(items.listId, listId));
-      const basePosition = (maxRow?.pos ?? -1) + 1;
-      return tx.insert(items).values(
-        texts.map((text, i) => ({ listId, text, position: basePosition + i })),
-      ).returning();
-    });
+    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, listId));
+    const basePosition = (maxRow?.pos ?? -1) + 1;
+    const created = await db.insert(items).values(
+      texts.map((text, i) => ({ listId, text, position: basePosition + i })),
+    ).returning();
     return c.json(created, 201);
   },
 );

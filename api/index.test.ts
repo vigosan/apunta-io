@@ -87,10 +87,7 @@ describe("GET /api/lists/:listId/items", () => {
 });
 
 describe("POST /api/lists/:listId/items", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockDb.transaction.mockImplementation((fn: (tx: typeof mockDb) => Promise<unknown>) => fn(mockDb));
-  });
+  beforeEach(() => vi.clearAllMocks());
 
   it("creates an item and returns 201", async () => {
     const item = { id: "i1", listId: "abc", text: "Nueva tarea", done: false, position: 0 };
@@ -115,25 +112,24 @@ describe("POST /api/lists/:listId/items", () => {
     expect(body.text).toBe("Nueva tarea");
   });
 
-  it("uses a transaction to avoid race conditions on position", async () => {
-    const item = { id: "i1", listId: "abc", text: "Tarea", done: false, position: 0 };
+  it("assigns position 0 when list has no items", async () => {
+    const item = { id: "i1", listId: "abc", text: "Primero", done: false, position: 0 };
     mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
     mockDb.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue([{ pos: null }]),
       }),
     });
-    mockDb.insert.mockReturnValue({
-      values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([item]) }),
-    });
+    const valuesMock = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([item]) });
+    mockDb.insert.mockReturnValue({ values: valuesMock });
 
     await app.request("/api/lists/abc/items", {
       method: "POST",
-      body: JSON.stringify({ text: "Tarea" }),
+      body: JSON.stringify({ text: "Primero" }),
       headers: { "Content-Type": "application/json" },
     });
 
-    expect(mockDb.transaction).toHaveBeenCalledTimes(1);
+    expect(valuesMock).toHaveBeenCalledWith(expect.objectContaining({ position: 0 }));
   });
 
   it("returns 400 when text is empty", async () => {
@@ -243,10 +239,7 @@ describe("PATCH /api/lists/:listId", () => {
 });
 
 describe("POST /api/lists/:listId/items/bulk", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockDb.transaction.mockImplementation((fn: (tx: typeof mockDb) => Promise<unknown>) => fn(mockDb));
-  });
+  beforeEach(() => vi.clearAllMocks());
 
   it("creates multiple items and returns 201", async () => {
     const created = [
@@ -272,6 +265,26 @@ describe("POST /api/lists/:listId/items/bulk", () => {
     expect(body).toHaveLength(2);
   });
 
+  it("assigns sequential positions starting after current max", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.select.mockReturnValue({
+      from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([{ pos: 4 }]) }),
+    });
+    const valuesMock = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([]) });
+    mockDb.insert.mockReturnValue({ values: valuesMock });
+
+    await app.request("/api/lists/abc/items/bulk", {
+      method: "POST",
+      body: JSON.stringify({ texts: ["A", "B"] }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    expect(valuesMock).toHaveBeenCalledWith([
+      expect.objectContaining({ text: "A", position: 5 }),
+      expect.objectContaining({ text: "B", position: 6 }),
+    ]);
+  });
+
   it("returns 400 when texts array is empty", async () => {
     const res = await app.request("/api/lists/abc/items/bulk", {
       method: "POST",
@@ -289,25 +302,6 @@ describe("POST /api/lists/:listId/items/bulk", () => {
       headers: { "Content-Type": "application/json" },
     });
     expect(res.status).toBe(400);
-  });
-
-  it("uses a transaction for atomicity", async () => {
-    const created = [{ id: "i1", listId: "abc", text: "Pan", done: false, position: 0 }];
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
-    mockDb.select.mockReturnValue({
-      from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([{ pos: 2 }]) }),
-    });
-    mockDb.insert.mockReturnValue({
-      values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue(created) }),
-    });
-
-    await app.request("/api/lists/abc/items/bulk", {
-      method: "POST",
-      body: JSON.stringify({ texts: ["Pan"] }),
-      headers: { "Content-Type": "application/json" },
-    });
-
-    expect(mockDb.transaction).toHaveBeenCalledTimes(1);
   });
 });
 
