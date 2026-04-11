@@ -161,6 +161,7 @@ describe("PATCH /api/lists/:listId/items/:itemId/toggle", () => {
   });
 
   it("returns 404 when item not found", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([]) }),
@@ -352,5 +353,68 @@ describe("GET /api/explore", () => {
     expect(res.status).toBe(200);
     const chain = mockDb.select.mock.results[0].value;
     expect(chain.where).toHaveBeenCalled();
+  });
+});
+
+describe("POST /api/lists/:listId/clone", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("clones a list with its items and returns 201", async () => {
+    const source = { id: "abc", name: "Original" };
+    const sourceItems = [
+      { id: "i1", listId: "abc", text: "Tarea 1", done: true, position: 0 },
+      { id: "i2", listId: "abc", text: "Tarea 2", done: false, position: 1 },
+    ];
+    const newList = { id: "xyz", name: "Original" };
+
+    mockDb.query.lists.findFirst.mockResolvedValue(source);
+    mockDb.query.items.findMany.mockResolvedValue(sourceItems);
+    mockDb.insert
+      .mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([newList]) }) })
+      .mockReturnValueOnce({ values: vi.fn().mockResolvedValue(undefined) });
+
+    const res = await app.request("/api/lists/abc/clone", { method: "POST" });
+    expect(res.status).toBe(201);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.id).toBe("xyz");
+    expect(body.name).toBe("Original");
+  });
+
+  it("resets done to false on all cloned items", async () => {
+    const source = { id: "abc", name: "Original" };
+    const sourceItems = [{ id: "i1", listId: "abc", text: "Hecha", done: true, position: 0 }];
+    const newList = { id: "xyz", name: "Original" };
+
+    mockDb.query.lists.findFirst.mockResolvedValue(source);
+    mockDb.query.items.findMany.mockResolvedValue(sourceItems);
+    const itemsValuesMock = vi.fn().mockResolvedValue(undefined);
+    mockDb.insert
+      .mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([newList]) }) })
+      .mockReturnValueOnce({ values: itemsValuesMock });
+
+    await app.request("/api/lists/abc/clone", { method: "POST" });
+    expect(itemsValuesMock).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ done: false })]),
+    );
+  });
+
+  it("clones an empty list without inserting items", async () => {
+    const source = { id: "abc", name: "Vacía" };
+    const newList = { id: "xyz", name: "Vacía" };
+
+    mockDb.query.lists.findFirst.mockResolvedValue(source);
+    mockDb.query.items.findMany.mockResolvedValue([]);
+    mockDb.insert.mockReturnValueOnce({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([newList]) }) });
+
+    const res = await app.request("/api/lists/abc/clone", { method: "POST" });
+    expect(res.status).toBe(201);
+    expect(mockDb.insert).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 404 when source list not found", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue(null);
+
+    const res = await app.request("/api/lists/nonexistent/clone", { method: "POST" });
+    expect(res.status).toBe(404);
   });
 });
