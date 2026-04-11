@@ -178,6 +178,21 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
     .where(and(eq(items.id, itemId), eq(items.listId, list.id)))
     .returning();
   if (!updated) return c.json({ error: "Not found" }, 404);
+
+  if (userId) {
+    const allItems = await db.query.items.findMany({
+      where: eq(items.listId, list.id),
+      columns: { done: true },
+    });
+    const allDone = allItems.length > 0 && allItems.every((i) => i.done);
+    if (allDone) {
+      await db
+        .update(participations)
+        .set({ completedAt: new Date() })
+        .where(and(eq(participations.userListId, list.id), eq(participations.userId, userId)));
+    }
+  }
+
   return c.json(updated);
 });
 
