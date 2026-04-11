@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useList, useUpdateSlug, useUpdateName, useTogglePublic } from "@/hooks/useList";
 import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem } from "@/hooks/useItems";
@@ -9,13 +10,20 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { parseTags, tagColor, getPartialTag } from "@/lib/tags";
 import { fireConfetti } from "@/lib/confetti";
 
+const searchSchema = z.object({
+  status: z.enum(["all", "pending", "done"]).optional().default("all"),
+  tag: z.string().optional(),
+});
+
 export const Route = createFileRoute("/lists/$listId/")({
+  validateSearch: searchSchema,
   component: ListDetailPage,
 });
 
 function ListDetailPage() {
   const { listId } = Route.useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { status: statusFilter, tag: activeTag } = Route.useSearch();
   const [newItem, setNewItem] = useState("");
   const [copied, setCopied] = useState(false);
   const [editingSlug, setEditingSlug] = useState(false);
@@ -23,9 +31,14 @@ function ListDetailPage() {
   const [slugError, setSlugError] = useState("");
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
   const [paletteOpen, setPaletteOpen] = useState(false);
+
+  function setStatusFilter(s: "all" | "pending" | "done") {
+    navigate({ search: (prev) => ({ ...prev, status: s === "all" ? undefined : s }), replace: true });
+  }
+  function setActiveTag(t: string | null) {
+    navigate({ search: (prev) => ({ ...prev, tag: t ?? undefined }), replace: true });
+  }
   const sortedIdsRef = useRef<string[] | null>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,7 +136,7 @@ function ListDetailPage() {
 
   const filteredItems = useMemo(
     () => stableItems
-      .filter((i) => statusFilter === "all" || (statusFilter === "pending" ? !i.done : i.done))
+      .filter((i) => !statusFilter || statusFilter === "all" || (statusFilter === "pending" ? !i.done : i.done))
       .filter((i) => !activeTag || parseTags(i.text).tags.includes(activeTag)),
     [stableItems, statusFilter, activeTag],
   );
@@ -380,7 +393,7 @@ function ListDetailPage() {
             </div>
           ) : filteredItems.length === 0 ? (
             <p className="text-sm text-gray-400 text-center py-10">
-              {activeTag || statusFilter !== "all"
+              {activeTag || (statusFilter && statusFilter !== "all")
                 ? "No hay elementos con ese filtro."
                 : "Añade el primer elemento a tu lista."}
             </p>
