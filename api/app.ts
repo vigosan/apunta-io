@@ -4,8 +4,11 @@ import { z } from "zod";
 import { eq, max, sql, and, or, ilike, count, gt } from "drizzle-orm";
 import { db } from "../src/db/client.js";
 import { lists, items } from "../src/db/schema/index.js";
+import { rateLimit } from "./rate-limit.js";
 
 export const app = new Hono().basePath("/api");
+
+app.use(rateLimit({ limit: 120, windowMs: 60_000 }));
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
