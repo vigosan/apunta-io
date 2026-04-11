@@ -17,6 +17,7 @@ app.use(
   "*",
   initAuthConfig((c) => ({
     secret: c.env?.AUTH_SECRET ?? process.env.AUTH_SECRET ?? "",
+    basePath: "/api/auth",
     providers: [
       Google({
         clientId: c.env?.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
