@@ -38,8 +38,8 @@ async function getOptionalUser(c: Parameters<typeof getAuthUser>[0]): Promise<Au
   }
 }
 
-function canModifyList(list: { ownerId: string | null }, userId: string | null): boolean {
-  return list.ownerId === null || list.ownerId === userId;
+function canModifyList(list: { ownerId: string | null; collaborative: boolean }, userId: string | null): boolean {
+  return list.ownerId === null || list.ownerId === userId || list.collaborative;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -53,7 +53,7 @@ function listWhere(param: string) {
 async function resolveList(param: string): Promise<{ id: string; ownerId: string | null } | null> {
   const list = await db.query.lists.findFirst({
     where: listWhere(param),
-    columns: { id: true, ownerId: true },
+    columns: { id: true, ownerId: true, collaborative: true },
   });
   return list ?? null;
 }
@@ -86,6 +86,7 @@ app.patch(
     slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional().nullable(),
     description: z.string().max(500).optional().nullable(),
     public: z.boolean().optional(),
+    collaborative: z.boolean().optional(),
   })),
   async (c) => {
     const listId = c.req.param("listId");
@@ -100,6 +101,10 @@ app.patch(
     if ("slug" in body) patch.slug = body.slug ?? null;
     if ("description" in body) patch.description = body.description ?? null;
     if (body.public !== undefined) patch.public = body.public;
+    if (body.collaborative !== undefined) {
+      if (list.ownerId !== null && list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
+      patch.collaborative = body.collaborative;
+    }
     try {
       const [updated] = await db
         .update(lists)
