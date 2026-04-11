@@ -14,7 +14,7 @@ export const listsService = {
   create: (name: string) =>
     apiClient<List>("/api/lists", { method: "POST", body: JSON.stringify({ name }) }),
 
-  update: (listId: string, patch: { name?: string; slug?: string | null; description?: string | null; public?: boolean }) =>
+  update: (listId: string, patch: { name?: string; slug?: string | null; description?: string | null; public?: boolean; collaborative?: boolean }) =>
     apiClient<List>(`/api/lists/${listId}`, { method: "PATCH", body: JSON.stringify(patch) }),
 
   explore: (q?: string, cursor?: string) => {

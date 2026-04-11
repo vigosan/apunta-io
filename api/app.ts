@@ -50,7 +50,7 @@ function listWhere(param: string) {
     : eq(lists.slug, param);
 }
 
-async function resolveList(param: string): Promise<{ id: string; ownerId: string | null } | null> {
+async function resolveList(param: string): Promise<{ id: string; ownerId: string | null; collaborative: boolean } | null> {
   const list = await db.query.lists.findFirst({
     where: listWhere(param),
     columns: { id: true, ownerId: true, collaborative: true },

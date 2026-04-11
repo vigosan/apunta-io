@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem, useBulkAddItems } from "@/hooks/useItems";
+import { useToggleCollaborative } from "@/hooks/useList";
 import { useListHeader } from "@/hooks/useListHeader";
 import { useItemsFilter } from "@/hooks/useItemsFilter";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
@@ -50,6 +51,8 @@ function ListDetailPage() {
   function setActiveTag(t: string | null) {
     navigate({ search: (prev) => ({ ...prev, tag: t ?? undefined }), replace: true });
   }
+
+  const toggleCollaborative = useToggleCollaborative(listId);
 
   const {
     list, listLoading, refetchList,
@@ -295,6 +298,22 @@ function ListDetailPage() {
                     Privada
                   </>
                 )}
+              </button>
+
+              <button
+                onClick={() => toggleCollaborative.mutate(!list?.collaborative)}
+                data-testid="toggle-collaborative-btn"
+                title={list?.collaborative ? "Colaborativa — clic para desactivar" : "Solo tú — clic para permitir edición a cualquiera con el link"}
+                className={`h-7 flex items-center gap-1 px-2 rounded-md text-xs font-medium border transition active:scale-[0.96] ${
+                  list?.collaborative
+                    ? "border-blue-600 bg-blue-600 text-white"
+                    : "border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-600"
+                }`}
+              >
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {list?.collaborative ? "Colaborativa" : "Solo tú"}
               </button>
 
               <span aria-live="polite" className="sr-only">{copied ? "Enlace copiado" : ""}</span>

@@ -91,6 +91,25 @@ export function useTogglePublic(listId: string) {
   });
 }
 
+export function useToggleCollaborative(listId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (collaborative: boolean) => listsService.update(listId, { collaborative }),
+    onMutate: async (collaborative) => {
+      await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
+      const previous = qc.getQueryData<List>(queryKeys.list(listId));
+      qc.setQueryData<List>(queryKeys.list(listId), (old) => old ? { ...old, collaborative } : old);
+      return { previous };
+    },
+    onError: (_err, _val, ctx) => {
+      qc.setQueryData(queryKeys.list(listId), ctx?.previous);
+    },
+    onSettled: (updated) => {
+      if (updated) qc.setQueryData(queryKeys.list(listId), updated);
+    },
+  });
+}
+
 export function useExplore(q?: string) {
   return useInfiniteQuery({
     queryKey: queryKeys.explore(q),
