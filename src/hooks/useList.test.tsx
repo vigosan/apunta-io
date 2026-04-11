@@ -1,0 +1,140 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, act, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+import { useList, useUpdateName, useUpdateDescription, useTogglePublic } from "./useList";
+import type { List } from "@/db/schema";
+
+vi.mock("@/services/lists.service", () => ({
+  listsService: {
+    get: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    clone: vi.fn(),
+    explore: vi.fn(),
+  },
+}));
+
+vi.mock("@tanstack/react-router", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@tanstack/react-router")>();
+  return { ...actual, notFound: vi.fn(() => new Error("Not Found")) };
+});
+
+import { listsService } from "@/services/lists.service";
+
+const LIST: List = { id: "list-1", name: "Mi lista", slug: null, description: null, public: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+
+function makeWrapper() {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  function Wrapper({ children }: { children: React.ReactNode }) {
+    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  }
+  return { qc, Wrapper };
+}
+
+beforeEach(() => vi.clearAllMocks());
+
+describe("useList", () => {
+  it("returns the list from listsService.get", async () => {
+    vi.mocked(listsService.get).mockResolvedValue(LIST);
+    const { Wrapper } = makeWrapper();
+
+    const { result } = renderHook(() => useList(LIST.id), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data).toEqual(LIST);
+    expect(listsService.get).toHaveBeenCalledWith(LIST.id);
+  });
+
+  it("throws notFound when service errors", async () => {
+    vi.mocked(listsService.get).mockRejectedValue(new Error("Network error"));
+    const { Wrapper } = makeWrapper();
+
+    const { result } = renderHook(() => useList(LIST.id), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const { notFound } = await import("@tanstack/react-router");
+    expect(notFound).toHaveBeenCalled();
+  });
+});
+
+describe("useUpdateName", () => {
+  it("optimistically updates name in cache", async () => {
+    vi.mocked(listsService.update).mockResolvedValue({ ...LIST, name: "Nuevo nombre" });
+    const { qc, Wrapper } = makeWrapper();
+    qc.setQueryData(["list", LIST.id], LIST);
+
+    const { result } = renderHook(() => useUpdateName(LIST.id), { wrapper: Wrapper });
+    await act(async () => { result.current.mutate("Nuevo nombre"); });
+
+    const cached = qc.getQueryData<List>(["list", LIST.id]);
+    expect(cached?.name).toBe("Nuevo nombre");
+  });
+
+  it("rolls back name on error", async () => {
+    vi.mocked(listsService.update).mockRejectedValue(new Error("fail"));
+    const { qc, Wrapper } = makeWrapper();
+    qc.setQueryData(["list", LIST.id], LIST);
+
+    const { result } = renderHook(() => useUpdateName(LIST.id), { wrapper: Wrapper });
+    await act(async () => { result.current.mutate("Nuevo nombre"); });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const cached = qc.getQueryData<List>(["list", LIST.id]);
+    expect(cached?.name).toBe("Mi lista");
+  });
+});
+
+describe("useUpdateDescription", () => {
+  it("optimistically updates description in cache", async () => {
+    vi.mocked(listsService.update).mockResolvedValue({ ...LIST, description: "Una descripción" });
+    const { qc, Wrapper } = makeWrapper();
+    qc.setQueryData(["list", LIST.id], LIST);
+
+    const { result } = renderHook(() => useUpdateDescription(LIST.id), { wrapper: Wrapper });
+    await act(async () => { result.current.mutate("Una descripción"); });
+
+    const cached = qc.getQueryData<List>(["list", LIST.id]);
+    expect(cached?.description).toBe("Una descripción");
+  });
+
+  it("rolls back description on error", async () => {
+    vi.mocked(listsService.update).mockRejectedValue(new Error("fail"));
+    const { qc, Wrapper } = makeWrapper();
+    qc.setQueryData(["list", LIST.id], { ...LIST, description: "Original" });
+
+    const { result } = renderHook(() => useUpdateDescription(LIST.id), { wrapper: Wrapper });
+    await act(async () => { result.current.mutate("Cambiada"); });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const cached = qc.getQueryData<List>(["list", LIST.id]);
+    expect(cached?.description).toBe("Original");
+  });
+});
+
+describe("useTogglePublic", () => {
+  it("optimistically sets public to true", async () => {
+    vi.mocked(listsService.update).mockResolvedValue({ ...LIST, public: true });
+    const { qc, Wrapper } = makeWrapper();
+    qc.setQueryData(["list", LIST.id], LIST);
+
+    const { result } = renderHook(() => useTogglePublic(LIST.id), { wrapper: Wrapper });
+    await act(async () => { result.current.mutate(true); });
+
+    const cached = qc.getQueryData<List>(["list", LIST.id]);
+    expect(cached?.public).toBe(true);
+  });
+
+  it("rolls back public on error", async () => {
+    vi.mocked(listsService.update).mockRejectedValue(new Error("fail"));
+    const { qc, Wrapper } = makeWrapper();
+    qc.setQueryData(["list", LIST.id], LIST);
+
+    const { result } = renderHook(() => useTogglePublic(LIST.id), { wrapper: Wrapper });
+    await act(async () => { result.current.mutate(true); });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    const cached = qc.getQueryData<List>(["list", LIST.id]);
+    expect(cached?.public).toBe(false);
+  });
+});
