@@ -25,6 +25,16 @@ app.use(
       }),
     ],
     session: { strategy: "jwt" },
+    callbacks: {
+      jwt({ token, account }) {
+        if (account?.providerAccountId) token.sub = account.providerAccountId;
+        return token;
+      },
+      session({ session, token }) {
+        if (session.user && token.sub) session.user.id = token.sub;
+        return session;
+      },
+    },
     trustHost: true,
   })),
 );
