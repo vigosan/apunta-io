@@ -3,7 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { eq, max, sql, and, or, ilike, count, gt } from "drizzle-orm";
 import { db } from "../src/db/client.js";
-import { lists, items, participations } from "../src/db/schema/index.js";
+import { lists, items, participations, users, accounts, sessions, verificationTokens } from "../src/db/schema/index.js";
 import { rateLimit } from "./rate-limit.js";
 import { authHandler, initAuthConfig, getAuthUser, verifyAuth } from "@hono/auth-js";
 import Google from "@auth/core/providers/google";
@@ -19,7 +19,7 @@ app.use(
   initAuthConfig((c) => ({
     secret: c.env?.AUTH_SECRET ?? process.env.AUTH_SECRET ?? "",
     basePath: "/api/auth",
-    adapter: DrizzleAdapter(db),
+    adapter: DrizzleAdapter(db, { usersTable: users, accountsTable: accounts, sessionsTable: sessions, verificationTokensTable: verificationTokens }),
     providers: [
       Google({
         clientId: c.env?.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
