@@ -75,7 +75,7 @@ describe("GET /api/lists/:listId/items", () => {
       { id: "i1", listId: "abc", text: "Primero", done: false, position: 0 },
       { id: "i2", listId: "abc", text: "Segundo", done: true, position: 1 },
     ];
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.query.items.findMany.mockResolvedValue(rows);
 
     const res = await app.request("/api/lists/abc/items");
@@ -91,7 +91,7 @@ describe("POST /api/lists/:listId/items", () => {
 
   it("creates an item and returns 201", async () => {
     const item = { id: "i1", listId: "abc", text: "Nueva tarea", done: false, position: 0 };
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue([{ pos: null }]),
@@ -114,7 +114,7 @@ describe("POST /api/lists/:listId/items", () => {
 
   it("assigns position 0 when list has no items", async () => {
     const item = { id: "i1", listId: "abc", text: "Primero", done: false, position: 0 };
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.select.mockReturnValue({
       from: vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue([{ pos: null }]),
@@ -147,7 +147,7 @@ describe("PATCH /api/lists/:listId/items/:itemId/toggle", () => {
 
   it("toggles done and returns updated item", async () => {
     const updated = { id: "i1", listId: "abc", text: "Tarea", done: true, position: 0 };
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([updated]) }),
@@ -161,7 +161,7 @@ describe("PATCH /api/lists/:listId/items/:itemId/toggle", () => {
   });
 
   it("returns 404 when item not found", async () => {
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([]) }),
@@ -177,7 +177,7 @@ describe("DELETE /api/lists/:listId/items/:itemId", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("deletes an item and returns 204", async () => {
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.delete.mockReturnValue({
       where: vi.fn().mockResolvedValue(undefined),
     });
@@ -191,7 +191,8 @@ describe("PATCH /api/lists/:listId", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("updates description and returns the list", async () => {
-    const updated = { id: "abc", name: "Lista", description: "Una descripción", slug: null, public: false };
+    const updated = { id: "abc", name: "Lista", description: "Una descripción", slug: null, public: false, ownerId: null };
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([updated]) }),
@@ -210,6 +211,7 @@ describe("PATCH /api/lists/:listId", () => {
   });
 
   it("returns 409 when slug is already taken", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({
@@ -237,6 +239,18 @@ describe("PATCH /api/lists/:listId", () => {
     });
     expect(res.status).toBe(400);
   });
+
+  it("returns 403 when user does not own the list", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: "other-user-id" });
+
+    const res = await app.request("/api/lists/abc", {
+      method: "PATCH",
+      body: JSON.stringify({ name: "Hacked" }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    expect(res.status).toBe(403);
+  });
 });
 
 describe("POST /api/lists/:listId/items/bulk", () => {
@@ -247,7 +261,7 @@ describe("POST /api/lists/:listId/items/bulk", () => {
       { id: "i1", listId: "abc", text: "Leche", done: false, position: 0 },
       { id: "i2", listId: "abc", text: "Huevos", done: false, position: 1 },
     ];
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.select.mockReturnValue({
       from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([{ pos: null }]) }),
     });
@@ -267,7 +281,7 @@ describe("POST /api/lists/:listId/items/bulk", () => {
   });
 
   it("assigns sequential positions starting after current max", async () => {
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc" });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null });
     mockDb.select.mockReturnValue({
       from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([{ pos: 4 }]) }),
     });

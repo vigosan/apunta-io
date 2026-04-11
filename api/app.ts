@@ -5,10 +5,42 @@ import { eq, max, sql, and, or, ilike, count, gt } from "drizzle-orm";
 import { db } from "../src/db/client.js";
 import { lists, items } from "../src/db/schema/index.js";
 import { rateLimit } from "./rate-limit.js";
+import { authHandler, initAuthConfig, getAuthUser } from "@hono/auth-js";
+import Google from "@auth/core/providers/google";
+import type { AuthUser } from "@hono/auth-js";
 
 export const app = new Hono().basePath("/api");
 
 app.use(rateLimit({ limit: 120, windowMs: 60_000 }));
+
+app.use(
+  "*",
+  initAuthConfig((c) => ({
+    secret: c.env?.AUTH_SECRET ?? process.env.AUTH_SECRET ?? "",
+    providers: [
+      Google({
+        clientId: c.env?.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
+        clientSecret: c.env?.GOOGLE_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET ?? "",
+      }),
+    ],
+    session: { strategy: "jwt" },
+    trustHost: true,
+  })),
+);
+
+app.use("/auth/*", authHandler());
+
+async function getOptionalUser(c: Parameters<typeof getAuthUser>[0]): Promise<AuthUser | null> {
+  try {
+    return await getAuthUser(c);
+  } catch {
+    return null;
+  }
+}
+
+function canModifyList(list: { ownerId: string | null }, userId: string | null): boolean {
+  return list.ownerId === null || list.ownerId === userId;
+}
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -18,12 +50,12 @@ function listWhere(param: string) {
     : eq(lists.slug, param);
 }
 
-async function resolveListId(param: string): Promise<string | null> {
+async function resolveList(param: string): Promise<{ id: string; ownerId: string | null } | null> {
   const list = await db.query.lists.findFirst({
     where: listWhere(param),
-    columns: { id: true },
+    columns: { id: true, ownerId: true },
   });
-  return list?.id ?? null;
+  return list ?? null;
 }
 
 app.post(
@@ -31,7 +63,9 @@ app.post(
   zValidator("json", z.object({ name: z.string().min(1).max(200) })),
   async (c) => {
     const { name } = c.req.valid("json");
-    const [list] = await db.insert(lists).values({ name }).returning();
+    const authUser = await getOptionalUser(c);
+    const ownerId = authUser?.session?.user?.id ?? null;
+    const [list] = await db.insert(lists).values({ name, ownerId }).returning();
     return c.json(list, 201);
   },
 );
@@ -56,6 +90,11 @@ app.patch(
   async (c) => {
     const listId = c.req.param("listId");
     const body = c.req.valid("json");
+    const list = await db.query.lists.findFirst({ where: listWhere(listId) });
+    if (!list) return c.json({ error: "Not found" }, 404);
+    const authUser = await getOptionalUser(c);
+    const userId = authUser?.session?.user?.id ?? null;
+    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
     const patch: Record<string, unknown> = {};
     if (body.name !== undefined) patch.name = body.name;
     if ("slug" in body) patch.slug = body.slug ?? null;
@@ -65,7 +104,7 @@ app.patch(
       const [updated] = await db
         .update(lists)
         .set(patch)
-        .where(listWhere(listId))
+        .where(eq(lists.id, list.id))
         .returning();
       if (!updated) return c.json({ error: "Not found" }, 404);
       return c.json(updated);
@@ -79,10 +118,10 @@ app.patch(
 );
 
 app.get("/lists/:listId/items", async (c) => {
-  const listId = await resolveListId(c.req.param("listId"));
-  if (!listId) return c.json({ error: "Not found" }, 404);
+  const list = await resolveList(c.req.param("listId"));
+  if (!list) return c.json({ error: "Not found" }, 404);
   const rows = await db.query.items.findMany({
-    where: eq(items.listId, listId),
+    where: eq(items.listId, list.id),
     orderBy: (t, { asc }) => [asc(t.position), asc(t.createdAt)],
   });
   return c.json(rows);
@@ -92,12 +131,15 @@ app.post(
   "/lists/:listId/items",
   zValidator("json", z.object({ text: z.string().min(1).max(1000) })),
   async (c) => {
-    const listId = await resolveListId(c.req.param("listId"));
-    if (!listId) return c.json({ error: "Not found" }, 404);
+    const list = await resolveList(c.req.param("listId"));
+    if (!list) return c.json({ error: "Not found" }, 404);
+    const authUser = await getOptionalUser(c);
+    const userId = authUser?.session?.user?.id ?? null;
+    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
     const { text } = c.req.valid("json");
-    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, listId));
+    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, list.id));
     const position = (maxRow?.pos ?? -1) + 1;
-    const [item] = await db.insert(items).values({ listId, text, position }).returning();
+    const [item] = await db.insert(items).values({ listId: list.id, text, position }).returning();
     return c.json(item, 201);
   },
 );
@@ -106,14 +148,17 @@ app.patch(
   "/lists/:listId/items/:itemId",
   zValidator("json", z.object({ text: z.string().min(1).max(1000).optional(), done: z.boolean().optional() })),
   async (c) => {
-    const listId = await resolveListId(c.req.param("listId"));
-    if (!listId) return c.json({ error: "Not found" }, 404);
+    const list = await resolveList(c.req.param("listId"));
+    if (!list) return c.json({ error: "Not found" }, 404);
+    const authUser = await getOptionalUser(c);
+    const userId = authUser?.session?.user?.id ?? null;
+    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
     const itemId = c.req.param("itemId");
     const body = c.req.valid("json");
     const [updated] = await db
       .update(items)
       .set({ ...body, updatedAt: new Date() })
-      .where(and(eq(items.id, itemId), eq(items.listId, listId)))
+      .where(and(eq(items.id, itemId), eq(items.listId, list.id)))
       .returning();
     if (!updated) return c.json({ error: "Not found" }, 404);
     return c.json(updated);
@@ -121,23 +166,29 @@ app.patch(
 );
 
 app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
-  const listId = await resolveListId(c.req.param("listId"));
-  if (!listId) return c.json({ error: "Not found" }, 404);
+  const list = await resolveList(c.req.param("listId"));
+  if (!list) return c.json({ error: "Not found" }, 404);
+  const authUser = await getOptionalUser(c);
+  const userId = authUser?.session?.user?.id ?? null;
+  if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
   const itemId = c.req.param("itemId");
   const [updated] = await db
     .update(items)
     .set({ done: sql`NOT ${items.done}`, updatedAt: new Date() })
-    .where(and(eq(items.id, itemId), eq(items.listId, listId)))
+    .where(and(eq(items.id, itemId), eq(items.listId, list.id)))
     .returning();
   if (!updated) return c.json({ error: "Not found" }, 404);
   return c.json(updated);
 });
 
 app.delete("/lists/:listId/items/:itemId", async (c) => {
-  const listId = await resolveListId(c.req.param("listId"));
-  if (!listId) return c.json({ error: "Not found" }, 404);
+  const list = await resolveList(c.req.param("listId"));
+  if (!list) return c.json({ error: "Not found" }, 404);
+  const authUser = await getOptionalUser(c);
+  const userId = authUser?.session?.user?.id ?? null;
+  if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
   const itemId = c.req.param("itemId");
-  await db.delete(items).where(and(eq(items.id, itemId), eq(items.listId, listId)));
+  await db.delete(items).where(and(eq(items.id, itemId), eq(items.listId, list.id)));
   return c.body(null, 204);
 });
 
@@ -151,13 +202,16 @@ app.post(
     texts: z.array(z.string().min(1).max(1000)).min(1).max(BULK_ITEM_LIMIT),
   })),
   async (c) => {
-    const listId = await resolveListId(c.req.param("listId"));
-    if (!listId) return c.json({ error: "Not found" }, 404);
+    const list = await resolveList(c.req.param("listId"));
+    if (!list) return c.json({ error: "Not found" }, 404);
+    const authUser = await getOptionalUser(c);
+    const userId = authUser?.session?.user?.id ?? null;
+    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
     const { texts } = c.req.valid("json");
-    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, listId));
+    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, list.id));
     const basePosition = (maxRow?.pos ?? -1) + 1;
     const created = await db.insert(items).values(
-      texts.map((text, i) => ({ listId, text, position: basePosition + i })),
+      texts.map((text, i) => ({ listId: list.id, text, position: basePosition + i })),
     ).returning();
     return c.json(created, 201);
   },
