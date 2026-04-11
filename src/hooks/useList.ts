@@ -44,6 +44,25 @@ export function useUpdateName(listId: string) {
   });
 }
 
+export function useUpdateDescription(listId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (description: string | null) => listsService.update(listId, { description }),
+    onMutate: async (description) => {
+      await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
+      const previous = qc.getQueryData<List>(queryKeys.list(listId));
+      qc.setQueryData<List>(queryKeys.list(listId), (old) => old ? { ...old, description } : old);
+      return { previous };
+    },
+    onError: (_err, _val, ctx) => {
+      qc.setQueryData(queryKeys.list(listId), ctx?.previous);
+    },
+    onSettled: (updated) => {
+      if (updated) qc.setQueryData(queryKeys.list(listId), updated);
+    },
+  });
+}
+
 export function useUpdateSlug(listId: string) {
   const qc = useQueryClient();
   return useMutation({

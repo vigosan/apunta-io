@@ -47,6 +47,7 @@ app.patch(
   zValidator("json", z.object({
     name: z.string().min(1).max(200).optional(),
     slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional().nullable(),
+    description: z.string().max(500).optional().nullable(),
     public: z.boolean().optional(),
   })),
   async (c) => {
@@ -55,6 +56,7 @@ app.patch(
     const patch: Record<string, unknown> = {};
     if (body.name !== undefined) patch.name = body.name;
     if ("slug" in body) patch.slug = body.slug ?? null;
+    if ("description" in body) patch.description = body.description ?? null;
     if (body.public !== undefined) patch.public = body.public;
     try {
       const [updated] = await db
@@ -171,7 +173,7 @@ app.get("/explore", async (c) => {
   const where = cursor ? and(baseWhere, gt(lists.createdAt, new Date(cursor))) : baseWhere;
 
   const rows = await db
-    .select({ id: lists.id, name: lists.name, slug: lists.slug, createdAt: lists.createdAt, itemCount: count(items.id) })
+    .select({ id: lists.id, name: lists.name, slug: lists.slug, description: lists.description, createdAt: lists.createdAt, itemCount: count(items.id) })
     .from(lists)
     .leftJoin(items, eq(items.listId, lists.id))
     .where(where)

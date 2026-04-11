@@ -190,6 +190,58 @@ describe("DELETE /api/lists/:listId/items/:itemId", () => {
   });
 });
 
+describe("PATCH /api/lists/:listId", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("updates description and returns the list", async () => {
+    const updated = { id: "abc", name: "Lista", description: "Una descripción", slug: null, public: false };
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([updated]) }),
+      }),
+    });
+
+    const res = await app.request("/api/lists/abc", {
+      method: "PATCH",
+      body: JSON.stringify({ description: "Una descripción" }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.description).toBe("Una descripción");
+  });
+
+  it("returns 409 when slug is already taken", async () => {
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          returning: vi.fn().mockRejectedValue(Object.assign(new Error("unique"), { code: "23505" })),
+        }),
+      }),
+    });
+
+    const res = await app.request("/api/lists/abc", {
+      method: "PATCH",
+      body: JSON.stringify({ slug: "taken-slug" }),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    expect(res.status).toBe(409);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.error).toBe("slug_taken");
+  });
+
+  it("returns 400 when description exceeds 500 chars", async () => {
+    const res = await app.request("/api/lists/abc", {
+      method: "PATCH",
+      body: JSON.stringify({ description: "x".repeat(501) }),
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(res.status).toBe(400);
+  });
+});
+
 describe("POST /api/lists/:listId/items/bulk", () => {
   beforeEach(() => {
     vi.clearAllMocks();

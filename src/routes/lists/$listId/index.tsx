@@ -44,6 +44,7 @@ function ListDetailPage() {
     editingName, setEditingName, nameValue, setNameValue, updateName,
     editingSlug, setEditingSlug, slugValue, setSlugValue, slugError,
     startEditingSlug, handleSlugSubmit, updateSlug,
+    editingDescription, setEditingDescription, descriptionValue, setDescriptionValue, updateDescription,
     copied, handleShare,
     togglePublic,
   } = useListHeader({
@@ -161,6 +162,50 @@ function ListDetailPage() {
             </h1>
           )}
           </div>
+
+          {/* Description */}
+          {!listLoading && (
+            <div className="mt-2">
+              {editingDescription ? (
+                <textarea
+                  autoFocus
+                  value={descriptionValue}
+                  onChange={(e) => setDescriptionValue(e.target.value)}
+                  onBlur={() => {
+                    const trimmed = descriptionValue.trim();
+                    updateDescription.mutate(trimmed || null);
+                    setEditingDescription(false);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") { setEditingDescription(false); }
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      const trimmed = descriptionValue.trim();
+                      updateDescription.mutate(trimmed || null);
+                      setEditingDescription(false);
+                    }
+                  }}
+                  placeholder="Añade una descripción…"
+                  maxLength={500}
+                  rows={2}
+                  data-testid="description-textarea"
+                  className="w-full text-sm text-gray-600 leading-relaxed bg-transparent outline-none resize-none border-b border-gray-200 focus:border-gray-400 transition placeholder-gray-300"
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => { setDescriptionValue(list?.description ?? ""); setEditingDescription(true); }}
+                  data-testid="description-btn"
+                  className="w-full text-left text-sm leading-relaxed transition"
+                >
+                  {list?.description
+                    ? <span className="text-gray-500">{list.description}</span>
+                    : <span className="text-gray-300 hover:text-gray-400">Añade una descripción…</span>
+                  }
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Meta row */}
           <div className="flex items-center gap-2 mt-2 flex-wrap">

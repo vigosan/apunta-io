@@ -66,7 +66,10 @@ function ExplorePage() {
               <div key={list.id} className="flex items-center gap-4 py-3 px-2">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{list.name}</p>
-                  <p className="text-xs text-gray-400 tabular-nums mt-0.5">
+                  {list.description && (
+                    <p className="text-xs text-gray-400 truncate mt-0.5">{list.description}</p>
+                  )}
+                  <p className="text-xs text-gray-300 tabular-nums mt-0.5">
                     {list.itemCount} {list.itemCount === 1 ? "elemento" : "elementos"}
                   </p>
                 </div>

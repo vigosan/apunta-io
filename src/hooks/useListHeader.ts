@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useList, useUpdateName, useUpdateSlug, useTogglePublic } from "./useList";
+import { useList, useUpdateName, useUpdateSlug, useUpdateDescription, useTogglePublic } from "./useList";
 
 interface Options {
   listId: string;
@@ -13,10 +13,13 @@ export function useListHeader({ listId, onSlugUpdated }: Options) {
   const [editingSlug, setEditingSlug] = useState(false);
   const [slugValue, setSlugValue] = useState("");
   const [slugError, setSlugError] = useState("");
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState("");
   const [copied, setCopied] = useState(false);
 
   const updateName = useUpdateName(listId);
   const updateSlug = useUpdateSlug(listId);
+  const updateDescription = useUpdateDescription(listId);
   const togglePublic = useTogglePublic(listId);
 
   const handleShare = useCallback(() => {
@@ -56,6 +59,7 @@ export function useListHeader({ listId, onSlugUpdated }: Options) {
     editingName, setEditingName, nameValue, setNameValue, updateName,
     editingSlug, setEditingSlug, slugValue, setSlugValue, slugError,
     startEditingSlug, handleSlugSubmit, updateSlug,
+    editingDescription, setEditingDescription, descriptionValue, setDescriptionValue, updateDescription,
     copied, handleShare,
     togglePublic,
   };
