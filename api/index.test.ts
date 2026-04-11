@@ -14,6 +14,7 @@ const mockDb = {
 };
 
 vi.mock("../src/db/client", () => ({ db: mockDb }));
+vi.mock("@auth/drizzle-adapter", () => ({ DrizzleAdapter: () => ({}) }));
 
 const { app } = await import("./app");
 

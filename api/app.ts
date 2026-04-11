@@ -7,6 +7,7 @@ import { lists, items, participations } from "../src/db/schema/index.js";
 import { rateLimit } from "./rate-limit.js";
 import { authHandler, initAuthConfig, getAuthUser, verifyAuth } from "@hono/auth-js";
 import Google from "@auth/core/providers/google";
+import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import type { AuthUser } from "@hono/auth-js";
 
 export const app = new Hono().basePath("/api");
@@ -18,6 +19,7 @@ app.use(
   initAuthConfig((c) => ({
     secret: c.env?.AUTH_SECRET ?? process.env.AUTH_SECRET ?? "",
     basePath: "/api/auth",
+    adapter: DrizzleAdapter(db),
     providers: [
       Google({
         clientId: c.env?.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
@@ -26,8 +28,8 @@ app.use(
     ],
     session: { strategy: "jwt" },
     callbacks: {
-      jwt({ token, account }) {
-        if (account?.providerAccountId) token.sub = account.providerAccountId;
+      jwt({ token, user }) {
+        if (user?.id) token.sub = user.id;
         return token;
       },
       session({ session, token }) {
