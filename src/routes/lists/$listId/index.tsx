@@ -72,11 +72,11 @@ function ListDetailPage() {
     addItem.mutate({ text: trimmed }, { onSuccess: () => setNewItem("") });
   }
 
-  function handleShare() {
+  const handleShare = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
+  }, []);
 
   function startEditingSlug() {
     setSlugValue(list?.slug ?? "");
@@ -139,7 +139,7 @@ function ListDetailPage() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  const paletteActions: Action[] = [
+  const paletteActions: Action[] = useMemo(() => [
     { id: "add-item", label: "Añadir elemento", onSelect: () => addInputRef.current?.focus() },
     { id: "share", label: "Copiar enlace", onSelect: handleShare },
     {
@@ -158,7 +158,7 @@ function ListDetailPage() {
     { id: "filter-done", label: "Mostrar solo completados", onSelect: () => setStatusFilter("done") },
     ...(activeTag ? [{ id: "clear-filter", label: "Limpiar filtro de tags", onSelect: () => setActiveTag(null) }] : []),
     { id: "confetti", label: "Probar confetti", onSelect: fireConfetti },
-  ];
+  ], [list?.public, list?.name, allTags, activeTag, handleShare]);
 
   const doneCount = items.filter((i) => i.done).length;
   const progress = items.length > 0 ? (doneCount / items.length) * 100 : 0;
