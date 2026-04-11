@@ -2,6 +2,7 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tansta
 import { notFound } from "@tanstack/react-router";
 import { listsService } from "@/services/lists.service";
 import { queryKeys } from "@/lib/query-keys";
+import { POLLING_INTERVAL_MS } from "@/lib/constants";
 import type { List } from "@/db/schema";
 
 export function useList(listId: string) {
@@ -14,7 +15,7 @@ export function useList(listId: string) {
         throw notFound();
       }
     },
-    refetchInterval: 10_000,
+    refetchInterval: POLLING_INTERVAL_MS,
     refetchIntervalInBackground: false,
   });
 }

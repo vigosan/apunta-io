@@ -1,4 +1,4 @@
-const BULK_LIMIT = 100;
+import { BULK_ITEM_LIMIT as BULK_LIMIT } from "@/lib/constants";
 
 interface Props {
   texts: string[];

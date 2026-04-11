@@ -11,6 +11,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { tagColor } from "@/lib/tags";
 import { fireConfetti } from "@/lib/confetti";
+import { BULK_ITEM_LIMIT } from "@/lib/constants";
 
 const searchSchema = z.object({
   status: z.enum(["all", "pending", "done"]).optional().default("all"),
@@ -32,8 +33,6 @@ function ListDetailPage() {
   const [searchActive, setSearchActive] = useState(false);
   const addInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  const BULK_LIMIT = 100;
 
   function openSearch() {
     setSearchActive(true);
@@ -120,7 +119,7 @@ function ListDetailPage() {
     const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
     if (lines.length < 2) return;
     e.preventDefault();
-    setPendingBulk(lines.slice(0, BULK_LIMIT));
+    setPendingBulk(lines.slice(0, BULK_ITEM_LIMIT));
     setNewItem("");
   }
 
@@ -298,9 +297,11 @@ function ListDetailPage() {
                 )}
               </button>
 
+              <span aria-live="polite" className="sr-only">{copied ? "Enlace copiado" : ""}</span>
               <button
                 onClick={handleShare}
                 data-testid="share-btn"
+                aria-label={copied ? "Enlace copiado" : "Compartir enlace"}
                 title={copied ? "¡Copiado!" : "Compartir enlace"}
                 className="relative h-7 w-7 flex items-center justify-center rounded-md border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-700 transition active:scale-[0.96] overflow-hidden"
               >
