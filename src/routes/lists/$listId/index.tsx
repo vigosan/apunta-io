@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useList, useUpdateSlug, useUpdateName, useTogglePublic } from "@/hooks/useList";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem } from "@/hooks/useItems";
+import { useListHeader } from "@/hooks/useListHeader";
+import { useItemsFilter } from "@/hooks/useItemsFilter";
+import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { ItemRow } from "@/components/items/ItemRow";
 import { CommandPalette } from "@/components/CommandPalette";
-import type { Action } from "@/components/CommandPalette";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { parseTags, tagColor, getPartialTag } from "@/lib/tags";
+import { tagColor } from "@/lib/tags";
 import { fireConfetti } from "@/lib/confetti";
 
 const searchSchema = z.object({
@@ -25,13 +26,7 @@ function ListDetailPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { status: statusFilter, tag: activeTag } = Route.useSearch();
   const [newItem, setNewItem] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [editingSlug, setEditingSlug] = useState(false);
-  const [slugValue, setSlugValue] = useState("");
-  const [slugError, setSlugError] = useState("");
-  const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState("");
-  const [paletteOpen, setPaletteOpen] = useState(false);
+  const addInputRef = useRef<HTMLInputElement>(null);
 
   function setStatusFilter(s: "all" | "pending" | "done") {
     navigate({ search: (prev) => ({ ...prev, status: s === "all" ? undefined : s }), replace: true });
@@ -39,10 +34,18 @@ function ListDetailPage() {
   function setActiveTag(t: string | null) {
     navigate({ search: (prev) => ({ ...prev, tag: t ?? undefined }), replace: true });
   }
-  const sortedIdsRef = useRef<string[] | null>(null);
-  const addInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: list, isLoading: listLoading, refetch: refetchList } = useList(listId);
+  const {
+    list, listLoading, refetchList,
+    editingName, setEditingName, nameValue, setNameValue, updateName,
+    editingSlug, setEditingSlug, slugValue, setSlugValue, slugError,
+    startEditingSlug, handleSlugSubmit, updateSlug,
+    copied, handleShare,
+    togglePublic,
+  } = useListHeader({
+    listId,
+    onSlugUpdated: (updated) => navigate({ to: "/lists/$listId", params: { listId: updated.slug ?? updated.id } }),
+  });
 
   useEffect(() => {
     if (list?.name) document.title = `${list.name} — Welist`;
@@ -50,33 +53,39 @@ function ListDetailPage() {
   }, [list?.name]);
 
   const { data: items = [], isLoading: itemsLoading, refetch: refetchItems } = useItems(listId);
+
+  const { allTags, tagSuggestions, filteredItems, resetOrder } = useItemsFilter({
+    items,
+    itemsLoading,
+    statusFilter,
+    activeTag,
+    newItemText: newItem,
+  });
+
   const { containerRef: pullRef, pullDistance, refreshing } = usePullToRefresh(
     useCallback(async () => {
-      sortedIdsRef.current = null;
+      resetOrder();
       await Promise.all([refetchList(), refetchItems()]);
-    }, [refetchList, refetchItems]),
+    }, [resetOrder, refetchList, refetchItems]),
   );
 
-  const stableItems = useMemo(() => {
-    if (itemsLoading) return items;
-    if (sortedIdsRef.current === null && items.length > 0) {
-      sortedIdsRef.current = [...items].sort((a, b) => Number(a.done) - Number(b.done)).map((i) => i.id);
-    }
-    const sortedIds = sortedIdsRef.current;
-    if (!sortedIds) return items;
-    const byId = new Map(items.map((i) => [i.id, i]));
-    const sortedSet = new Set(sortedIds);
-    const inOrder = sortedIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
-    const newItems = items.filter((i) => !sortedSet.has(i.id));
-    return [...inOrder, ...newItems];
-  }, [items, itemsLoading]);
+  const { paletteOpen, setPaletteOpen, paletteActions } = useCommandPalette({
+    list,
+    allTags,
+    activeTag,
+    addInputRef,
+    handleShare,
+    setActiveTag,
+    setStatusFilter,
+    setNameValue,
+    setEditingName,
+    togglePublicMutate: (v) => togglePublic.mutate(v),
+  });
+
   const addItem = useAddItem(listId);
   const toggleItem = useToggleItem(listId);
   const deleteItem = useDeleteItem(listId);
   const updateItem = useUpdateItem(listId);
-  const updateSlug = useUpdateSlug(listId);
-  const updateName = useUpdateName(listId);
-  const togglePublic = useTogglePublic(listId);
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -85,104 +94,14 @@ function ListDetailPage() {
     addItem.mutate({ text: trimmed }, { onSuccess: () => setNewItem("") });
   }
 
-  const handleShare = useCallback(() => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
-
-  function startEditingSlug() {
-    setSlugValue(list?.slug ?? "");
-    setSlugError("");
-    setEditingSlug(true);
-  }
-
-  function handleSlugSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = slugValue.trim();
-    if (!trimmed) return;
-    if (trimmed === list?.slug) { setEditingSlug(false); return; }
-    setSlugError("");
-    updateSlug.mutate(trimmed, {
-      onSuccess: (updated) => {
-        setEditingSlug(false);
-        navigate({ to: "/lists/$listId", params: { listId: updated.slug ?? updated.id } });
-      },
-      onError: async (err: unknown) => {
-        const res = err instanceof Error && "response" in err ? (err as Error & { response: Response }).response : null;
-        const body: unknown = await res?.json().catch(() => ({})) ?? {};
-        const isSlugTaken = typeof body === "object" && body !== null && (body as Record<string, unknown>).error === "slug_taken";
-        setSlugError(isSlugTaken ? "Este slug ya está en uso" : "Error al guardar");
-      },
-    });
-  }
-
-  const allTags = useMemo(() => {
-    const seen = new Set<string>();
-    stableItems.forEach((i) => parseTags(i.text).tags.forEach((t) => seen.add(t)));
-    return [...seen].sort();
-  }, [stableItems]);
-
-  const partialTag = useMemo(() => getPartialTag(newItem), [newItem]);
-  const tagSuggestions = useMemo(
-    () => partialTag !== null ? allTags.filter((t) => t.startsWith(partialTag)) : [],
-    [partialTag, allTags],
-  );
-
-  function completeTag(tag: string) {
-    setNewItem((prev) => prev.replace(/#([a-zA-ZÀ-ÿ\w-]*)$/, `#${tag} `));
-    addInputRef.current?.focus();
-  }
-
-  const filteredItems = useMemo(
-    () => stableItems
-      .filter((i) => !statusFilter || statusFilter === "all" || (statusFilter === "pending" ? !i.done : i.done))
-      .filter((i) => !activeTag || parseTags(i.text).tags.includes(activeTag)),
-    [stableItems, statusFilter, activeTag],
-  );
-
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setPaletteOpen((o) => !o);
-      }
-    }
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const paletteActions: Action[] = useMemo(() => [
-    { id: "add-item", label: "Añadir elemento", onSelect: () => addInputRef.current?.focus() },
-    { id: "share", label: "Copiar enlace", onSelect: handleShare },
-    {
-      id: "toggle-public",
-      label: list?.public ? "Hacer privada" : "Hacer pública",
-      onSelect: () => togglePublic.mutate(!list?.public),
-    },
-    { id: "rename", label: "Cambiar nombre", onSelect: () => { setNameValue(list?.name ?? ""); setEditingName(true); } },
-    ...allTags.map((tag) => ({
-      id: `filter-${tag}`,
-      label: `Filtrar por #${tag}`,
-      onSelect: () => setActiveTag(activeTag === tag ? null : tag),
-    })),
-    { id: "filter-all", label: "Mostrar todos los elementos", onSelect: () => setStatusFilter("all") },
-    { id: "filter-pending", label: "Mostrar solo pendientes", onSelect: () => setStatusFilter("pending") },
-    { id: "filter-done", label: "Mostrar solo completados", onSelect: () => setStatusFilter("done") },
-    ...(activeTag ? [{ id: "clear-filter", label: "Limpiar filtro de tags", onSelect: () => setActiveTag(null) }] : []),
-    { id: "confetti", label: "Probar confetti", onSelect: fireConfetti },
-  ], [list?.public, list?.name, allTags, activeTag, handleShare]);
-
   const doneCount = items.filter((i) => i.done).length;
   const progress = items.length > 0 ? (doneCount / items.length) * 100 : 0;
-
   const prevProgress = useRef(0);
   useEffect(() => {
-    if (progress === 100 && prevProgress.current < 100 && items.length > 0) {
-      fireConfetti();
-    }
+    if (progress === 100 && prevProgress.current < 100 && items.length > 0) fireConfetti();
     prevProgress.current = progress;
   }, [progress, items.length]);
+
   const currentSlug = list?.slug ?? listId;
 
   return (
@@ -421,7 +340,10 @@ function ListDetailPage() {
                 <button
                   key={tag}
                   type="button"
-                  onClick={() => completeTag(tag)}
+                  onClick={() => {
+                    setNewItem((prev) => prev.replace(/#([a-zA-ZÀ-ÿ\w-]*)$/, `#${tag} `));
+                    addInputRef.current?.focus();
+                  }}
                   className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition active:scale-[0.96] ${tagColor(tag)}`}
                 >
                   #{tag}
