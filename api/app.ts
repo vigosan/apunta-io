@@ -31,8 +31,11 @@ app.use(
 app.use("/auth/*", authHandler());
 
 app.get("/debug-env", (c) => {
+  const secret = c.env?.AUTH_SECRET ?? process.env.AUTH_SECRET ?? "";
   return c.json({
-    hasSecret: !!(c.env?.AUTH_SECRET ?? process.env.AUTH_SECRET),
+    hasSecret: !!secret,
+    secretLen: secret.length,
+    secretHasNewline: secret.includes("\n"),
     hasClientId: !!(c.env?.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID),
     authUrl: c.env?.AUTH_URL ?? process.env.AUTH_URL ?? null,
   });
