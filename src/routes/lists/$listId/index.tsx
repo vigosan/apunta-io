@@ -26,7 +26,7 @@ function ListDetailPage() {
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "done">("all");
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [sortedIds, setSortedIds] = useState<string[] | null>(null);
+  const sortedIdsRef = useRef<string[] | null>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
 
   const { data: list, isLoading: listLoading, refetch: refetchList } = useList(listId);
@@ -39,27 +39,24 @@ function ListDetailPage() {
   const { data: items = [], isLoading: itemsLoading, refetch: refetchItems } = useItems(listId);
   const { containerRef: pullRef, pullDistance, refreshing } = usePullToRefresh(
     useCallback(async () => {
-      setSortedIds(null);
+      sortedIdsRef.current = null;
       await Promise.all([refetchList(), refetchItems()]);
     }, [refetchList, refetchItems]),
   );
 
-  useEffect(() => {
-    if (!itemsLoading && sortedIds === null && items.length > 0) {
-      setSortedIds(
-        [...items].sort((a, b) => Number(a.done) - Number(b.done)).map((i) => i.id),
-      );
-    }
-  }, [items, itemsLoading, sortedIds]);
-
   const stableItems = useMemo(() => {
+    if (itemsLoading) return items;
+    if (sortedIdsRef.current === null && items.length > 0) {
+      sortedIdsRef.current = [...items].sort((a, b) => Number(a.done) - Number(b.done)).map((i) => i.id);
+    }
+    const sortedIds = sortedIdsRef.current;
     if (!sortedIds) return items;
     const byId = new Map(items.map((i) => [i.id, i]));
     const sortedSet = new Set(sortedIds);
     const inOrder = sortedIds.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
     const newItems = items.filter((i) => !sortedSet.has(i.id));
     return [...inOrder, ...newItems];
-  }, [items, sortedIds]);
+  }, [items, itemsLoading]);
   const addItem = useAddItem(listId);
   const toggleItem = useToggleItem(listId);
   const deleteItem = useDeleteItem(listId);
