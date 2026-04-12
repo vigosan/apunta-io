@@ -37,7 +37,9 @@ function MyListCard({ list }: { list: List }) {
 }
 
 function MyListsPage() {
-  const { data: lists = [], isLoading } = useMyLists();
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists();
+
+  const lists = data?.pages.flatMap((p) => p.items) ?? [];
 
   return (
     <div className="h-dvh bg-white flex flex-col">
@@ -60,6 +62,19 @@ function MyListsPage() {
               {lists.map((list) => (
                 <MyListCard key={list.id} list={list} />
               ))}
+            </div>
+          )}
+
+          {hasNextPage && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                data-testid="load-more-btn"
+                className="cursor-pointer px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:border-gray-400 hover:text-gray-700 disabled:opacity-40 transition"
+              >
+                {isFetchingNextPage ? "Cargando…" : "Cargar más"}
+              </button>
             </div>
           )}
         </div>
