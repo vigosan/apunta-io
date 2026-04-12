@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useExplore, useExploreItems, useAcceptChallenge } from "@/hooks/useList";
 import { useSession, signIn } from "@hono/auth-js/react";
 import { AppNav } from "@/components/AppNav";
@@ -121,6 +121,22 @@ function ExplorePage() {
   const [search, setSearch] = useState("");
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useExplore(search || undefined);
   const acceptChallenge = useAcceptChallenge();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const lists = data?.pages.flatMap((p) => p.items) ?? [];
 
@@ -178,17 +194,9 @@ return (
             ))}
           </div>
 
-          {hasNextPage && (
-            <div className="mt-4 flex justify-center">
-              <button
-                onClick={() => fetchNextPage()}
-                disabled={isFetchingNextPage}
-                data-testid="load-more-btn"
-                className="cursor-pointer px-4 py-2 text-sm text-gray-500 border border-gray-200 rounded-lg hover:border-gray-400 hover:text-gray-700 disabled:opacity-40 transition"
-              >
-                {isFetchingNextPage ? "Cargando…" : "Cargar más"}
-              </button>
-            </div>
+          <div ref={sentinelRef} className="h-4" />
+          {isFetchingNextPage && (
+            <p className="text-sm text-gray-400 text-center py-4">Cargando…</p>
           )}
         </div>
       </div>
