@@ -61,7 +61,8 @@ app.get("/me", async (c) => {
 async function getOptionalUser(c: Parameters<typeof getAuthUser>[0]): Promise<AuthUser | null> {
   try {
     return await getAuthUser(c);
-  } catch {
+  } catch (e) {
+    console.error("[getOptionalUser] error:", e);
     return null;
   }
 }
