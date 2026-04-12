@@ -108,9 +108,13 @@ app.get("/my-lists", async (c) => {
   const userId = authUser?.session?.user?.id ?? null;
   if (!userId) return c.json({ error: "Unauthorized" }, 401);
   const cursor = c.req.query("cursor");
-  const where = cursor
-    ? and(eq(lists.ownerId, userId), lt(lists.createdAt, new Date(cursor)))
+  const q = c.req.query("q")?.trim();
+  const baseWhere = q
+    ? and(eq(lists.ownerId, userId), ilike(lists.name, `%${q}%`))
     : eq(lists.ownerId, userId);
+  const where = cursor
+    ? and(baseWhere, lt(lists.createdAt, new Date(cursor)))
+    : baseWhere;
   const rows = await db.query.lists.findMany({
     where,
     orderBy: (t, { desc }) => [desc(t.createdAt)],

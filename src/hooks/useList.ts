@@ -24,7 +24,7 @@ export function useCreateList() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (name: string) => listsService.create(name),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.myLists() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-lists"] }),
   });
 }
 
@@ -154,10 +154,10 @@ export function useExploreItems(listId: string, enabled: boolean) {
   });
 }
 
-export function useMyLists() {
+export function useMyLists(search?: string) {
   return useInfiniteQuery({
-    queryKey: queryKeys.myLists(),
-    queryFn: ({ pageParam }) => listsService.myLists(pageParam),
+    queryKey: queryKeys.myLists(search),
+    queryFn: ({ pageParam }) => listsService.myLists(pageParam, search),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
@@ -167,7 +167,7 @@ export function useDeleteList() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (listId: string) => listsService.remove(listId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.myLists() }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["my-lists"] }),
   });
 }
 

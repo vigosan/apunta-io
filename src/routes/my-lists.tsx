@@ -76,16 +76,40 @@ function MyListCard({ list }: { list: List }) {
 }
 
 function MyListsPage() {
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists();
+  const [q, setQ] = useState("");
+  const [search, setSearch] = useState("");
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists(search || undefined);
 
   const lists = data?.pages.flatMap((p) => p.items) ?? [];
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setSearch(q.trim());
+  }
 
   return (
     <div className="h-dvh bg-white flex flex-col">
       <AppNav />
 
       <div className="flex-1 flex flex-col w-full max-w-xl mx-auto overflow-hidden">
-        <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="px-4 pt-6 pb-4 shrink-0">
+          <form onSubmit={handleSearch} className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150">
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Buscar mis listas…"
+              data-testid="my-lists-search-input"
+              className="flex-1 pl-3 text-sm text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+            />
+            <button
+              type="submit"
+              className="cursor-pointer px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-xl hover:bg-black transition-[background-color] duration-150 active:scale-[0.96]"
+            >
+              Buscar
+            </button>
+          </form>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 pb-6">
           {isLoading && (
             <div className="flex flex-col gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -94,7 +118,9 @@ function MyListsPage() {
             </div>
           )}
           {!isLoading && lists.length === 0 && (
-            <p className="text-sm text-gray-400 py-10 text-center">Aún no tienes listas.</p>
+            <p className="text-sm text-gray-400 py-10 text-center">
+              {search ? "No hay listas con ese nombre." : "Aún no tienes listas."}
+            </p>
           )}
           {!isLoading && lists.length > 0 && (
             <div className="flex flex-col gap-3">
