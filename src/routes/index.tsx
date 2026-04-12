@@ -67,7 +67,7 @@ function HomePage() {
 
       <footer className="border-t border-gray-100 shrink-0">
         <div className="max-w-4xl mx-auto w-full px-6 py-4">
-          <span className="text-xs text-gray-300">© 2025 Welist</span>
+          <span className="text-xs text-gray-300">© 2025 Welist - Made with love, Rocio ❤️</span>
         </div>
       </footer>
     </div>
