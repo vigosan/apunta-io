@@ -33,7 +33,7 @@ export const participations = pgTable(
   "participations",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    sourceListId: uuid("source_list_id").notNull().references(() => lists.id),
+    sourceListId: uuid("source_list_id").references(() => lists.id, { onDelete: "set null" }),
     userListId: uuid("user_list_id").notNull().references(() => lists.id, { onDelete: "cascade" }),
     userId: text("user_id").notNull().references(() => users.id),
     completedAt: timestamp("completed_at", { withTimezone: true }),
