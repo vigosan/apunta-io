@@ -4,7 +4,7 @@ import { useMyLists, useDeleteList } from "@/hooks/useList";
 import { AppNav } from "@/components/AppNav";
 import type { List } from "@/db/schema/lists.schema";
 
-export const Route = createFileRoute("/my-lists")({
+export const Route = createFileRoute("/lists/")({
   component: MyListsPage,
 });
 

@@ -20,7 +20,7 @@ export function AppNav() {
           </Link>
           {session?.user && (
             <Link
-              to="/my-lists"
+              to="/lists"
               className="cursor-pointer px-3 py-2 text-sm text-gray-400 hover:text-gray-900 rounded-lg transition-colors duration-150"
             >
               Mis listas
