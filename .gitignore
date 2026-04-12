@@ -18,3 +18,5 @@ dist
 
 # tanstack router generated
 src/routeTree.gen.ts
+.vercel
+.env*.local

@@ -57,6 +57,18 @@ app.get("/me", async (c) => {
   return c.json(authUser?.session?.user ?? null);
 });
 
+app.get("/debug/:listId", async (c) => {
+  const authUser = await getOptionalUser(c);
+  const userId = authUser?.session?.user?.id ?? null;
+  const listId = c.req.param("listId");
+  const list = await resolveList(listId);
+  return c.json({
+    userId,
+    list,
+    canModify: list ? canModifyList(list, userId) : null,
+  });
+});
+
 
 async function getOptionalUser(c: Parameters<typeof getAuthUser>[0]): Promise<AuthUser | null> {
   try {
