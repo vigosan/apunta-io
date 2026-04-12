@@ -406,7 +406,7 @@ describe("GET /api/explore", () => {
   });
 
   it("returns nextCursor when results equal the limit", async () => {
-    const rows = Array.from({ length: 20 }, (_, i) => ({
+    const rows = Array.from({ length: 6 }, (_, i) => ({
       id: `l${i}`,
       name: `Lista ${i}`,
       slug: null,
@@ -557,5 +557,30 @@ describe("POST /api/lists/:listId/accept", () => {
   it("returns 401 when not authenticated", async () => {
     const res = await app.request("/api/lists/abc/accept", { method: "POST" });
     expect(res.status).toBe(401);
+  });
+});
+
+describe("DELETE /api/lists/:listId", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 404 when list not found", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue(null);
+
+    const res = await app.request("/api/lists/abc-123", { method: "DELETE" });
+    expect(res.status).toBe(404);
+  });
+
+  it("returns 403 when not authenticated", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc-123", ownerId: "owner-id" });
+
+    const res = await app.request("/api/lists/abc-123", { method: "DELETE" });
+    expect(res.status).toBe(403);
+  });
+
+  it("returns 403 when user does not own the list", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc-123", ownerId: "other-user-id" });
+
+    const res = await app.request("/api/lists/abc-123", { method: "DELETE" });
+    expect(res.status).toBe(403);
   });
 });

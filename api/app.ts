@@ -382,6 +382,17 @@ app.post("/lists/:listId/clone", async (c) => {
   return c.json(newList, 201);
 });
 
+app.delete("/lists/:listId", async (c) => {
+  const listId = c.req.param("listId");
+  const list = await db.query.lists.findFirst({ where: listWhere(listId), columns: { id: true, ownerId: true } });
+  if (!list) return c.json({ error: "Not found" }, 404);
+  const authUser = getOptionalUser(c);
+  const userId = authUser?.session?.user?.id ?? null;
+  if (!userId || list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
+  await db.delete(lists).where(eq(lists.id, list.id));
+  return c.body(null, 204);
+});
+
 app.post("/lists/:listId/accept", async (c) => {
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id;
