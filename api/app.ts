@@ -201,10 +201,13 @@ app.post(
   "/lists/:listId/items",
   zValidator("json", z.object({ text: z.string().min(1).max(1000) })),
   async (c) => {
+    console.log("[POST items] cookie:", c.req.header("cookie")?.slice(0, 80));
     const list = await resolveList(c.req.param("listId"));
+    console.log("[POST items] list:", JSON.stringify(list));
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = await getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
+    console.log("[POST items] userId:", userId, "ownerId:", list.ownerId, "canModify:", canModifyList(list, userId));
     if (!canModifyList(list, userId)) return c.json({ error: "Forbidden", debug: { userId, ownerId: list.ownerId, collaborative: list.collaborative } }, 403);
     const { text } = c.req.valid("json");
     const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, list.id));
