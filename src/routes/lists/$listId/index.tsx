@@ -173,8 +173,8 @@ function ListDetailPage() {
 
         {/* Header */}
         <div className="px-5 pt-5 pb-4 shrink-0">
-          <Link to="/" className="cursor-pointer text-xs text-gray-400 hover:text-gray-700 transition">
-            ← Welist
+          <Link to="/lists" className="cursor-pointer text-xs text-gray-400 hover:text-gray-700 transition">
+            ← Mis listas
           </Link>
           <div className="mt-4">
           {listLoading ? (
