@@ -35,6 +35,9 @@ export const listsService = {
   accept: (listId: string) =>
     apiClient<List>(`/api/lists/${listId}/accept`, { method: "POST" }),
 
+  remove: (listId: string) =>
+    apiClient<void>(`/api/lists/${listId}`, { method: "DELETE" }),
+
   myLists: (cursor?: string) => {
     const params = new URLSearchParams();
     if (cursor) params.set("cursor", cursor);

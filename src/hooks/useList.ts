@@ -163,6 +163,14 @@ export function useMyLists() {
   });
 }
 
+export function useDeleteList() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (listId: string) => listsService.remove(listId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.myLists() }),
+  });
+}
+
 export function useAcceptChallenge() {
   return useMutation({
     mutationFn: (listId: string) => listsService.accept(listId),
