@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { eq, max, sql, and, or, ilike, count, gt, inArray } from "drizzle-orm";
+import { eq, max, sql, and, or, ilike, count, gt, lt, inArray } from "drizzle-orm";
 import { db } from "../src/db/client.js";
 import { lists, items, participations, users } from "../src/db/schema/index.js";
 import { rateLimit } from "./rate-limit.js";
@@ -107,11 +107,19 @@ app.get("/my-lists", async (c) => {
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id ?? null;
   if (!userId) return c.json({ error: "Unauthorized" }, 401);
+  const cursor = c.req.query("cursor");
+  const where = cursor
+    ? and(eq(lists.ownerId, userId), lt(lists.createdAt, new Date(cursor)))
+    : eq(lists.ownerId, userId);
   const rows = await db.query.lists.findMany({
-    where: eq(lists.ownerId, userId),
+    where,
     orderBy: (t, { desc }) => [desc(t.createdAt)],
+    limit: MY_LISTS_PAGE_SIZE,
   });
-  return c.json(rows);
+  const nextCursor = rows.length === MY_LISTS_PAGE_SIZE
+    ? rows[rows.length - 1].createdAt.toISOString()
+    : null;
+  return c.json({ items: rows, nextCursor });
 });
 
 app.get("/lists/:listId", async (c) => {
@@ -270,7 +278,8 @@ app.delete(
   },
 );
 
-const EXPLORE_PAGE_SIZE = 20;
+const EXPLORE_PAGE_SIZE = 6;
+const MY_LISTS_PAGE_SIZE = 6;
 
 const BULK_ITEM_LIMIT = 100;
 

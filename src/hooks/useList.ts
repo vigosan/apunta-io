@@ -155,9 +155,11 @@ export function useExploreItems(listId: string, enabled: boolean) {
 }
 
 export function useMyLists() {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: queryKeys.myLists(),
-    queryFn: () => listsService.myLists(),
+    queryFn: ({ pageParam }) => listsService.myLists(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
 }
 

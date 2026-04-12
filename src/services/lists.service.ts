@@ -35,6 +35,10 @@ export const listsService = {
   accept: (listId: string) =>
     apiClient<List>(`/api/lists/${listId}/accept`, { method: "POST" }),
 
-  myLists: () =>
-    apiClient<List[]>("/api/my-lists"),
+  myLists: (cursor?: string) => {
+    const params = new URLSearchParams();
+    if (cursor) params.set("cursor", cursor);
+    const qs = params.toString();
+    return apiClient<{ items: List[]; nextCursor: string | null }>(`/api/my-lists${qs ? `?${qs}` : ""}`);
+  },
 };
