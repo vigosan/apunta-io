@@ -23,7 +23,7 @@ export function useAddItem(listId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ text }: { text: string }) => itemsService.add(listId, text),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.items(listId) }),
+    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.items(listId) }),
   });
 }
 
@@ -69,7 +69,7 @@ export function useBulkAddItems(listId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (texts: string[]) => itemsService.bulkAdd(listId, texts),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.items(listId) }),
+    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.items(listId) }),
   });
 }
 
