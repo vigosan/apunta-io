@@ -39,31 +39,42 @@ function MyListCard({ list }: { list: List }) {
     <Link
       to="/lists/$listId"
       params={{ listId: list.slug ?? list.id }}
-      className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 px-4 py-3.5 hover:border-gray-300 transition active:scale-[0.99]"
+      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-gray-300 transition active:scale-[0.99]"
       data-testid="my-list-card"
     >
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 leading-snug truncate">{list.name}</p>
-        {list.description && (
-          <p className="text-sm text-gray-400 mt-0.5 leading-snug line-clamp-1">{list.description}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          data-testid="delete-list-btn"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
-          className="cursor-pointer h-7 w-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6M14 11v6" />
-            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <div className="p-4 flex flex-col gap-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-gray-900 leading-snug">{list.name}</p>
+            {list.description && (
+              <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">{list.description}</p>
+            )}
+          </div>
+          <button
+            data-testid="delete-list-btn"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
+            className="cursor-pointer h-7 w-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 shrink-0"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {list.public && (
+            <span className="text-xs font-medium text-gray-500 px-2 py-1 bg-gray-50 rounded-lg">Pública</span>
+          )}
+          {list.collaborative && (
+            <span className="text-xs font-medium text-gray-500 px-2 py-1 bg-gray-50 rounded-lg">Colaborativa</span>
+          )}
+          <svg className="text-gray-200 w-4 h-4 shrink-0 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
           </svg>
-        </button>
-        <svg className="text-gray-300 w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
+        </div>
       </div>
     </Link>
   );
