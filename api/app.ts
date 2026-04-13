@@ -1,4 +1,4 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { eq, max, sql, and, or, ilike, count, gt, lt, inArray, desc } from "drizzle-orm";
@@ -9,7 +9,9 @@ import { authHandler, initAuthConfig, getAuthUser } from "@hono/auth-js";
 import Google from "@auth/core/providers/google";
 import type { AuthUser } from "@hono/auth-js";
 
-export const app = new Hono().basePath("/api");
+type Variables = { authUser: AuthUser | null };
+
+export const app = new Hono<{ Variables: Variables }>().basePath("/api");
 
 app.use(rateLimit({ limit: 120, windowMs: 60_000 }));
 
@@ -55,21 +57,27 @@ app.use("/auth/*", authHandler());
 app.use("*", async (c, next) => {
   try {
     const authUser = await getAuthUser(c);
-    c.set("authUser" as never, authUser);
+    c.set("authUser", authUser);
   } catch {
-    c.set("authUser" as never, null);
+    c.set("authUser", null);
   }
   await next();
 });
 
-function getOptionalUser(c: { get: (key: string) => unknown }): AuthUser | null {
-  return (c.get("authUser") as AuthUser | null) ?? null;
+function getOptionalUser(c: Context<{ Variables: Variables }>): AuthUser | null {
+  return c.get("authUser") ?? null;
 }
 
 app.get("/me", (c) => {
   const authUser = getOptionalUser(c);
   return c.json(authUser?.session?.user ?? null);
 });
+
+function isUniqueViolation(e: unknown): boolean {
+  if (typeof e !== "object" || e === null || !("code" in e)) return false;
+  const { code } = e as { code: unknown };
+  return code === "23505";
+}
 
 function canModifyList(list: { ownerId: string | null; collaborative: boolean }, userId: string | null): boolean {
   return list.ownerId === null || list.ownerId === userId || list.collaborative;
@@ -200,9 +208,7 @@ app.patch(
       if (!updated) return c.json({ error: "Not found" }, 404);
       return c.json(updated);
     } catch (e: unknown) {
-      if (typeof e === "object" && e !== null && (e as Record<string, unknown>).code === "23505") {
-        return c.json({ error: "slug_taken" }, 409);
-      }
+      if (isUniqueViolation(e)) return c.json({ error: "slug_taken" }, 409);
       throw e;
     }
   },
