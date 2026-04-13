@@ -12,66 +12,63 @@ function MyListCard({ list }: { list: List }) {
   const [confirming, setConfirming] = useState(false);
   const deleteList = useDeleteList();
 
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden" data-testid="my-list-card">
-      {list.coverUrl && (
-        <img src={list.coverUrl} alt="" className="w-full h-32 object-cover" />
-      )}
-
-      <div className="p-4 flex flex-col gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-gray-900 leading-snug">{list.name}</p>
-          {list.description && (
-            <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">{list.description}</p>
-          )}
-        </div>
-
-        <div className="pt-1 border-t border-gray-50">
-          {confirming ? (
-            <div className="flex items-center gap-2">
-              <span className="flex-1 text-xs text-gray-500">¿Borrar lista?</span>
-              <button
-                data-testid="delete-cancel-btn"
-                onClick={() => setConfirming(false)}
-                className="cursor-pointer px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:border-gray-400 hover:text-gray-700 transition active:scale-[0.96]"
-              >
-                No
-              </button>
-              <button
-                data-testid="delete-confirm-btn"
-                onClick={() => deleteList.mutate(list.id)}
-                disabled={deleteList.isPending}
-                className="cursor-pointer px-3 py-1.5 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-black disabled:opacity-50 transition active:scale-[0.96]"
-              >
-                Borrar
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Link
-                to="/lists/$listId"
-                params={{ listId: list.slug ?? list.id }}
-                className="cursor-pointer flex-1 py-2 text-xs font-medium text-center bg-gray-900 text-white rounded-xl hover:bg-black transition active:scale-[0.97]"
-              >
-                Ver lista
-              </Link>
-              <button
-                data-testid="delete-list-btn"
-                onClick={() => setConfirming(true)}
-                className="cursor-pointer h-8 w-8 flex items-center justify-center rounded-xl border border-gray-200 text-gray-400 hover:border-gray-400 hover:text-gray-700 transition active:scale-[0.96]"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                  <path d="M10 11v6M14 11v6" />
-                  <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
+  if (confirming) {
+    return (
+      <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-200 px-4 py-3" data-testid="my-list-card">
+        <span className="flex-1 text-sm text-gray-500 truncate">¿Borrar «{list.name}»?</span>
+        <button
+          data-testid="delete-cancel-btn"
+          onClick={() => setConfirming(false)}
+          className="cursor-pointer px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:border-gray-400 hover:text-gray-700 transition active:scale-[0.96]"
+        >
+          No
+        </button>
+        <button
+          data-testid="delete-confirm-btn"
+          onClick={() => deleteList.mutate(list.id)}
+          disabled={deleteList.isPending}
+          className="cursor-pointer px-3 py-1.5 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-black disabled:opacity-50 transition active:scale-[0.96]"
+        >
+          Borrar
+        </button>
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <Link
+      to="/lists/$listId"
+      params={{ listId: list.slug ?? list.id }}
+      className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 px-4 py-3.5 hover:border-gray-300 transition active:scale-[0.99]"
+      data-testid="my-list-card"
+    >
+      {list.coverUrl && (
+        <img src={list.coverUrl} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-gray-900 leading-snug truncate">{list.name}</p>
+        {list.description && (
+          <p className="text-sm text-gray-400 mt-0.5 leading-snug line-clamp-1">{list.description}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button
+          data-testid="delete-list-btn"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
+          className="cursor-pointer h-7 w-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
+        </button>
+        <svg className="text-gray-300 w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </div>
+    </Link>
   );
 }
 
@@ -117,7 +114,7 @@ function MyListsPage() {
       <AppNav />
 
       <div className="flex-1 flex flex-col w-full max-w-xl mx-auto overflow-hidden">
-        <div className="px-4 pt-6 pb-4 shrink-0">
+        <div className="px-4 pt-5 pb-3 shrink-0">
           <form onSubmit={handleSearch} className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150">
             <input
               value={q}
@@ -133,16 +130,16 @@ function MyListsPage() {
               Buscar
             </button>
           </form>
-          <div className="flex gap-1.5 mt-3" data-testid="sort-options">
+          <div className="flex gap-0 mt-3 border-b border-gray-100" data-testid="sort-options">
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 data-testid={`sort-${opt.value}`}
                 onClick={() => setSort(opt.value)}
-                className={`cursor-pointer px-3 py-1.5 text-xs font-medium rounded-lg border transition active:scale-[0.96] ${
+                className={`cursor-pointer px-3 py-1.5 text-xs font-medium transition -mb-px border-b-2 ${
                   sort === opt.value
-                    ? "bg-gray-900 text-white border-gray-900"
-                    : "border-gray-200 text-gray-500 bg-white hover:border-gray-400 hover:text-gray-700"
+                    ? "text-gray-900 border-gray-900"
+                    : "text-gray-400 border-transparent hover:text-gray-600"
                 }`}
               >
                 {opt.label}
@@ -152,9 +149,9 @@ function MyListsPage() {
         </div>
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           {isLoading && (
-            <div className="flex flex-col gap-3">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-28 rounded-2xl bg-gray-100 animate-pulse" />
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-16 rounded-2xl bg-gray-100 animate-pulse" />
               ))}
             </div>
           )}
@@ -164,7 +161,7 @@ function MyListsPage() {
             </p>
           )}
           {!isLoading && lists.length > 0 && (
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               {lists.map((list) => (
                 <MyListCard key={list.id} list={list} />
               ))}
