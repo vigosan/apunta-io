@@ -8,7 +8,6 @@ vi.mock("./useList", () => ({
   useUpdateName: vi.fn(),
   useUpdateSlug: vi.fn(),
   useUpdateDescription: vi.fn(),
-  useUpdateCoverUrl: vi.fn(),
   useTogglePublic: vi.fn(),
 }));
 
@@ -21,12 +20,11 @@ import {
   useUpdateName,
   useUpdateSlug,
   useUpdateDescription,
-  useUpdateCoverUrl,
   useTogglePublic,
 } from "./useList";
 
 const LIST: List = {
-  id: "l1", name: "Mi lista", slug: "mi-lista", description: null, coverUrl: null,
+  id: "l1", name: "Mi lista", slug: "mi-lista", description: null,
   public: false, collaborative: false, ownerId: null, createdAt: new Date(),
 };
 
@@ -35,7 +33,6 @@ function setupMocks(mutateFn = vi.fn()) {
   vi.mocked(useUpdateName).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
   vi.mocked(useUpdateSlug).mockReturnValue({ mutate: mutateFn, isPending: false } as never);
   vi.mocked(useUpdateDescription).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
-  vi.mocked(useUpdateCoverUrl).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
   vi.mocked(useTogglePublic).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
 }
 
@@ -50,7 +47,6 @@ describe("useListHeader", () => {
     expect(result.current.editingName).toBe(false);
     expect(result.current.editingSlug).toBe(false);
     expect(result.current.editingDescription).toBe(false);
-    expect(result.current.editingCoverUrl).toBe(false);
   });
 
   it("startEditingSlug opens slug edit with current value", () => {

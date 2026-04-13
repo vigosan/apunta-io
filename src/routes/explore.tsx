@@ -23,10 +23,6 @@ function ExploreListCard({ list, onAccept, acceptPending }: {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-      {list.coverUrl && (
-        <img src={list.coverUrl} alt="" className="w-full h-32 object-cover" />
-      )}
-
       <div className="p-4 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">

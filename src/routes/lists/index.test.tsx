@@ -13,11 +13,11 @@ import { useMyLists, useDeleteList } from "@/hooks/useList";
 import { useSession } from "@hono/auth-js/react";
 
 const LIST_A: List = {
-  id: "l1", name: "Lista A", slug: null, description: null, coverUrl: null,
+  id: "l1", name: "Lista A", slug: null, description: null,
   public: false, collaborative: false, ownerId: "u1", createdAt: new Date(),
 };
 const LIST_B: List = {
-  id: "l2", name: "Lista B", slug: "lista-b", description: "Desc", coverUrl: null,
+  id: "l2", name: "Lista B", slug: "lista-b", description: "Desc",
   public: true, collaborative: false, ownerId: "u1", createdAt: new Date(),
 };
 

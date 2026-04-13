@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useList, useUpdateName, useUpdateSlug, useUpdateDescription, useUpdateCoverUrl, useTogglePublic } from "./useList";
+import { useList, useUpdateName, useUpdateSlug, useUpdateDescription, useTogglePublic } from "./useList";
 import { useTranslation } from "@/i18n/service";
 import type { ApiError } from "@/lib/api-client";
 
@@ -18,14 +18,11 @@ export function useListHeader({ listId, onSlugUpdated }: Options) {
   const [slugError, setSlugError] = useState("");
   const [editingDescription, setEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState("");
-  const [editingCoverUrl, setEditingCoverUrl] = useState(false);
-  const [coverUrlValue, setCoverUrlValue] = useState("");
   const [copied, setCopied] = useState(false);
 
   const updateName = useUpdateName(listId);
   const updateSlug = useUpdateSlug(listId);
   const updateDescription = useUpdateDescription(listId);
-  const updateCoverUrl = useUpdateCoverUrl(listId);
   const togglePublic = useTogglePublic(listId);
 
   const handleShare = useCallback(() => {
@@ -66,7 +63,6 @@ export function useListHeader({ listId, onSlugUpdated }: Options) {
     editingSlug, setEditingSlug, slugValue, setSlugValue, slugError,
     startEditingSlug, handleSlugSubmit, updateSlug,
     editingDescription, setEditingDescription, descriptionValue, setDescriptionValue, updateDescription,
-    editingCoverUrl, setEditingCoverUrl, coverUrlValue, setCoverUrlValue, updateCoverUrl,
     copied, handleShare,
     togglePublic,
   };

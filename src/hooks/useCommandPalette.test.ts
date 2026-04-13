@@ -6,7 +6,7 @@ import type { List } from "@/db/schema";
 vi.mock("@/lib/confetti", () => ({ fireConfetti: vi.fn() }));
 
 const LIST: List = {
-  id: "l1", name: "Mi lista", slug: null, description: null, coverUrl: null,
+  id: "l1", name: "Mi lista", slug: null, description: null,
   public: false, collaborative: false, ownerId: null, createdAt: new Date(),
 };
 

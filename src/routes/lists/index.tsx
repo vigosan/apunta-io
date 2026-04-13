@@ -39,34 +39,33 @@ function MyListCard({ list }: { list: List }) {
     <Link
       to="/lists/$listId"
       params={{ listId: list.slug ?? list.id }}
-      className="group flex items-center gap-3 bg-white rounded-2xl border border-gray-100 px-4 py-3.5 hover:border-gray-300 transition active:scale-[0.99]"
+      className="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:border-gray-300 transition active:scale-[0.99]"
       data-testid="my-list-card"
     >
-      {list.coverUrl && (
-        <img src={list.coverUrl} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0" />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 leading-snug truncate">{list.name}</p>
-        {list.description && (
-          <p className="text-sm text-gray-400 mt-0.5 leading-snug line-clamp-1">{list.description}</p>
-        )}
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <button
-          data-testid="delete-list-btn"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
-          className="cursor-pointer h-7 w-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="3 6 5 6 21 6" />
-            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-            <path d="M10 11v6M14 11v6" />
-            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <div className="p-4 flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-gray-900 leading-snug">{list.name}</p>
+          {list.description && (
+            <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">{list.description}</p>
+          )}
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            data-testid="delete-list-btn"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
+            className="cursor-pointer h-7 w-7 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          </button>
+          <svg className="text-gray-300 w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 18l6-6-6-6" />
           </svg>
-        </button>
-        <svg className="text-gray-300 w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 18l6-6-6-6" />
-        </svg>
+        </div>
       </div>
     </Link>
   );
@@ -161,7 +160,7 @@ function MyListsPage() {
             </p>
           )}
           {!isLoading && lists.length > 0 && (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {lists.map((list) => (
                 <MyListCard key={list.id} list={list} />
               ))}
