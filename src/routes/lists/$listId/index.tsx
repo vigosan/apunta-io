@@ -65,7 +65,6 @@ function ListDetailPage() {
     editingSlug, setEditingSlug, slugValue, setSlugValue, slugError,
     startEditingSlug, handleSlugSubmit, updateSlug,
     editingDescription, setEditingDescription, descriptionValue, setDescriptionValue, updateDescription,
-    editingCoverUrl, setEditingCoverUrl, coverUrlValue, setCoverUrlValue, updateCoverUrl,
     copied, handleShare,
     togglePublic,
   } = useListHeader({
@@ -154,24 +153,6 @@ function ListDetailPage() {
     <>
     <div className="h-dvh bg-[#FAFAF8] flex flex-col sm:items-center sm:p-6">
       <div className="flex-1 flex flex-col w-full sm:max-w-xl bg-white sm:rounded-3xl sm:border sm:border-gray-100 overflow-hidden">
-
-        {list?.coverUrl && (
-          <div className="relative shrink-0">
-            <img src={list.coverUrl} alt="" className="w-full h-40 object-cover" />
-            {isOwner && (
-              <button
-                type="button"
-                onClick={() => { setCoverUrlValue(list.coverUrl ?? ""); setEditingCoverUrl(true); }}
-                className="cursor-pointer absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 bg-black/40 hover:bg-black/60 text-white text-xs rounded-lg backdrop-blur-sm transition"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-                {t("list.changeCoverBtn")}
-              </button>
-            )}
-          </div>
-        )}
 
         <div className="px-5 pt-5 pb-4 shrink-0">
           <Link to="/lists" className="cursor-pointer text-xs text-gray-400 hover:text-gray-700 transition">
@@ -271,44 +252,6 @@ function ListDetailPage() {
                     </button>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-
-          {!listLoading && isOwner && (
-            <div className="mt-2">
-              {editingCoverUrl ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    const trimmed = coverUrlValue.trim();
-                    updateCoverUrl.mutate(trimmed || null);
-                    setEditingCoverUrl(false);
-                  }}
-                  className="flex items-center gap-1"
-                >
-                  <input
-                    autoFocus
-                    type="url"
-                    value={coverUrlValue}
-                    onChange={(e) => setCoverUrlValue(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Escape") setEditingCoverUrl(false); }}
-                    placeholder="https://…"
-                    data-testid="cover-url-input"
-                    className="flex-1 text-xs text-gray-700 bg-white border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-gray-400 transition"
-                  />
-                  <button type="submit" disabled={updateCoverUrl.isPending} className="cursor-pointer text-xs text-gray-500 hover:text-gray-900 transition disabled:opacity-40 p-1">✓</button>
-                  <button type="button" onClick={() => setEditingCoverUrl(false)} className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition p-1">✕</button>
-                </form>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => { setCoverUrlValue(list?.coverUrl ?? ""); setEditingCoverUrl(true); }}
-                  data-testid="cover-url-btn"
-                  className="cursor-pointer text-xs text-gray-300 hover:text-gray-500 transition"
-                >
-                  {list?.coverUrl ? t("list.changeCover") : t("list.addCover")}
-                </button>
               )}
             </div>
           )}

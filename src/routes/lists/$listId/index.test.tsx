@@ -27,7 +27,6 @@ const LIST: List = {
   name: "Mi lista",
   slug: null,
   description: null,
-  coverUrl: null,
   public: false,
   collaborative: false,
   ownerId: null,
@@ -102,8 +101,6 @@ function setupMocks({
     updateSlug: { mutate: vi.fn(), isPending: false } as never,
     editingDescription: false, setEditingDescription: vi.fn(), descriptionValue: "", setDescriptionValue: vi.fn(),
     updateDescription: { mutate: vi.fn(), isPending: false } as never,
-    editingCoverUrl: false, setEditingCoverUrl: vi.fn(), coverUrlValue: "", setCoverUrlValue: vi.fn(),
-    updateCoverUrl: { mutate: vi.fn(), isPending: false } as never,
     copied: false, handleShare: vi.fn(),
     togglePublic: { mutate: vi.fn(), isPending: false } as never,
   });
