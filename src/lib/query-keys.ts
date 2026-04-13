@@ -3,5 +3,5 @@ export const queryKeys = {
   items: (listId: string) => ["items", listId] as const,
   explore: (q?: string) => ["explore", q ?? ""] as const,
   exploreItems: (listId: string) => ["explore-items", listId] as const,
-  myLists: (q?: string) => ["my-lists", q ?? ""] as const,
+  myLists: (q?: string, sort?: string) => ["my-lists", q ?? "", sort ?? "recent"] as const,
 };

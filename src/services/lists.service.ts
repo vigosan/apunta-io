@@ -38,10 +38,11 @@ export const listsService = {
   remove: (listId: string) =>
     apiClient<void>(`/api/lists/${listId}`, { method: "DELETE" }),
 
-  myLists: (cursor?: string, q?: string) => {
+  myLists: (cursor?: string, q?: string, sort?: string) => {
     const params = new URLSearchParams();
     if (cursor) params.set("cursor", cursor);
     if (q) params.set("q", q);
+    if (sort) params.set("sort", sort);
     const qs = params.toString();
     return apiClient<{ items: List[]; nextCursor: string | null }>(`/api/my-lists${qs ? `?${qs}` : ""}`);
   },

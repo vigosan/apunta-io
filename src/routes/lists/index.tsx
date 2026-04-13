@@ -75,10 +75,19 @@ function MyListCard({ list }: { list: List }) {
   );
 }
 
+type SortOption = "recent" | "created_desc" | "created_asc";
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: "recent", label: "Recientes" },
+  { value: "created_desc", label: "Más nuevas" },
+  { value: "created_asc", label: "Más antiguas" },
+];
+
 function MyListsPage() {
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists(search || undefined);
+  const [sort, setSort] = useState<SortOption>("recent");
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists(search || undefined, sort);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -124,6 +133,22 @@ function MyListsPage() {
               Buscar
             </button>
           </form>
+          <div className="flex gap-1.5 mt-3" data-testid="sort-options">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                data-testid={`sort-${opt.value}`}
+                onClick={() => setSort(opt.value)}
+                className={`cursor-pointer px-3 py-1.5 text-xs font-medium rounded-lg border transition active:scale-[0.96] ${
+                  sort === opt.value
+                    ? "bg-gray-900 text-white border-gray-900"
+                    : "border-gray-200 text-gray-500 bg-white hover:border-gray-400 hover:text-gray-700"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           {isLoading && (

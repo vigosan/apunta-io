@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { eq, max, sql, and, or, ilike, count, gt, lt, inArray } from "drizzle-orm";
+import { eq, max, sql, and, or, ilike, count, gt, lt, inArray, desc } from "drizzle-orm";
 import { db } from "../src/db/client.js";
 import { lists, items, participations, users } from "../src/db/schema/index.js";
 import { rateLimit } from "./rate-limit.js";
@@ -109,15 +109,46 @@ app.get("/my-lists", async (c) => {
   if (!userId) return c.json({ error: "Unauthorized" }, 401);
   const cursor = c.req.query("cursor");
   const q = c.req.query("q")?.trim();
+  const sort = c.req.query("sort") ?? "recent";
   const baseWhere = q
     ? and(eq(lists.ownerId, userId), ilike(lists.name, `%${q}%`))
     : eq(lists.ownerId, userId);
+
+  if (sort === "recent") {
+    const activityExpr = sql<Date>`coalesce(max(${items.updatedAt}), ${lists.createdAt})`;
+    const rows = await db
+      .select({
+        id: lists.id,
+        name: lists.name,
+        slug: lists.slug,
+        description: lists.description,
+        coverUrl: lists.coverUrl,
+        public: lists.public,
+        collaborative: lists.collaborative,
+        ownerId: lists.ownerId,
+        createdAt: lists.createdAt,
+        lastActivity: activityExpr,
+      })
+      .from(lists)
+      .leftJoin(items, eq(items.listId, lists.id))
+      .where(baseWhere)
+      .groupBy(lists.id)
+      .having(cursor ? lt(activityExpr, new Date(cursor)) : undefined)
+      .orderBy(desc(activityExpr))
+      .limit(MY_LISTS_PAGE_SIZE);
+    const nextCursor = rows.length === MY_LISTS_PAGE_SIZE
+      ? new Date(rows[rows.length - 1].lastActivity).toISOString()
+      : null;
+    return c.json({ items: rows.map(({ lastActivity: _la, ...list }) => list), nextCursor });
+  }
+
+  const isAsc = sort === "created_asc";
   const where = cursor
-    ? and(baseWhere, lt(lists.createdAt, new Date(cursor)))
+    ? and(baseWhere, isAsc ? gt(lists.createdAt, new Date(cursor)) : lt(lists.createdAt, new Date(cursor)))
     : baseWhere;
   const rows = await db.query.lists.findMany({
     where,
-    orderBy: (t, { desc }) => [desc(t.createdAt)],
+    orderBy: (t, { asc, desc }) => [isAsc ? asc(t.createdAt) : desc(t.createdAt)],
     limit: MY_LISTS_PAGE_SIZE,
   });
   const nextCursor = rows.length === MY_LISTS_PAGE_SIZE

@@ -154,10 +154,10 @@ export function useExploreItems(listId: string, enabled: boolean) {
   });
 }
 
-export function useMyLists(search?: string) {
+export function useMyLists(search?: string, sort?: string) {
   return useInfiniteQuery({
-    queryKey: queryKeys.myLists(search),
-    queryFn: ({ pageParam }) => listsService.myLists(pageParam, search),
+    queryKey: queryKeys.myLists(search, sort),
+    queryFn: ({ pageParam }) => listsService.myLists(pageParam, search, sort),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
   });
