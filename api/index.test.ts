@@ -457,7 +457,7 @@ describe("GET /api/explore/:listId", () => {
   it("returns 200 with full detail for a public list", async () => {
     mockDb.query.lists.findFirst.mockResolvedValue(publicList);
     mockDb.select
-      .mockReturnValueOnce(statsChain({ itemCount: 3, participantCount: 5, completedCount: 2, ownerName: "Alice", ownerImage: "https://example.com/a.jpg" }))
+      .mockReturnValueOnce(statsChain({ itemCount: 3, participantCount: 5, ownerName: "Alice", ownerImage: "https://example.com/a.jpg" }))
       .mockReturnValueOnce(simpleChain([{ image: "https://example.com/b.jpg", name: "Bob" }]))
       .mockReturnValueOnce(countChain(5));
 
@@ -467,7 +467,7 @@ describe("GET /api/explore/:listId", () => {
     expect(body.id).toBe("l1");
     expect(body.itemCount).toBe(3);
     expect(body.participantCount).toBe(5);
-    expect(body.completedCount).toBe(2);
+    expect(body.completedCount).toBeUndefined();
     expect((body.owner as Record<string, unknown>)?.name).toBe("Alice");
     expect(Array.isArray(body.participants)).toBe(true);
   });
@@ -488,7 +488,7 @@ describe("GET /api/explore/:listId", () => {
     mockDb.query.lists.findFirst.mockResolvedValue(publicList);
     const participants = Array.from({ length: 6 }, (_, i) => ({ image: `https://example.com/${i}.jpg`, name: `User ${i}` }));
     mockDb.select
-      .mockReturnValueOnce(statsChain({ itemCount: 1, participantCount: 10, completedCount: 0, ownerName: null, ownerImage: null }))
+      .mockReturnValueOnce(statsChain({ itemCount: 1, participantCount: 10, ownerName: null, ownerImage: null }))
       .mockReturnValueOnce(simpleChain(participants))
       .mockReturnValueOnce(countChain(10));
 
@@ -577,6 +577,21 @@ describe("GET /api/explore/:listId/items", () => {
     const body = await res.json() as Array<Record<string, unknown>>;
     expect(body).toHaveLength(1);
     expect(body[0].text).toBe("Tarea 1");
+  });
+
+  it("does not expose done status in explore items", async () => {
+    const rows = [
+      { id: "i1", listId: "abc", text: "Tarea 1", done: true, position: 0 },
+      { id: "i2", listId: "abc", text: "Tarea 2", done: false, position: 1 },
+    ];
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", public: true });
+    mockDb.query.items.findMany.mockResolvedValue(rows);
+
+    const res = await app.request("/api/explore/abc/items");
+    expect(res.status).toBe(200);
+    const body = await res.json() as Array<Record<string, unknown>>;
+    expect(body[0].done).toBeUndefined();
+    expect(body[1].done).toBeUndefined();
   });
 
   it("returns 404 when list is not public", async () => {

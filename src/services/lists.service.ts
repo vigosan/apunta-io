@@ -5,7 +5,7 @@ export type ExploreItem = Pick<List, "id" | "name" | "slug" | "description" | "c
   itemCount: number;
   participantCount: number;
   completedCount: number;
-  ownerImage: string | null;
+  owner: { image: string | null } | null;
 };
 
 export type ExploreDetail = {
@@ -17,7 +17,6 @@ export type ExploreDetail = {
   owner: { name: string | null; image: string | null } | null;
   itemCount: number;
   participantCount: number;
-  completedCount: number;
   participants: Array<{ image: string | null; name: string | null }>;
 };
 

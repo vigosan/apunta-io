@@ -378,7 +378,13 @@ app.get("/explore", async (c) => {
     ? rows[rows.length - 1].createdAt.toISOString()
     : null;
 
-  return c.json({ items: rows, nextCursor });
+  const exploreItems = rows.map(({ ownerImage, completedCount, ...row }) => ({
+    ...row,
+    completedCount,
+    owner: ownerImage ? { image: ownerImage } : null,
+  }));
+
+  return c.json({ items: exploreItems, nextCursor });
 });
 
 app.get("/explore/:listId", async (c) => {
@@ -393,7 +399,6 @@ app.get("/explore/:listId", async (c) => {
     .select({
       itemCount: count(items.id),
       participantCount: sql<number>`cast(count(distinct ${participations.id}) as int)`,
-      completedCount: sql<number>`cast(count(distinct case when ${participations.completedAt} is not null then ${participations.id} end) as int)`,
       ownerName: users.name,
       ownerImage: users.image,
     })
@@ -429,7 +434,6 @@ app.get("/explore/:listId", async (c) => {
     owner,
     itemCount: stats?.itemCount ?? 0,
     participantCount: totalParticipants[0]?.count ?? 0,
-    completedCount: stats?.completedCount ?? 0,
     participants: participantRows,
   });
 });
@@ -445,7 +449,7 @@ app.get("/explore/:listId/items", async (c) => {
     where: eq(items.listId, list.id),
     orderBy: (t, { asc }) => [asc(t.position), asc(t.createdAt)],
   });
-  return c.json(rows);
+  return c.json(rows.map(({ done: _done, ...item }) => item));
 });
 
 app.post("/lists/:listId/clone", async (c) => {

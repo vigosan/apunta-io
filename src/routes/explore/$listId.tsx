@@ -30,8 +30,6 @@ function ExploreDetailPage() {
   const extraParticipants = totalParticipants - shownParticipants.length;
 
   const itemCount = detail?.itemCount ?? 0;
-  const completedCount = detail?.completedCount ?? 0;
-  const progressPct = itemCount > 0 ? Math.round((completedCount / itemCount) * 100) : 0;
 
   if (isLoading) {
     return (
@@ -102,12 +100,6 @@ function ExploreDetailPage() {
             </svg>
             <span className="text-xs font-medium text-gray-500 tabular-nums">{totalParticipants}</span>
           </div>
-          <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
-            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-xs font-medium text-gray-500 tabular-nums">{completedCount}</span>
-          </div>
         </div>
 
         {shownParticipants.length > 0 && (
@@ -141,19 +133,6 @@ function ExploreDetailPage() {
           </div>
         )}
 
-        {itemCount > 0 && (
-          <div className="flex flex-col gap-1">
-            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gray-900 rounded-full transition-[width] duration-300"
-                style={{ width: `${progressPct}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-400">
-              {t("explore.progressLabel", { done: String(completedCount), total: String(itemCount) })}
-            </p>
-          </div>
-        )}
 
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
           <div className="px-4 py-3">
@@ -167,16 +146,8 @@ function ExploreDetailPage() {
               <ul className="divide-y divide-gray-50">
                 {exploreItems.map((item) => (
                   <li key={item.id} className="flex items-center gap-3 py-2.5">
-                    <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center ${item.done ? "bg-gray-900 border-gray-900" : "border-gray-300"}`}>
-                      {item.done && (
-                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </span>
-                    <span className={`text-sm ${item.done ? "line-through text-gray-400" : "text-gray-700"}`}>
-                      {item.text}
-                    </span>
+                    <span className="w-4 h-4 rounded border shrink-0 border-gray-300" />
+                    <span className="text-sm text-gray-700">{item.text}</span>
                   </li>
                 ))}
               </ul>

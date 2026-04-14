@@ -33,8 +33,8 @@ function ExploreListCard({ list, onAccept, acceptPending }: {
               <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">{list.description}</p>
             )}
           </div>
-          {list.ownerImage && (
-            <img src={list.ownerImage} alt="" className="w-7 h-7 rounded-full shrink-0 outline outline-1 outline-black/10" />
+          {list.owner?.image && (
+            <img src={list.owner.image} alt="" className="w-7 h-7 rounded-full shrink-0 outline outline-1 outline-black/10" />
           )}
         </Link>
 

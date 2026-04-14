@@ -14,11 +14,11 @@ import { useSession, signIn } from "@hono/auth-js/react";
 
 const EXPLORE_A: ExploreItem = {
   id: "e1", name: "Lista Explorar A", slug: null, description: null,
-  createdAt: new Date(), itemCount: 5, participantCount: 3, completedCount: 1, ownerImage: null,
+  createdAt: new Date(), itemCount: 5, participantCount: 3, completedCount: 1, owner: null,
 };
 const EXPLORE_B: ExploreItem = {
   id: "e2", name: "Lista Explorar B", slug: "lista-b", description: "Desc",
-  createdAt: new Date(), itemCount: 2, participantCount: 0, completedCount: 0, ownerImage: null,
+  createdAt: new Date(), itemCount: 2, participantCount: 0, completedCount: 0, owner: null,
 };
 
 function renderPage() {
