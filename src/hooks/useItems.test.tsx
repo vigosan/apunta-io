@@ -20,8 +20,8 @@ import { itemsService } from "@/services/items.service";
 
 const LIST_ID = "list-1";
 
-const ITEM_A: Item = { id: "i1", listId: LIST_ID, text: "Tarea A", done: false, position: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-const ITEM_B: Item = { id: "i2", listId: LIST_ID, text: "Tarea B", done: true,  position: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+const ITEM_A: Item = { id: "i1", listId: LIST_ID, text: "Tarea A", done: false, position: 0, createdAt: new Date(), updatedAt: new Date() };
+const ITEM_B: Item = { id: "i2", listId: LIST_ID, text: "Tarea B", done: true,  position: 1, createdAt: new Date(), updatedAt: new Date() };
 
 function makeWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

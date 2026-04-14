@@ -46,6 +46,9 @@ const es = {
     addItem: "Añadir",
     expandMore: "ver más",
     expandLess: "ver menos",
+    challengeInProgress: "Estás haciendo este reto",
+    challengeCompleted: "¡Reto completado!",
+    canContribute: "Puedes añadir elementos",
   },
   myLists: {
     searchPlaceholder: "Buscar mis listas…",

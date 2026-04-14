@@ -3,10 +3,10 @@ import { notFound } from "@tanstack/react-router";
 import { listsService } from "@/services/lists.service";
 import { queryKeys } from "@/lib/query-keys";
 import { POLLING_INTERVAL_MS } from "@/lib/constants";
-import type { List } from "@/db/schema";
+import type { ListWithParticipation } from "@/services/lists.service";
 
 export function useList(listId: string) {
-  return useQuery({
+  return useQuery<ListWithParticipation>({
     queryKey: queryKeys.list(listId),
     queryFn: async () => {
       try {
@@ -35,8 +35,8 @@ export function useUpdateName(listId: string) {
     mutationFn: (name: string) => listsService.update(listId, { name }),
     onMutate: async (name) => {
       await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<List>(queryKeys.list(listId));
-      qc.setQueryData<List>(queryKeys.list(listId), (old) => old ? { ...old, name } : old);
+      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, name } : old);
       return { previous };
     },
     onError: (_err, _name, ctx) => {
@@ -54,8 +54,8 @@ export function useUpdateDescription(listId: string) {
     mutationFn: (description: string | null) => listsService.update(listId, { description }),
     onMutate: async (description) => {
       await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<List>(queryKeys.list(listId));
-      qc.setQueryData<List>(queryKeys.list(listId), (old) => old ? { ...old, description } : old);
+      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, description } : old);
       return { previous };
     },
     onError: (_err, _val, ctx) => {
@@ -81,8 +81,8 @@ export function useTogglePublic(listId: string) {
     mutationFn: (isPublic: boolean) => listsService.update(listId, { public: isPublic }),
     onMutate: async (isPublic) => {
       await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<List>(queryKeys.list(listId));
-      qc.setQueryData<List>(queryKeys.list(listId), (old) => old ? { ...old, public: isPublic } : old);
+      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, public: isPublic } : old);
       return { previous };
     },
     onError: (_err, _val, ctx) => {
@@ -100,8 +100,8 @@ export function useToggleCollaborative(listId: string) {
     mutationFn: (collaborative: boolean) => listsService.update(listId, { collaborative }),
     onMutate: async (collaborative) => {
       await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<List>(queryKeys.list(listId));
-      qc.setQueryData<List>(queryKeys.list(listId), (old) => old ? { ...old, collaborative } : old);
+      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, collaborative } : old);
       return { previous };
     },
     onError: (_err, _val, ctx) => {

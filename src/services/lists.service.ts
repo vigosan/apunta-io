@@ -1,6 +1,11 @@
 import { apiClient } from "@/lib/api-client";
 import type { List, Item } from "@/db/schema";
 
+export type ListWithParticipation = List & {
+  participated: boolean;
+  participationCompletedAt: string | null;
+};
+
 export type ExploreItem = Pick<List, "id" | "name" | "slug" | "description" | "createdAt"> & {
   itemCount: number;
   participantCount: number;
@@ -22,7 +27,7 @@ export type ExploreDetail = {
 
 export const listsService = {
   get: (listId: string) =>
-    apiClient<List>(`/api/lists/${listId}`),
+    apiClient<ListWithParticipation>(`/api/lists/${listId}`),
 
   create: (name: string) =>
     apiClient<List>("/api/lists", { method: "POST", body: JSON.stringify({ name }) }),
@@ -49,7 +54,7 @@ export const listsService = {
     apiClient<Item[]>(`/api/explore/${listId}/items`),
 
   accept: (listId: string) =>
-    apiClient<List>(`/api/lists/${listId}/accept`, { method: "POST" }),
+    apiClient<ListWithParticipation>(`/api/lists/${listId}/accept`, { method: "POST" }),
 
   remove: (listId: string) =>
     apiClient<void>(`/api/lists/${listId}`, { method: "DELETE" }),

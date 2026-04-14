@@ -21,7 +21,12 @@ function ExploreDetailPage() {
     const id = detail?.id;
     if (!id) return;
     acceptChallenge.mutate(id, {
-      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.id } }),
+      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.slug ?? list.id } }),
+      onError: (err) => {
+        if (err.message === "Already participating" && detail) {
+          navigate({ to: "/lists/$listId", params: { listId: detail.slug ?? detail.id } });
+        }
+      },
     });
   }
 

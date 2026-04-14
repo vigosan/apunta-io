@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 import { useList, useUpdateName, useUpdateDescription, useTogglePublic } from "./useList";
+import type { ListWithParticipation } from "@/services/lists.service";
 import type { List } from "@/db/schema";
 
 vi.mock("@/services/lists.service", () => ({
@@ -22,7 +23,7 @@ vi.mock("@tanstack/react-router", async (importOriginal) => {
 
 import { listsService } from "@/services/lists.service";
 
-const LIST: List = { id: "list-1", name: "Mi lista", slug: null, description: null, public: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+const LIST: ListWithParticipation = { id: "list-1", name: "Mi lista", slug: null, description: null, public: false, collaborative: false, ownerId: null, createdAt: new Date(), participated: false, participationCompletedAt: null };
 
 function makeWrapper() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });

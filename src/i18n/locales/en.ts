@@ -48,6 +48,9 @@ const en: Translations = {
     addItem: "Add",
     expandMore: "show more",
     expandLess: "show less",
+    challengeInProgress: "You're taking this challenge",
+    challengeCompleted: "Challenge completed!",
+    canContribute: "You can add items",
   },
   myLists: {
     searchPlaceholder: "Search my lists…",

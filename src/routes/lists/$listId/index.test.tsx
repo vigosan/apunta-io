@@ -18,11 +18,11 @@ import { useItemsFilter } from "@/hooks/useItemsFilter";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useSession } from "@hono/auth-js/react";
 import type { Item } from "@/hooks/useItems";
-import type { List } from "@/db/schema";
+import type { ListWithParticipation } from "@/services/lists.service";
 
 // ---- Fixtures ----
 
-const LIST: List = {
+const LIST: ListWithParticipation = {
   id: "test-list",
   name: "Mi lista",
   slug: null,
@@ -31,6 +31,8 @@ const LIST: List = {
   collaborative: false,
   ownerId: null,
   createdAt: new Date(),
+  participated: false,
+  participationCompletedAt: null,
 };
 
 function makeItem(id: string, text: string, done = false): Item {
@@ -69,7 +71,7 @@ function setupMocks({
   sessionUser = null as SessionUser | null,
 }: {
   items?: Item[];
-  list?: List;
+  list?: ListWithParticipation;
   filteredItems?: Item[];
   addMutate?: ReturnType<typeof vi.fn>;
   toggleMutate?: ReturnType<typeof vi.fn>;

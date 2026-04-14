@@ -78,7 +78,8 @@ function ListDetailPage() {
   }, [list?.name]);
 
   const isOwner = !list ? false : (list.ownerId === null || list.ownerId === session?.user?.id);
-  const canWrite = isOwner || !!list?.collaborative;
+  const isParticipant = !!list?.participated && !isOwner && !!list?.public;
+  const canWrite = isOwner || (isParticipant && !!list?.collaborative) || (!list?.public && !!list?.collaborative);
 
   const { data: items = [], isLoading: itemsLoading, refetch: refetchItems } = useItems(listId);
 
@@ -252,6 +253,22 @@ function ListDetailPage() {
                     </button>
                   )}
                 </div>
+              )}
+            </div>
+          )}
+
+          {isParticipant && (
+            <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl">
+              <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+              <span className="text-xs text-gray-500 flex-1">
+                {list?.participationCompletedAt
+                  ? t("list.challengeCompleted")
+                  : t("list.challengeInProgress")}
+              </span>
+              {list?.collaborative && (
+                <span className="text-xs text-gray-400">{t("list.canContribute")}</span>
               )}
             </div>
           )}
