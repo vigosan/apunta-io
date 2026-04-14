@@ -3,8 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockDb = {
   query: {
     lists: { findFirst: vi.fn() },
-    items: { findMany: vi.fn() },
+    items: { findMany: vi.fn(), findFirst: vi.fn() },
     participations: { findFirst: vi.fn() },
+    itemProgress: { findFirst: vi.fn(), findMany: vi.fn() },
   },
   insert: vi.fn(),
   update: vi.fn(),
@@ -147,8 +148,11 @@ describe("PATCH /api/lists/:listId/items/:itemId/toggle", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("toggles done and returns updated item", async () => {
-    const updated = { id: "i1", listId: "abc", text: "Tarea", done: true, position: 0 };
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false });
+    const item = { id: "i1", listId: "abc", text: "Tarea", done: false, position: 0 };
+    const updated = { ...item, done: true };
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false, public: false });
+    mockDb.query.items.findFirst.mockResolvedValue(item);
+    mockDb.query.participations.findFirst.mockResolvedValue(null);
     mockDb.update.mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([updated]) }),
@@ -162,12 +166,8 @@ describe("PATCH /api/lists/:listId/items/:itemId/toggle", () => {
   });
 
   it("returns 404 when item not found", async () => {
-    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false });
-    mockDb.update.mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([]) }),
-      }),
-    });
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false, public: false });
+    mockDb.query.items.findFirst.mockResolvedValue(null);
 
     const res = await app.request("/api/lists/abc/items/bad-id/toggle", { method: "PATCH" });
     expect(res.status).toBe(404);
@@ -444,6 +444,7 @@ describe("GET /api/explore/:listId", () => {
     from: vi.fn().mockReturnThis(),
     leftJoin: vi.fn().mockReturnThis(),
     where: vi.fn().mockReturnThis(),
+    groupBy: vi.fn().mockReturnThis(),
     limit: vi.fn().mockResolvedValue(rows),
   });
 
@@ -641,6 +642,113 @@ describe("POST /api/lists/:listId/accept", () => {
   it("returns 401 when not authenticated", async () => {
     const res = await app.request("/api/lists/abc/accept", { method: "POST" });
     expect(res.status).toBe(401);
+  });
+});
+
+describe("GET /api/lists/:listId (participated flag)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("includes participated: false when not authenticated", async () => {
+    const list = { id: "abc-123", name: "Mi lista", public: true, collaborative: false, ownerId: "u1", createdAt: new Date().toISOString() };
+    mockDb.query.lists.findFirst.mockResolvedValue(list);
+
+    const res = await app.request("/api/lists/abc-123");
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.participated).toBe(false);
+    expect(body.participationCompletedAt).toBeNull();
+  });
+});
+
+describe("POST /api/lists/:listId/accept", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 401 when not authenticated", async () => {
+    const res = await app.request("/api/lists/abc/accept", { method: "POST" });
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 404 when list not found", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue(null);
+    const res = await app.request("/api/lists/nonexistent/accept", { method: "POST" });
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("GET /api/lists/:listId/participation", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns participated: false when not authenticated", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: "u1", collaborative: false, public: true });
+
+    const res = await app.request("/api/lists/abc/participation");
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.participated).toBe(false);
+    expect(body.completedAt).toBeNull();
+  });
+});
+
+describe("GET /api/lists/:listId/activity", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 401 when not authenticated", async () => {
+    const res = await app.request("/api/lists/abc/activity");
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 403 when user is not the owner", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: "other-user" });
+
+    const res = await app.request("/api/lists/abc/activity");
+    expect(res.status).toBe(401);
+  });
+});
+
+describe("PATCH /api/lists/:listId/items/:itemId/toggle (participant path)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns 404 when item does not exist", async () => {
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false, public: false });
+    mockDb.query.items.findFirst.mockResolvedValue(null);
+
+    const res = await app.request("/api/lists/abc/items/bad-id/toggle", { method: "PATCH" });
+    expect(res.status).toBe(404);
+  });
+
+  it("updates items.done for owner (ownerId null)", async () => {
+    const item = { id: "i1", listId: "abc", text: "Tarea", done: false, position: 0 };
+    const updated = { ...item, done: true };
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false, public: false });
+    mockDb.query.items.findFirst.mockResolvedValue(item);
+    mockDb.query.participations.findFirst.mockResolvedValue(null);
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([updated]) }),
+      }),
+    });
+
+    const res = await app.request("/api/lists/abc/items/i1/toggle", { method: "PATCH" });
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.done).toBe(true);
+  });
+});
+
+describe("GET /api/lists/:listId/items (participant item_progress)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns items with items.done when not a participant", async () => {
+    const rows = [
+      { id: "i1", listId: "abc", text: "Tarea", done: true, position: 0 },
+    ];
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: null, collaborative: false, public: false });
+    mockDb.query.items.findMany.mockResolvedValue(rows);
+
+    const res = await app.request("/api/lists/abc/items");
+    expect(res.status).toBe(200);
+    const body = await res.json() as Array<Record<string, unknown>>;
+    expect(body[0].done).toBe(true);
   });
 });
 
