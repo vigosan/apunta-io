@@ -63,6 +63,9 @@ const en: Translations = {
     deleteConfirm: "Delete «{{name}}»?",
     deleteNo: "No",
     deleteYes: "Delete",
+    newList: "New list",
+    newListPlaceholder: "Name your list…",
+    createList: "Create",
   },
   explore: {
     searchPlaceholder: "Search lists…",

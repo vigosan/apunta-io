@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
-import { useMyLists, useDeleteList } from "@/hooks/useList";
+import { useMyLists, useDeleteList, useCreateList } from "@/hooks/useList";
 import { AppNav } from "@/components/AppNav";
 import type { List } from "@/db/schema/lists.schema";
 import { useTranslation } from "@/i18n/service";
@@ -82,12 +82,60 @@ function MyListCard({ list }: { list: List }) {
   );
 }
 
+function CreateListInline({ onClose }: { onClose: () => void }) {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const createList = useCreateList();
+  const { t } = useTranslation();
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (trimmed) createList.mutate(trimmed, {
+      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.id } }),
+    });
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex gap-2 p-1.5 bg-white border border-gray-300 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150"
+    >
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder={t("myLists.newListPlaceholder")}
+        data-testid="new-list-name-input"
+        className="flex-1 pl-3 text-sm text-gray-900 placeholder-gray-400 bg-transparent outline-none min-w-0"
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
+      />
+      <button
+        type="button"
+        onClick={onClose}
+        className="cursor-pointer px-3 py-2 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+      >
+        ✕
+      </button>
+      <button
+        type="submit"
+        disabled={!name.trim() || createList.isPending}
+        data-testid="new-list-create-btn"
+        className="cursor-pointer px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-xl hover:bg-black disabled:opacity-30 disabled:cursor-not-allowed transition-[background-color,transform] duration-150 active:scale-[0.96] shrink-0"
+      >
+        {createList.isPending ? "…" : t("myLists.createList")}
+      </button>
+    </form>
+  );
+}
+
 type SortOption = "recent" | "created_desc" | "created_asc";
 
 function MyListsPage() {
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("recent");
+  const [creating, setCreating] = useState(false);
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists(search || undefined, sort);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -126,21 +174,34 @@ function MyListsPage() {
 
       <div className="flex-1 flex flex-col w-full max-w-xl mx-auto overflow-hidden">
         <div className="px-4 pt-5 pb-3 shrink-0">
-          <form onSubmit={handleSearch} className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("myLists.searchPlaceholder")}
-              data-testid="my-lists-search-input"
-              className="flex-1 pl-3 text-sm text-gray-900 placeholder-gray-400 bg-transparent outline-none"
-            />
-            <button
-              type="submit"
-              className="cursor-pointer px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-xl hover:bg-black transition-[background-color] duration-150 active:scale-[0.96]"
-            >
-              {t("myLists.search")}
-            </button>
-          </form>
+          {creating ? (
+            <CreateListInline onClose={() => setCreating(false)} />
+          ) : (
+            <div className="flex gap-2">
+              <form onSubmit={handleSearch} className="flex-1 flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150">
+                <input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t("myLists.searchPlaceholder")}
+                  data-testid="my-lists-search-input"
+                  className="flex-1 pl-3 text-sm text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+                />
+                <button
+                  type="submit"
+                  className="cursor-pointer px-5 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-xl hover:bg-black transition-[background-color] duration-150 active:scale-[0.96]"
+                >
+                  {t("myLists.search")}
+                </button>
+              </form>
+              <button
+                data-testid="new-list-btn"
+                onClick={() => setCreating(true)}
+                className="cursor-pointer px-4 py-2.5 text-sm font-medium bg-gray-900 text-white rounded-xl hover:bg-black transition-[background-color,transform] duration-150 active:scale-[0.96] shrink-0"
+              >
+                {t("myLists.newList")}
+              </button>
+            </div>
+          )}
           <div className="flex gap-0 mt-3 border-b border-gray-100" data-testid="sort-options">
             {SORT_OPTIONS.map((opt) => (
               <button

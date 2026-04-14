@@ -61,6 +61,9 @@ const es = {
     deleteConfirm: "¿Borrar «{{name}}»?",
     deleteNo: "No",
     deleteYes: "Borrar",
+    newList: "Nueva lista",
+    newListPlaceholder: "Nombre de la lista…",
+    createList: "Crear",
   },
   explore: {
     searchPlaceholder: "Buscar listas…",
