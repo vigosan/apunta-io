@@ -65,7 +65,7 @@ function ExploreListCard({ list, onAccept, acceptPending }: {
         </div>
 
         {expanded && (
-          <div className="bg-gray-50 rounded-xl px-3 py-2.5">
+          <div className="bg-gray-50 rounded-lg px-3 py-2.5">
             {itemsLoading && (
               <p className="text-xs text-gray-400">{t("explore.loading")}</p>
             )}

@@ -56,7 +56,7 @@ function HomePage() {
 
       <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
         <div className="max-w-lg w-full space-y-5">
-          <h1 className="text-5xl sm:text-[3.25rem] font-bold tracking-tight text-gray-900 leading-[1.1]">
+          <h1 className="text-5xl sm:text-[3.25rem] font-bold tracking-tight text-gray-900 leading-[1.1] text-balance">
             {t("home.headline")}<br />
             <span className="text-gray-400">{t("home.headlineSub")}</span>
           </h1>
