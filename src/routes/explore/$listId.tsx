@@ -1,0 +1,204 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useExploreDetail, useExploreItems, useAcceptChallenge } from "@/hooks/useList";
+import { useSession, signIn } from "@hono/auth-js/react";
+import { AppNav } from "@/components/AppNav";
+import { useTranslation } from "@/i18n/service";
+
+export const Route = createFileRoute("/explore/$listId")({
+  component: ExploreDetailPage,
+});
+
+function ExploreDetailPage() {
+  const { listId } = Route.useParams();
+  const { data: detail, isLoading } = useExploreDetail(listId);
+  const { data: exploreItems, isLoading: itemsLoading } = useExploreItems(listId, !!detail);
+  const acceptChallenge = useAcceptChallenge();
+  const { data: session } = useSession();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  function handleAccept() {
+    const id = detail?.id;
+    if (!id) return;
+    acceptChallenge.mutate(id, {
+      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.id } }),
+    });
+  }
+
+  const totalParticipants = detail?.participantCount ?? 0;
+  const shownParticipants = detail?.participants ?? [];
+  const extraParticipants = totalParticipants - shownParticipants.length;
+
+  const itemCount = detail?.itemCount ?? 0;
+  const completedCount = detail?.completedCount ?? 0;
+  const progressPct = itemCount > 0 ? Math.round((completedCount / itemCount) * 100) : 0;
+
+  if (isLoading) {
+    return (
+      <div className="h-dvh bg-[#FAFAF8] flex flex-col">
+        <AppNav />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-gray-400">{t("explore.loading")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!detail) {
+    return (
+      <div className="h-dvh bg-[#FAFAF8] flex flex-col">
+        <AppNav />
+        <div className="flex-1 flex items-center justify-center">
+          <p className="text-sm text-gray-400">{t("error.notFound")}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-dvh bg-[#FAFAF8] flex flex-col">
+      <AppNav />
+
+      <main className="flex-1 w-full max-w-xl mx-auto px-4 py-6 flex flex-col gap-5">
+        <Link
+          to="/explore"
+          className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-150 w-fit"
+          data-testid="back-to-explore"
+        >
+          {t("explore.backToExplore")}
+        </Link>
+
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 leading-snug">{detail.name}</h1>
+            {detail.owner?.name && (
+              <p className="text-xs text-gray-400 mt-0.5">
+                {t("explore.createdBy", { name: detail.owner.name })}
+              </p>
+            )}
+            {detail.description && (
+              <p className="text-sm text-gray-600 leading-relaxed mt-2">{detail.description}</p>
+            )}
+          </div>
+          {detail.owner?.image && (
+            <img
+              src={detail.owner.image}
+              alt={detail.owner.name ?? ""}
+              className="w-9 h-9 rounded-full shrink-0 outline outline-1 outline-black/10"
+            />
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span className="text-xs font-medium text-gray-500 tabular-nums">{itemCount}</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-xs font-medium text-gray-500 tabular-nums">{totalParticipants}</span>
+          </div>
+          <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg border border-gray-100">
+            <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-xs font-medium text-gray-500 tabular-nums">{completedCount}</span>
+          </div>
+        </div>
+
+        {shownParticipants.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-1.5">
+              {shownParticipants.map((p, i) =>
+                p.image ? (
+                  <img
+                    key={i}
+                    src={p.image}
+                    alt={p.name ?? ""}
+                    className="w-6 h-6 rounded-full outline outline-2 outline-white"
+                  />
+                ) : (
+                  <div
+                    key={i}
+                    className="w-6 h-6 rounded-full bg-gray-200 outline outline-2 outline-white flex items-center justify-center"
+                  >
+                    <span className="text-[8px] text-gray-500 font-medium">
+                      {(p.name ?? "?")[0]?.toUpperCase()}
+                    </span>
+                  </div>
+                )
+              )}
+            </div>
+            {extraParticipants > 0 && (
+              <span className="text-xs text-gray-400 tabular-nums">
+                {t("explore.moreParticipants", { count: String(extraParticipants) })}
+              </span>
+            )}
+          </div>
+        )}
+
+        {itemCount > 0 && (
+          <div className="flex flex-col gap-1">
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gray-900 rounded-full transition-[width] duration-300"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-400">
+              {t("explore.progressLabel", { done: String(completedCount), total: String(itemCount) })}
+            </p>
+          </div>
+        )}
+
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+          <div className="px-4 py-3">
+            {itemsLoading && (
+              <p className="text-sm text-gray-400">{t("explore.loading")}</p>
+            )}
+            {!itemsLoading && exploreItems && exploreItems.length === 0 && (
+              <p className="text-sm text-gray-400">{t("explore.noItems")}</p>
+            )}
+            {!itemsLoading && exploreItems && exploreItems.length > 0 && (
+              <ul className="divide-y divide-gray-50">
+                {exploreItems.map((item) => (
+                  <li key={item.id} className="flex items-center gap-3 py-2.5">
+                    <span className={`w-4 h-4 rounded border shrink-0 flex items-center justify-center ${item.done ? "bg-gray-900 border-gray-900" : "border-gray-300"}`}>
+                      {item.done && (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </span>
+                    <span className={`text-sm ${item.done ? "line-through text-gray-400" : "text-gray-700"}`}>
+                      {item.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            if (session?.user) {
+              handleAccept();
+            } else {
+              signIn("google");
+            }
+          }}
+          disabled={acceptChallenge.isPending}
+          data-testid="accept-challenge-btn"
+          className="cursor-pointer w-full py-3 text-sm font-medium bg-gray-900 text-white rounded-xl hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-[background-color,transform] duration-150 active:scale-[0.96]"
+        >
+          {session?.user ? t("explore.acceptChallenge") : t("explore.signIn")}
+        </button>
+      </main>
+    </div>
+  );
+}

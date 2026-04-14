@@ -73,6 +73,10 @@ const es = {
     hideList: "Ocultar",
     acceptChallenge: "Aceptar el reto",
     signIn: "Iniciar sesión para retar",
+    backToExplore: "← Explorar",
+    moreParticipants: "+{{count}} más",
+    progressLabel: "{{done}} de {{total}}",
+    createdBy: "por {{name}}",
   },
   command: {
     ariaLabel: "Paleta de comandos",

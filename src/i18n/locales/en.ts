@@ -75,6 +75,10 @@ const en: Translations = {
     hideList: "Hide",
     acceptChallenge: "Accept challenge",
     signIn: "Sign in to challenge",
+    backToExplore: "← Explore",
+    moreParticipants: "+{{count}} more",
+    progressLabel: "{{done}} of {{total}}",
+    createdBy: "by {{name}}",
   },
   command: {
     ariaLabel: "Command palette",
