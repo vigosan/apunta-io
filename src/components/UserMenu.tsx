@@ -14,7 +14,7 @@ export function UserMenu() {
           <img
             src={session.user.image}
             alt={session.user.name ?? ""}
-            className="w-8 h-8 rounded-full"
+            className="w-8 h-8 rounded-full outline outline-1 outline-black/10"
           />
         )}
         <button
