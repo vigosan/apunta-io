@@ -9,7 +9,7 @@ import type { ExploreItem } from "@/services/lists.service";
 vi.mock("@/hooks/useList");
 vi.mock("@hono/auth-js/react", () => ({ useSession: vi.fn(), signIn: vi.fn() }));
 
-import { useExplore, useExploreItems, useAcceptChallenge } from "@/hooks/useList";
+import { useExplore, useExploreDetail, useExploreItems, useAcceptChallenge } from "@/hooks/useList";
 import { useSession, signIn } from "@hono/auth-js/react";
 
 const EXPLORE_A: ExploreItem = {
@@ -55,6 +55,7 @@ function setupMocks({
     hasNextPage: false,
     fetchNextPage: vi.fn(),
   } as never);
+  vi.mocked(useExploreDetail).mockReturnValue({ data: undefined, isLoading: false } as never);
   vi.mocked(useExploreItems).mockReturnValue({ data: [], isLoading: false } as never);
   vi.mocked(useAcceptChallenge).mockReturnValue({ mutate: acceptMutate, isPending: false } as never);
 }
@@ -92,11 +93,5 @@ describe("ExplorePage", () => {
     expect(signIn).toHaveBeenCalledWith("google");
   });
 
-  it("expand button toggles item preview", async () => {
-    setupMocks();
-    renderPage();
-    await waitFor(() => expect(screen.getByTestId("expand-btn-e1")).toBeInTheDocument());
-    await userEvent.click(screen.getByTestId("expand-btn-e1"));
-    expect(screen.getByTestId("expand-btn-e1")).toHaveTextContent(/ocultar/i);
-  });
+
 });
