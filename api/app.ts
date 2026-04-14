@@ -1,7 +1,7 @@
 import { Hono, type Context } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { eq, max, sql, and, or, ilike, count, gt, lt, inArray, desc } from "drizzle-orm";
+import { eq, max, sql, and, or, ilike, gt, lt, inArray, desc } from "drizzle-orm";
 import { db } from "../src/db/client.js";
 import { lists, items, participations, users } from "../src/db/schema/index.js";
 import { rateLimit } from "./rate-limit.js";
@@ -360,17 +360,14 @@ app.get("/explore", async (c) => {
       slug: lists.slug,
       description: lists.description,
       createdAt: lists.createdAt,
-      itemCount: count(items.id),
-      participantCount: sql<number>`cast(count(distinct ${participations.id}) as int)`,
-      completedCount: sql<number>`cast(count(distinct case when ${participations.completedAt} is not null then ${participations.id} end) as int)`,
+      itemCount: sql<number>`cast((select count(*) from ${items} where ${items.listId} = ${lists.id}) as int)`,
+      participantCount: sql<number>`cast((select count(*) from ${participations} where ${participations.sourceListId} = ${lists.id}) as int)`,
+      completedCount: sql<number>`cast((select count(*) from ${participations} where ${participations.sourceListId} = ${lists.id} and ${participations.completedAt} is not null) as int)`,
       ownerImage: users.image,
     })
     .from(lists)
-    .leftJoin(items, eq(items.listId, lists.id))
-    .leftJoin(participations, eq(participations.sourceListId, lists.id))
     .leftJoin(users, eq(users.id, lists.ownerId))
     .where(where)
-    .groupBy(lists.id, users.image)
     .orderBy(isAsc ? lists.createdAt : desc(lists.createdAt))
     .limit(EXPLORE_PAGE_SIZE);
 
@@ -397,14 +394,11 @@ app.get("/explore/:listId", async (c) => {
 
   const [stats] = await db
     .select({
-      itemCount: count(items.id),
-      participantCount: sql<number>`cast(count(distinct ${participations.id}) as int)`,
+      itemCount: sql<number>`cast((select count(*) from ${items} where ${items.listId} = ${lists.id}) as int)`,
       ownerName: users.name,
       ownerImage: users.image,
     })
     .from(lists)
-    .leftJoin(items, eq(items.listId, lists.id))
-    .leftJoin(participations, eq(participations.sourceListId, lists.id))
     .leftJoin(users, eq(users.id, lists.ownerId))
     .where(eq(lists.id, list.id))
     .groupBy(lists.id, users.name, users.image);
