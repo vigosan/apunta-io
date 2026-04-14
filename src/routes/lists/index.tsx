@@ -118,7 +118,7 @@ function MyListsPage() {
   }
 
   return (
-    <div className="h-dvh bg-white flex flex-col">
+    <div className="h-dvh bg-[#FAFAF8] flex flex-col">
       <AppNav />
 
       <div className="flex-1 flex flex-col w-full max-w-xl mx-auto overflow-hidden">
