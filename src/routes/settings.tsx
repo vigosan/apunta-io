@@ -3,6 +3,9 @@ import { useSession } from "@hono/auth-js/react";
 import { useEffect, useState } from "react";
 import { AppNav } from "@/components/AppNav";
 import { z } from "zod";
+import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 
 const searchSchema = z.object({
   stripe: z.enum(["success", "refresh"]).optional(),
@@ -13,34 +16,18 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-function useStripeAccountStatus() {
-  const [status, setStatus] = useState<{ connected: boolean; onboardingComplete: boolean } | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/stripe/account-status")
-      .then((r) => r.json())
-      .then(setStatus)
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { status, loading, refetch: () => {
-    setLoading(true);
-    fetch("/api/stripe/account-status")
-      .then((r) => r.json())
-      .then(setStatus)
-      .finally(() => setLoading(false));
-  }};
-}
-
 function SettingsPage() {
   const { data: session } = useSession();
   const { stripe: stripeParam } = useSearch({ from: "/settings" });
-  const { status, loading, refetch } = useStripeAccountStatus();
+  const qc = useQueryClient();
+  const { data: status, isLoading: loading, refetch } = useStripeAccountStatus();
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
-    if (stripeParam) refetch();
+    if (stripeParam) {
+      qc.invalidateQueries({ queryKey: queryKeys.stripeAccountStatus() });
+      refetch();
+    }
   }, [stripeParam]);
 
   async function handleConnectStripe() {
