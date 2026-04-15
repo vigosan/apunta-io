@@ -213,30 +213,14 @@ function MyListsPage() {
               </button>
             </div>
           )}
-          <div className="flex gap-0 mt-3 border-b border-gray-100" data-testid="sort-options">
+          <div className="flex items-center gap-1.5 mt-3" data-testid="sort-options">
             {SORT_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 data-testid={`sort-${opt.value}`}
                 onClick={() => setSort(opt.value)}
-                className={`cursor-pointer px-3 py-1.5 text-xs font-medium transition-colors duration-150 -mb-px border-b-2 ${
-                  sort === opt.value
-                    ? "text-gray-900 border-gray-900"
-                    : "text-gray-400 border-transparent hover:text-gray-600"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1.5 mt-2.5" data-testid="visibility-filter">
-            {VISIBILITY_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                data-testid={`visibility-${opt.value}`}
-                onClick={() => setVisibility(opt.value)}
                 className={`cursor-pointer px-3 py-1 text-xs font-medium rounded-lg border transition-colors duration-150 ${
-                  visibility === opt.value
+                  sort === opt.value
                     ? "border-gray-900 bg-gray-900 text-white"
                     : "border-gray-200 text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700"
                 }`}
@@ -244,6 +228,23 @@ function MyListsPage() {
                 {opt.label}
               </button>
             ))}
+            <div className="w-px h-4 bg-gray-200 mx-0.5" />
+            <div className="flex gap-1.5" data-testid="visibility-filter">
+              {VISIBILITY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  data-testid={`visibility-${opt.value}`}
+                  onClick={() => setVisibility(opt.value)}
+                  className={`cursor-pointer px-3 py-1 text-xs font-medium rounded-lg border transition-colors duration-150 ${
+                    visibility === opt.value
+                      ? "border-gray-900 bg-gray-900 text-white"
+                      : "border-gray-200 text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 pb-6">
