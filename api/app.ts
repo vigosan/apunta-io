@@ -766,6 +766,25 @@ app.get("/stripe/account-status", async (c) => {
   return c.json({ connected: true, onboardingComplete: true });
 });
 
+app.get("/lists/:listId/price", async (c) => {
+  const authUser = getOptionalUser(c);
+  const userId = authUser?.session?.user?.id;
+  if (!userId) return c.json({ error: "Unauthorized" }, 401);
+
+  const list = await db.query.lists.findFirst({
+    where: listWhere(c.req.param("listId")),
+    columns: { id: true, ownerId: true },
+  });
+  if (!list) return c.json({ error: "Not found" }, 404);
+  if (list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
+
+  const price = await db.query.listPrices.findFirst({
+    where: eq(listPrices.listId, list.id),
+    columns: { priceInCents: true, currency: true },
+  });
+  return c.json(price ?? null);
+});
+
 app.post(
   "/lists/:listId/price",
   zValidator("json", z.object({ priceInCents: z.number().int().min(100).max(100_000) })),
