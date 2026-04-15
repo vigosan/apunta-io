@@ -801,3 +801,53 @@ describe("DELETE /api/lists/:listId", () => {
     expect(res.status).toBe(403);
   });
 });
+
+describe("GET /api/admin/stats", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    process.env.ADMIN_PASSWORD = "secret";
+  });
+
+  function authHeader(password: string) {
+    return "Basic " + btoa(`admin:${password}`);
+  }
+
+  it("returns 401 when no Authorization header", async () => {
+    const res = await app.request("/api/admin/stats");
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 401 when password is wrong", async () => {
+    const res = await app.request("/api/admin/stats", {
+      headers: { Authorization: authHeader("wrong") },
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it("returns stats when password is correct", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      leftJoin: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      groupBy: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([]),
+      then: vi.fn((resolve: (v: unknown[]) => unknown) => Promise.resolve(resolve([{ count: 5 }]))),
+    };
+    mockDb.select.mockReturnValue(chain);
+
+    const res = await app.request("/api/admin/stats", {
+      headers: { Authorization: authHeader("secret") },
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body).toHaveProperty("users");
+    expect(body).toHaveProperty("lists");
+    expect(body).toHaveProperty("items");
+    expect(body).toHaveProperty("participations");
+    expect(body).toHaveProperty("purchases");
+    expect(body).toHaveProperty("topLists");
+    expect(body).toHaveProperty("weeklyLists");
+    expect(body).toHaveProperty("revenue");
+  });
+});

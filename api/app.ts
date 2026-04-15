@@ -957,3 +957,65 @@ app.get("/lists/:listId/purchase-status", async (c) => {
   const purchased = await hasPurchased(userId, list.id);
   return c.json({ purchased });
 });
+
+function checkAdminAuth(c: Context): boolean {
+  const header = c.req.header("Authorization") ?? "";
+  if (!header.startsWith("Basic ")) return false;
+  const decoded = atob(header.slice(6));
+  const [, password] = decoded.split(":");
+  const adminPassword = c.env?.ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
+  return !!adminPassword && password === adminPassword;
+}
+
+app.get("/admin/stats", async (c) => {
+  if (!checkAdminAuth(c)) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const [userCount, listCount, itemCount, participationCount, purchaseCount] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(users).then(([r]) => r?.count ?? 0),
+    db.select({ count: sql<number>`count(*)::int` }).from(lists).then(([r]) => r?.count ?? 0),
+    db.select({ count: sql<number>`count(*)::int` }).from(items).then(([r]) => r?.count ?? 0),
+    db.select({ count: sql<number>`count(*)::int` }).from(participations).then(([r]) => r?.count ?? 0),
+    db.select({ count: sql<number>`count(*)::int` }).from(listPurchases).then(([r]) => r?.count ?? 0),
+  ]);
+
+  const topLists = await db
+    .select({
+      id: lists.id,
+      name: lists.name,
+      slug: lists.slug,
+      participations: sql<number>`count(${participations.id})::int`,
+    })
+    .from(lists)
+    .leftJoin(participations, eq(participations.sourceListId, lists.id))
+    .groupBy(lists.id)
+    .orderBy(desc(sql`count(${participations.id})`))
+    .limit(10);
+
+  const weeklyLists = await db
+    .select({
+      week: sql<string>`to_char(date_trunc('week', ${lists.createdAt}), 'YYYY-MM-DD')`,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(lists)
+    .where(gt(lists.createdAt, sql`now() - interval '8 weeks'`))
+    .groupBy(sql`date_trunc('week', ${lists.createdAt})`)
+    .orderBy(sql`date_trunc('week', ${lists.createdAt})`);
+
+  const revenueRow = await db
+    .select({ total: sql<number>`coalesce(sum(${listPrices.priceInCents}), 0)::int` })
+    .from(listPurchases)
+    .leftJoin(listPrices, eq(listPrices.listId, listPurchases.listId));
+
+  return c.json({
+    users: userCount,
+    lists: listCount,
+    items: itemCount,
+    participations: participationCount,
+    purchases: purchaseCount,
+    topLists,
+    weeklyLists,
+    revenue: revenueRow[0]?.total ?? 0,
+  });
+});
