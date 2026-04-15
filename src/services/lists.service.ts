@@ -77,6 +77,9 @@ export const listsService = {
   removePrice: (listId: string) =>
     apiClient<void>(`/api/lists/${listId}/price`, { method: "DELETE" }),
 
+  collaborators: (listId: string) =>
+    apiClient<{ id: string; name: string | null; image: string | null }[]>(`/api/lists/${listId}/collaborators`),
+
   myLists: (cursor?: string, q?: string, sort?: string, visibility?: string) => {
     const params = new URLSearchParams();
     if (cursor) params.set("cursor", cursor);

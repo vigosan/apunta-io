@@ -5,6 +5,15 @@ import { queryKeys } from "@/lib/query-keys";
 import { POLLING_INTERVAL_MS } from "@/lib/constants";
 import type { ListWithParticipation } from "@/services/lists.service";
 
+export function useCollaborators(listId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.listCollaborators(listId),
+    queryFn: () => listsService.collaborators(listId),
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
 export function useList(listId: string) {
   return useQuery<ListWithParticipation>({
     queryKey: queryKeys.list(listId),

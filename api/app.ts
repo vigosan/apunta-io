@@ -672,6 +672,24 @@ app.post("/lists/:listId/accept", async (c) => {
   return c.json(source, 201);
 });
 
+app.get("/lists/:listId/collaborators", async (c) => {
+  const authUser = getOptionalUser(c);
+  const userId = authUser?.session?.user?.id;
+  if (!userId) return c.json({ error: "Unauthorized" }, 401);
+  const list = await db.query.lists.findFirst({
+    where: listWhere(c.req.param("listId")),
+    columns: { id: true, ownerId: true },
+  });
+  if (!list) return c.json({ error: "Not found" }, 404);
+  if (list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
+  const rows = await db
+    .select({ id: users.id, name: users.name, image: users.image })
+    .from(participations)
+    .innerJoin(users, eq(participations.userId, users.id))
+    .where(eq(participations.sourceListId, list.id));
+  return c.json(rows);
+});
+
 app.get("/lists/:listId/activity", async (c) => {
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id;
