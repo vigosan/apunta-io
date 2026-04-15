@@ -85,8 +85,43 @@ export const listActivity = pgTable(
   ],
 );
 
+export const stripeAccounts = pgTable("stripe_accounts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  stripeAccountId: text("stripe_account_id").notNull().unique(),
+  onboardingComplete: boolean("onboarding_complete").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const listPrices = pgTable("list_prices", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  listId: uuid("list_id").notNull().unique().references(() => lists.id, { onDelete: "cascade" }),
+  priceInCents: integer("price_in_cents").notNull(),
+  currency: text("currency").notNull().default("usd"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const listPurchases = pgTable(
+  "list_purchases",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    buyerId: text("buyer_id").notNull().references(() => users.id),
+    listId: uuid("list_id").notNull().references(() => lists.id, { onDelete: "cascade" }),
+    stripePaymentIntentId: text("stripe_payment_intent_id").notNull().unique(),
+    paidAt: timestamp("paid_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => [
+    unique("list_purchases_buyer_list_uidx").on(t.buyerId, t.listId),
+    index("list_purchases_list_idx").on(t.listId),
+  ],
+);
+
 export type List = typeof lists.$inferSelect;
 export type Item = typeof items.$inferSelect;
 export type Participation = typeof participations.$inferSelect;
 export type ItemProgress = typeof itemProgress.$inferSelect;
 export type ListActivity = typeof listActivity.$inferSelect;
+export type StripeAccount = typeof stripeAccounts.$inferSelect;
+export type ListPrice = typeof listPrices.$inferSelect;
+export type ListPurchase = typeof listPurchases.$inferSelect;
