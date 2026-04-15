@@ -5,4 +5,6 @@ export const queryKeys = {
   exploreItems: (listId: string) => ["explore-items", listId] as const,
   exploreDetail: (id: string) => ["explore-detail", id] as const,
   myLists: (q?: string, sort?: string, visibility?: string) => ["my-lists", q ?? "", sort ?? "recent", visibility ?? "all"] as const,
+  listPrice: (listId: string) => ["list-price", listId] as const,
+  stripeAccountStatus: () => ["stripe-account-status"] as const,
 };

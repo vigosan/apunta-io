@@ -1,6 +1,9 @@
 import { apiClient } from "@/lib/api-client";
 import type { List, Item } from "@/db/schema";
 
+export type ListPrice = { priceInCents: number; currency: string };
+export type StripeAccountStatus = { connected: boolean; onboardingComplete: boolean };
+
 export type ListWithParticipation = List & {
   participated: boolean;
   participationCompletedAt: string | null;
@@ -23,6 +26,11 @@ export type ExploreDetail = {
   itemCount: number;
   participantCount: number;
   participants: Array<{ image: string | null; name: string | null }>;
+};
+
+export const stripeService = {
+  getAccountStatus: () =>
+    apiClient<StripeAccountStatus>("/api/stripe/account-status"),
 };
 
 export const listsService = {
@@ -58,6 +66,15 @@ export const listsService = {
 
   remove: (listId: string) =>
     apiClient<void>(`/api/lists/${listId}`, { method: "DELETE" }),
+
+  getPrice: (listId: string) =>
+    apiClient<ListPrice | null>(`/api/lists/${listId}/price`),
+
+  setPrice: (listId: string, priceInCents: number) =>
+    apiClient<ListPrice>(`/api/lists/${listId}/price`, { method: "POST", body: JSON.stringify({ priceInCents }) }),
+
+  removePrice: (listId: string) =>
+    apiClient<void>(`/api/lists/${listId}/price`, { method: "DELETE" }),
 
   myLists: (cursor?: string, q?: string, sort?: string, visibility?: string) => {
     const params = new URLSearchParams();
