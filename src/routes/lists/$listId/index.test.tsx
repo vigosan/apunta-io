@@ -9,6 +9,9 @@ vi.mock("@/hooks/useItems");
 vi.mock("@/hooks/useListHeader");
 vi.mock("@/hooks/useItemsFilter");
 vi.mock("@/hooks/usePullToRefresh");
+vi.mock("@/hooks/useList");
+vi.mock("@/hooks/useListPrice");
+vi.mock("@/hooks/useStripeAccount");
 vi.mock("@/lib/confetti", () => ({ fireConfetti: vi.fn() }));
 vi.mock("@hono/auth-js/react", () => ({ useSession: vi.fn() }));
 
@@ -16,6 +19,9 @@ import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem, useB
 import { useListHeader } from "@/hooks/useListHeader";
 import { useItemsFilter } from "@/hooks/useItemsFilter";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { useToggleCollaborative } from "@/hooks/useList";
+import { useListPrice, useSetPrice, useRemovePrice } from "@/hooks/useListPrice";
+import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { useSession } from "@hono/auth-js/react";
 import type { Item } from "@/hooks/useItems";
 import type { ListWithParticipation } from "@/services/lists.service";
@@ -122,6 +128,12 @@ function setupMocks({
     pullDistance: 0,
     refreshing: false,
   } as never);
+
+  vi.mocked(useToggleCollaborative).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
+  vi.mocked(useListPrice).mockReturnValue({ data: null, isLoading: false } as never);
+  vi.mocked(useSetPrice).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
+  vi.mocked(useRemovePrice).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
+  vi.mocked(useStripeAccountStatus).mockReturnValue({ data: { connected: false, onboardingComplete: false }, isLoading: false } as never);
 }
 
 beforeEach(() => vi.clearAllMocks());
@@ -292,26 +304,25 @@ describe("ListDetailPage", () => {
       expect(screen.getByTestId("item-delete-i1")).toBeInTheDocument();
     });
 
-    it("hides public and collaborative toggles for non-owner", async () => {
+    it("hides settings button for non-owner", async () => {
       setupMocks({
         list: { ...LIST, ownerId: "other-user", collaborative: false },
         sessionUser: null,
       });
       renderPage();
       await waitFor(() => expect(screen.getByText("Mi lista")).toBeInTheDocument());
-      expect(screen.queryByTestId("toggle-public-btn")).not.toBeInTheDocument();
-      expect(screen.queryByTestId("toggle-collaborative-btn")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("settings-btn")).not.toBeInTheDocument();
     });
 
-    it("shows all controls for owner", async () => {
+    it("shows all controls for owner after opening settings panel", async () => {
       setupMocks({
         list: { ...LIST, ownerId: "owner-id", collaborative: false },
         sessionUser: { id: "owner-id" },
       });
       renderPage();
       await waitFor(() => expect(screen.getByTestId("add-item-input")).toBeInTheDocument());
-      expect(screen.getByTestId("toggle-public-btn")).toBeInTheDocument();
-      expect(screen.getByTestId("toggle-collaborative-btn")).toBeInTheDocument();
+      await userEvent.click(screen.getByTestId("settings-btn"));
+      await waitFor(() => expect(screen.getByTestId("list-settings-panel")).toBeInTheDocument());
       expect(screen.getByTestId("item-delete-i1")).toBeInTheDocument();
     });
   });

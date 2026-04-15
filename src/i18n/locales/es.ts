@@ -16,6 +16,8 @@ const es = {
     step2Desc: "Hazla pública y comparte el link. Cualquiera con él puede ver tu lista.",
     step3Title: "Otros aceptan el reto",
     step3Desc: "La gente copia tu lista y va completando los elementos. El progreso queda registrado para todos.",
+    step4Title: "Vende el acceso",
+    step4Desc: "Pon precio a tu lista y cobra directamente. Conecta Stripe y empieza a ganar.",
   },
   list: {
     back: "← Mis listas",
@@ -146,6 +148,9 @@ const es = {
   slugError: {
     taken: "Este slug ya está en uso",
     saveFailed: "Error al guardar",
+  },
+  help: {
+    nav: "Ayuda",
   },
 } as const;
 

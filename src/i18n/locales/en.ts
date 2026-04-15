@@ -18,6 +18,8 @@ const en: Translations = {
     step2Desc: "Make it public and share the link. Anyone with it can see your list.",
     step3Title: "Others take the challenge",
     step3Desc: "People copy your list and complete the items. Progress is tracked for everyone.",
+    step4Title: "Sell access",
+    step4Desc: "Set a price and get paid directly. Connect Stripe and start earning.",
   },
   list: {
     back: "← My lists",
@@ -148,6 +150,9 @@ const en: Translations = {
   slugError: {
     taken: "This slug is already in use",
     saveFailed: "Error saving",
+  },
+  help: {
+    nav: "Help",
   },
 };
 
