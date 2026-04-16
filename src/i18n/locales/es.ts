@@ -170,6 +170,15 @@ const es = {
   help: {
     nav: "Ayuda",
   },
+  profile: {
+    publicLists: "Listas públicas",
+    completedChallenges: "Retos completados",
+    noPublicLists: "No hay listas públicas aún.",
+    noCompletedChallenges: "No hay retos completados aún.",
+    completedOn: "Completado el {{date}}",
+    participants: "{{count}} participantes",
+    items: "{{count}} elementos",
+  },
   stats: {
     title: "Estadísticas",
     challengers: "Participantes",

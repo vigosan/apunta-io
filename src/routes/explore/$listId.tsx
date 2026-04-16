@@ -101,9 +101,17 @@ function ExploreDetailPage() {
             </h1>
             {detail.owner?.name && (
               <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                {t("explore.createdBy", {
-                  name: detail.owner.name,
-                })}
+                {detail.ownerId ? (
+                  <Link
+                    to="/u/$userId"
+                    params={{ userId: detail.ownerId }}
+                    className="hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                  >
+                    {t("explore.createdBy", { name: detail.owner.name })}
+                  </Link>
+                ) : (
+                  t("explore.createdBy", { name: detail.owner.name })
+                )}
               </p>
             )}
             {detail.description && (

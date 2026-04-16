@@ -767,6 +767,58 @@ app.get("/explore", async (c) => {
   return c.json({ items: exploreItems, nextCursor });
 });
 
+app.get("/users/:userId/profile", async (c) => {
+  const userId = c.req.param("userId");
+
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { id: true, name: true, image: true },
+  });
+  if (!user) return c.json({ error: "Not found" }, 404);
+
+  const publicLists = await db
+    .select({
+      id: lists.id,
+      name: lists.name,
+      slug: lists.slug,
+      description: lists.description,
+      createdAt: lists.createdAt,
+      itemCount: sql<number>`cast((select count(*) from ${items} where ${items.listId} = ${lists.id}) as int)`,
+      participantCount: sql<number>`cast((select count(*) from ${participations} where ${participations.sourceListId} = ${lists.id}) as int)`,
+      completedCount: sql<number>`cast((select count(*) from ${participations} where ${participations.sourceListId} = ${lists.id} and ${participations.completedAt} is not null) as int)`,
+    })
+    .from(lists)
+    .where(and(eq(lists.ownerId, userId), eq(lists.public, true)))
+    .orderBy(desc(lists.createdAt))
+    .limit(20);
+
+  const completedChallenges = await db
+    .select({
+      id: lists.id,
+      name: lists.name,
+      slug: lists.slug,
+      completedAt: participations.completedAt,
+    })
+    .from(participations)
+    .innerJoin(lists, eq(lists.id, participations.sourceListId))
+    .where(
+      and(
+        eq(participations.userId, userId),
+        sql`${participations.completedAt} is not null`
+      )
+    )
+    .orderBy(desc(participations.completedAt))
+    .limit(20);
+
+  return c.json({
+    id: user.id,
+    name: user.name,
+    image: user.image,
+    publicLists,
+    completedChallenges,
+  });
+});
+
 app.get("/explore/:listId", async (c) => {
   const listId = c.req.param("listId");
   const list = await db.query.lists.findFirst({

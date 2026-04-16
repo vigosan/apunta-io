@@ -49,6 +49,33 @@ export type ExploreDetail = {
   }>;
 };
 
+export type UserProfile = {
+  id: string;
+  name: string | null;
+  image: string | null;
+  publicLists: Array<{
+    id: string;
+    name: string;
+    slug: string | null;
+    description: string | null;
+    createdAt: string;
+    itemCount: number;
+    participantCount: number;
+    completedCount: number;
+  }>;
+  completedChallenges: Array<{
+    id: string;
+    name: string;
+    slug: string | null;
+    completedAt: string | null;
+  }>;
+};
+
+export const usersService = {
+  getProfile: (userId: string) =>
+    apiClient<UserProfile>(`/api/users/${userId}/profile`),
+};
+
 export const stripeService = {
   getAccountStatus: () =>
     apiClient<StripeAccountStatus>("/api/stripe/account-status"),

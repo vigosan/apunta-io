@@ -171,6 +171,15 @@ const en: Translations = {
   help: {
     nav: "Help",
   },
+  profile: {
+    publicLists: "Public lists",
+    completedChallenges: "Completed challenges",
+    noPublicLists: "No public lists yet.",
+    noCompletedChallenges: "No challenges completed yet.",
+    completedOn: "Completed on {{date}}",
+    participants: "{{count}} participants",
+    items: "{{count}} items",
+  },
   stats: {
     title: "Stats",
     challengers: "Challengers",

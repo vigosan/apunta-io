@@ -8,7 +8,7 @@ import { notFound } from "@tanstack/react-router";
 import { POLLING_INTERVAL_MS } from "@/lib/constants";
 import { queryKeys } from "@/lib/query-keys";
 import type { ListWithParticipation } from "@/services/lists.service";
-import { listsService } from "@/services/lists.service";
+import { listsService, usersService } from "@/services/lists.service";
 
 export function useCollaborators(listId: string, enabled: boolean) {
   return useQuery({
@@ -211,5 +211,13 @@ export function useDeleteList() {
 export function useAcceptChallenge() {
   return useMutation({
     mutationFn: (listId: string) => listsService.accept(listId),
+  });
+}
+
+export function useUserProfile(userId: string) {
+  return useQuery({
+    queryKey: queryKeys.userProfile(userId),
+    queryFn: () => usersService.getProfile(userId),
+    staleTime: 60_000,
   });
 }
