@@ -596,9 +596,9 @@ function ListDetailPage() {
             <p className="text-sm text-gray-400 text-center py-10">
               {searchQuery
                 ? t("list.noResults", { query: searchQuery })
-                : activeTag || (statusFilter && statusFilter !== "all")
-                  ? t("list.noItemsFilter")
-                  : t("list.addFirst")}
+                : items.length === 0
+                  ? t("list.addFirst")
+                  : t("list.noItemsFilter")}
             </p>
           ) : (
             <div className="space-y-1">
