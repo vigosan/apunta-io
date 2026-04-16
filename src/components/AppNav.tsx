@@ -1,10 +1,10 @@
-import { useSession } from "@hono/auth-js/react";
 import { Link } from "@tanstack/react-router";
+import { useCachedSession } from "@/hooks/useCachedSession";
 import { setLanguage, useLanguage, useTranslation } from "@/i18n/service";
 import { UserMenu } from "./UserMenu";
 
 export function AppNav() {
-  const { data: session } = useSession();
+  const { data: session } = useCachedSession();
   const { t } = useTranslation();
   const { language } = useLanguage();
 

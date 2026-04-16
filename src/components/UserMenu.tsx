@@ -1,10 +1,11 @@
-import { signIn, signOut, useSession } from "@hono/auth-js/react";
+import { signIn, signOut } from "@hono/auth-js/react";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { useCachedSession } from "@/hooks/useCachedSession";
 import { useTranslation } from "@/i18n/service";
 
 export function UserMenu() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useCachedSession();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
