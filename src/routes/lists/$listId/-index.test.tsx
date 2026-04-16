@@ -30,6 +30,7 @@ import {
   useBulkAddItems,
   useDeleteItem,
   useItems,
+  useReorderItems,
   useToggleItem,
   useUpdateItem,
 } from "@/hooks/useItems";
@@ -119,6 +120,7 @@ function setupMocks({
   deleteMutate = vi.fn(),
   updateMutate = vi.fn(),
   bulkMutate = vi.fn(),
+  reorderMutate = vi.fn(),
   bulkIsPending = false,
   sessionUser = null as SessionUser | null,
 }: {
@@ -130,6 +132,7 @@ function setupMocks({
   deleteMutate?: ReturnType<typeof vi.fn>;
   updateMutate?: ReturnType<typeof vi.fn>;
   bulkMutate?: ReturnType<typeof vi.fn>;
+  reorderMutate?: ReturnType<typeof vi.fn>;
   bulkIsPending?: boolean;
   sessionUser?: SessionUser | null;
 } = {}) {
@@ -160,6 +163,9 @@ function setupMocks({
   vi.mocked(useBulkAddItems).mockReturnValue({
     mutate: bulkMutate,
     isPending: bulkIsPending,
+  } as never);
+  vi.mocked(useReorderItems).mockReturnValue({
+    mutate: reorderMutate,
   } as never);
 
   vi.mocked(useListHeader).mockReturnValue({
@@ -410,6 +416,56 @@ describe("ListDetailPage", () => {
     await waitFor(() =>
       expect(screen.getByText("1 / 2 completados")).toBeInTheDocument()
     );
+  });
+
+  it("reorder error restores order via resetOrder", async () => {
+    let capturedOnError: (() => void) | undefined;
+    const reorderMutate = vi.fn(
+      (_ids: string[], callbacks: { onError: () => void }) => {
+        capturedOnError = callbacks.onError;
+      }
+    );
+    const resetOrder = vi.fn();
+    const undoneItems = [makeItem("i1", "Tarea A"), makeItem("i3", "Tarea C")];
+    setupMocks({
+      items: undoneItems,
+      filteredItems: undoneItems,
+      reorderMutate,
+    });
+    vi.mocked(useItemsFilter).mockReturnValue({
+      stableItems: undoneItems,
+      allTags: [],
+      partialTag: null,
+      tagSuggestions: [],
+      filteredItems: undoneItems,
+      resetOrder,
+      setOrder: vi.fn(),
+    });
+
+    renderPage();
+    await waitFor(() => screen.getByTestId("item-row-i1"));
+
+    const mockDataTransfer = {
+      effectAllowed: "",
+      dropEffect: "",
+      setData: vi.fn(),
+      getData: vi.fn(),
+    };
+    fireEvent.dragStart(screen.getByTestId("item-row-i1"), {
+      dataTransfer: mockDataTransfer,
+    });
+    fireEvent.dragOver(screen.getByTestId("item-row-i3"), {
+      dataTransfer: mockDataTransfer,
+    });
+    fireEvent.drop(screen.getByTestId("item-row-i3"), {
+      dataTransfer: mockDataTransfer,
+    });
+
+    expect(reorderMutate).toHaveBeenCalled();
+    expect(capturedOnError).toBeDefined();
+    // biome-ignore lint/style/noNonNullAssertion: captured in mock callback above
+    capturedOnError!();
+    expect(resetOrder).toHaveBeenCalled();
   });
 
   describe("permissions", () => {

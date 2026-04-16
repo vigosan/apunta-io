@@ -66,7 +66,7 @@ function ListDetailPage() {
 
   function openSearch() {
     setSearchActive(true);
-    setTimeout(() => searchInputRef.current?.focus(), 0);
+    requestAnimationFrame(() => searchInputRef.current?.focus());
   }
 
   function closeSearch() {
@@ -233,7 +233,7 @@ function ListDetailPage() {
       ids.splice(fromIdx, 1);
       ids.splice(toIdx, 0, fromId);
       setOrder(ids);
-      reorderItems.mutate(ids);
+      reorderItems.mutate(ids, { onError: () => resetOrder() });
       setDragOverId(null);
     };
   }
