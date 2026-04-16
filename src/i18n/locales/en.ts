@@ -98,6 +98,9 @@ const en: Translations = {
     newListAriaLabel: "New list name",
     cancelCreate: "Cancel",
     deleteList: "Delete list «{{name}}»",
+    leaveConfirm: "Leave «{{name}}»?",
+    leaveYes: "Leave",
+    leaveList: "Leave list «{{name}}»",
     createList: "Create",
   },
   explore: {

@@ -97,6 +97,9 @@ const es = {
     newListAriaLabel: "Nombre de la nueva lista",
     cancelCreate: "Cancelar",
     deleteList: "Borrar lista «{{name}}»",
+    leaveConfirm: "¿Abandonar «{{name}}»?",
+    leaveYes: "Abandonar",
+    leaveList: "Abandonar lista «{{name}}»",
     createList: "Crear",
   },
   explore: {

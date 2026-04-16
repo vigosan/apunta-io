@@ -38,6 +38,16 @@ const LIST_B: List = {
   ownerId: "u1",
   createdAt: new Date(),
 };
+const LIST_PARTICIPATED: List = {
+  id: "l3",
+  name: "Reto ajeno",
+  slug: null,
+  description: null,
+  public: true,
+  collaborative: false,
+  ownerId: "other-user",
+  createdAt: new Date(),
+};
 
 function renderPage() {
   const qc = new QueryClient({
@@ -144,6 +154,31 @@ describe("MyListsPage", () => {
     await userEvent.click(screen.getAllByTestId("delete-list-btn")[0]);
     await userEvent.click(screen.getByTestId("delete-cancel-btn"));
     expect(screen.queryByTestId("delete-confirm-btn")).not.toBeInTheDocument();
+  });
+
+  it("shows leave confirmation for participated lists", async () => {
+    setupMocks({ lists: [LIST_PARTICIPATED] });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByTestId("delete-list-btn")).toBeInTheDocument()
+    );
+    await userEvent.click(screen.getByTestId("delete-list-btn"));
+    expect(screen.getByText(/¿Abandonar/i)).toBeInTheDocument();
+    expect(screen.getByTestId("delete-confirm-btn")).toHaveTextContent(
+      /Abandonar/i
+    );
+  });
+
+  it("confirming leave calls deleteList.mutate for participated list", async () => {
+    const deleteMutate = vi.fn();
+    setupMocks({ lists: [LIST_PARTICIPATED], deleteMutate });
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByTestId("delete-list-btn")).toBeInTheDocument()
+    );
+    await userEvent.click(screen.getByTestId("delete-list-btn"));
+    await userEvent.click(screen.getByTestId("delete-confirm-btn"));
+    expect(deleteMutate).toHaveBeenCalledWith(LIST_PARTICIPATED.id);
   });
 
   it("renders sort option buttons", async () => {

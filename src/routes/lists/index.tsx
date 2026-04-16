@@ -1,3 +1,4 @@
+import { useSession } from "@hono/auth-js/react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { AppNav } from "@/components/AppNav";
@@ -16,10 +17,14 @@ export const Route = createFileRoute("/lists/")({
   component: MyListsPage,
 });
 
-function MyListCard({ list }: { list: MyList }) {
+function MyListCard({
+  list,
+  userId,
+}: { list: MyList; userId: string | null | undefined }) {
   const [confirming, setConfirming] = useState(false);
   const deleteList = useDeleteList();
   const { t } = useTranslation();
+  const isOwner = !list.ownerId || list.ownerId === userId;
 
   if (confirming) {
     return (
@@ -28,7 +33,9 @@ function MyListCard({ list }: { list: MyList }) {
         data-testid="my-list-card"
       >
         <span className="flex-1 text-sm text-gray-500 truncate">
-          {t("myLists.deleteConfirm", { name: list.name })}
+          {isOwner
+            ? t("myLists.deleteConfirm", { name: list.name })
+            : t("myLists.leaveConfirm", { name: list.name })}
         </span>
         <button
           type="button"
@@ -45,7 +52,7 @@ function MyListCard({ list }: { list: MyList }) {
           disabled={deleteList.isPending}
           className="cursor-pointer px-3 py-1.5 text-xs font-medium text-white bg-gray-900 rounded-lg hover:bg-black disabled:opacity-50 transition-[background-color,transform] duration-150 active:scale-[0.96]"
         >
-          {t("myLists.deleteYes")}
+          {isOwner ? t("myLists.deleteYes") : t("myLists.leaveYes")}
         </button>
       </div>
     );
@@ -73,9 +80,11 @@ function MyListCard({ list }: { list: MyList }) {
           <button
             type="button"
             data-testid="delete-list-btn"
-            aria-label={t("myLists.deleteList", {
-              name: list.name,
-            })}
+            aria-label={
+              isOwner
+                ? t("myLists.deleteList", { name: list.name })
+                : t("myLists.leaveList", { name: list.name })
+            }
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -83,22 +92,40 @@ function MyListCard({ list }: { list: MyList }) {
             }}
             className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition-colors active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 shrink-0"
           >
-            <svg
-              aria-hidden="true"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-              <path d="M10 11v6M14 11v6" />
-              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-            </svg>
+            {isOwner ? (
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            ) : (
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            )}
           </button>
         </div>
 
@@ -216,6 +243,8 @@ function MyListsPage() {
     useMyLists(search || undefined, sort, visibility);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
 
   const SORT_OPTIONS: {
     value: SortOption;
@@ -376,7 +405,7 @@ function MyListsPage() {
           {!isLoading && lists.length > 0 && (
             <div className="flex flex-col gap-2">
               {lists.map((list) => (
-                <MyListCard key={list.id} list={list} />
+                <MyListCard key={list.id} list={list} userId={userId} />
               ))}
             </div>
           )}
