@@ -50,7 +50,7 @@ export function ItemRow({ item, onToggle, onDelete, onEdit, onTagClick, canWrite
       }`}
     >
       {canWrite && onDragStart && (
-        <span className="shrink-0 text-gray-300 cursor-grab active:cursor-grabbing touch-none select-none">
+        <span className="hidden sm:flex shrink-0 text-gray-300 cursor-grab active:cursor-grabbing touch-none select-none">
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
           </svg>
