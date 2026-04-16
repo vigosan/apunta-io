@@ -54,9 +54,15 @@ function ExploreDetailPage() {
     return (
       <div className="h-dvh bg-[#FAFAF8] flex flex-col">
         <AppNav />
-        <div className="flex-1 flex items-center justify-center">
-          <p className="text-sm text-gray-400">{t("explore.loading")}</p>
-        </div>
+        <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 flex flex-col gap-5">
+          <div className="h-4 w-24 rounded bg-gray-200 animate-pulse" />
+          <div className="flex flex-col gap-2">
+            <div className="h-6 w-2/3 rounded-lg bg-gray-200 animate-pulse" />
+            <div className="h-4 w-1/3 rounded-lg bg-gray-200 animate-pulse" />
+          </div>
+          <div className="h-40 rounded-2xl bg-gray-200 animate-pulse" />
+          <div className="h-10 rounded-xl bg-gray-200 animate-pulse" />
+        </main>
       </div>
     );
   }
@@ -156,17 +162,19 @@ function ExploreDetailPage() {
         {shownParticipants.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="flex -space-x-1.5">
-              {shownParticipants.map((p) =>
+              {shownParticipants.map((p, i) =>
                 p.image ? (
                   <img
-                    key={p.name ?? p.image}
+                    // biome-ignore lint/suspicious/noArrayIndexKey: participants have no stable ID; names/images may be duplicate
+                    key={i}
                     src={p.image}
                     alt={p.name ?? ""}
                     className="w-6 h-6 rounded-full outline outline-2 outline-white"
                   />
                 ) : (
                   <div
-                    key={p.name ?? "anon"}
+                    // biome-ignore lint/suspicious/noArrayIndexKey: participants have no stable ID; names may be duplicate
+                    key={i}
                     className="w-6 h-6 rounded-full bg-gray-200 outline outline-2 outline-white flex items-center justify-center"
                   >
                     <span className="text-[8px] text-gray-500 font-medium">
