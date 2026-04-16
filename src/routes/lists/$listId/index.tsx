@@ -93,6 +93,7 @@ function ListDetailPage() {
   const isOwner = !list ? false : (list.ownerId === null || list.ownerId === session?.user?.id);
   const isParticipant = !!list?.participated && !isOwner && !!list?.public;
   const canWrite = isOwner || (isParticipant && !!list?.collaborative) || (!list?.public && !!list?.collaborative);
+  const canToggle = canWrite || isParticipant;
   const { data: participantData } = useCollaborators(listId, isOwner && (!!list?.public || !!list?.collaborative));
   const collaborators = participantData?.collaborators ?? [];
   const challengers = participantData?.challengers ?? [];
@@ -680,6 +681,7 @@ function ListDetailPage() {
                   onTagClick={(tag) => setActiveTag(activeTag === tag ? null : tag)}
                   activeTag={activeTag}
                   canWrite={canWrite}
+                  canToggle={canToggle}
                   onDragStart={isOwner && !item.done ? handleDragStart(item.id) : undefined}
                   onDragOver={isOwner && !item.done ? handleDragOver(item.id) : undefined}
                   onDrop={isOwner && !item.done ? handleDrop(item.id) : undefined}
