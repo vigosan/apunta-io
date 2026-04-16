@@ -7,6 +7,8 @@ import {
   useExploreItems,
 } from "@/hooks/useList";
 import { useTranslation } from "@/i18n/service";
+import { renderInlineMarkdown } from "@/lib/inline-markdown";
+import { parseTags } from "@/lib/tags";
 
 export const Route = createFileRoute("/explore/$listId")({
   component: ExploreDetailPage,
@@ -207,7 +209,17 @@ function ExploreDetailPage() {
                 {exploreItems.map((item) => (
                   <li key={item.id} className="flex items-center gap-3 py-2.5">
                     <span className="w-4 h-4 rounded border shrink-0 border-gray-300" />
-                    <span className="text-sm text-gray-700">{item.text}</span>
+                    {/* biome-ignore lint/a11y/noStaticElementInteractions: link click passthrough */}
+                    {/* biome-ignore lint/a11y/useKeyWithClickEvents: link click passthrough */}
+                    <span
+                      className="text-sm text-gray-700"
+                      onClick={(e) => {
+                        if ((e.target as HTMLElement).tagName === "A")
+                          e.stopPropagation();
+                      }}
+                    >
+                      {renderInlineMarkdown(parseTags(item.text).display)}
+                    </span>
                   </li>
                 ))}
               </ul>
