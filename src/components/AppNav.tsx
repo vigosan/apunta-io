@@ -31,6 +31,13 @@ export function AppNav() {
               {t("nav.myLists")}
             </Link>
           )}
+          <Link
+            to="/help"
+            data-testid="nav-help"
+            className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
+          >
+            {t("help.nav")}
+          </Link>
           <div className="w-px h-4 bg-gray-200 mx-2" />
           <button
             onClick={() => setLanguage(language === "es" ? "en" : "es")}
