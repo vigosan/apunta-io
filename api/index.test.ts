@@ -16,6 +16,12 @@ const mockDb = {
 
 vi.mock("../src/db/client", () => ({ db: mockDb }));
 
+const mockGetAuthUser = vi.fn().mockRejectedValue(new Error("no session"));
+vi.mock("@hono/auth-js", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@hono/auth-js")>();
+  return { ...original, getAuthUser: (...args: unknown[]) => mockGetAuthUser(...args) };
+});
+
 const { app } = await import("./app");
 
 describe("POST /api/lists", () => {
@@ -798,6 +804,42 @@ describe("DELETE /api/lists/:listId", () => {
     mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc-123", ownerId: "other-user-id" });
 
     const res = await app.request("/api/lists/abc-123", { method: "DELETE" });
+    expect(res.status).toBe(403);
+  });
+});
+
+describe("PATCH /api/lists/:listId/items/:itemId/toggle (challenger role)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAuthUser.mockRejectedValue(new Error("no session"));
+  });
+
+  it("allows challenger to toggle on public non-collaborative list via itemProgress", async () => {
+    mockGetAuthUser.mockResolvedValue({ session: { user: { id: "u1" } } });
+    const item = { id: "i1", listId: "abc", text: "Tarea", done: false };
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: "owner", collaborative: false, public: true });
+    mockDb.query.items.findFirst.mockResolvedValue(item);
+    mockDb.query.participations.findFirst.mockResolvedValue({ id: "p1", completedAt: null, role: "challenger" });
+    mockDb.query.itemProgress.findFirst.mockResolvedValue(null);
+    mockDb.query.itemProgress.findMany.mockResolvedValue([]);
+    mockDb.query.items.findMany.mockResolvedValue([item]);
+    const onConflictDoUpdate = vi.fn().mockResolvedValue(undefined);
+    mockDb.insert.mockReturnValue({ values: vi.fn().mockReturnValue({ onConflictDoUpdate }) });
+
+    const res = await app.request("/api/lists/abc/items/i1/toggle", { method: "PATCH" });
+    expect(res.status).toBe(200);
+    const body = await res.json() as Record<string, unknown>;
+    expect(body.done).toBe(true);
+  });
+
+  it("returns 403 for non-owner without participation on public non-collaborative list", async () => {
+    mockGetAuthUser.mockResolvedValue({ session: { user: { id: "u1" } } });
+    const item = { id: "i1", listId: "abc", text: "Tarea", done: false };
+    mockDb.query.lists.findFirst.mockResolvedValue({ id: "abc", ownerId: "owner", collaborative: false, public: true });
+    mockDb.query.items.findFirst.mockResolvedValue(item);
+    mockDb.query.participations.findFirst.mockResolvedValue(null);
+
+    const res = await app.request("/api/lists/abc/items/i1/toggle", { method: "PATCH" });
     expect(res.status).toBe(403);
   });
 });

@@ -19,7 +19,7 @@ import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem, useB
 import { useListHeader } from "@/hooks/useListHeader";
 import { useItemsFilter } from "@/hooks/useItemsFilter";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { useToggleCollaborative } from "@/hooks/useList";
+import { useToggleCollaborative, useCollaborators } from "@/hooks/useList";
 import { useListPrice, useSetPrice, useRemovePrice } from "@/hooks/useListPrice";
 import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { useSession } from "@hono/auth-js/react";
@@ -130,6 +130,7 @@ function setupMocks({
   } as never);
 
   vi.mocked(useToggleCollaborative).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
+  vi.mocked(useCollaborators).mockReturnValue({ data: { collaborators: [], challengers: [] }, isLoading: false } as never);
   vi.mocked(useListPrice).mockReturnValue({ data: null, isLoading: false } as never);
   vi.mocked(useSetPrice).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);
   vi.mocked(useRemovePrice).mockReturnValue({ mutate: vi.fn(), isPending: false } as never);

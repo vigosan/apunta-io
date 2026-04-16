@@ -11,6 +11,7 @@ interface Props {
   onTagClick?: (tag: string) => void;
   activeTag?: string;
   canWrite?: boolean;
+  canToggle?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
   onDragOver?: (e: React.DragEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
@@ -18,12 +19,13 @@ interface Props {
   isDragOver?: boolean;
 }
 
-export function ItemRow({ item, onToggle, onDelete, onEdit, onTagClick, activeTag, canWrite = true, onDragStart, onDragOver, onDrop, onDragEnd, isDragOver }: Props) {
+export function ItemRow({ item, onToggle, onDelete, onEdit, onTagClick, activeTag, canWrite = true, canToggle, onDragStart, onDragOver, onDrop, onDragEnd, isDragOver }: Props) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(item.text);
   const cancelled = useRef(false);
   const { display, tags } = parseTags(item.text);
   const { t } = useTranslation();
+  const effectiveCanToggle = canToggle ?? canWrite;
 
   function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
@@ -58,10 +60,10 @@ export function ItemRow({ item, onToggle, onDelete, onEdit, onTagClick, activeTa
         </span>
       )}
       <button
-        onClick={canWrite ? onToggle : undefined}
+        onClick={effectiveCanToggle ? onToggle : undefined}
         data-testid={`item-checkbox-${item.id}`}
         aria-label={item.done ? t("items.markPending") : t("items.markDone")}
-        className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-transform ${canWrite ? "cursor-pointer active:scale-[0.96]" : "cursor-default"}`}
+        className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-transform ${effectiveCanToggle ? "cursor-pointer active:scale-[0.96]" : "cursor-default"}`}
       >
         <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-[background-color,border-color] ${
           item.done

@@ -109,7 +109,7 @@ async function resolveList(param: string): Promise<{ id: string; ownerId: string
 async function getParticipation(sourceListId: string, userId: string) {
   return db.query.participations.findFirst({
     where: and(eq(participations.sourceListId, sourceListId), eq(participations.userId, userId)),
-    columns: { id: true, completedAt: true },
+    columns: { id: true, completedAt: true, role: true },
   });
 }
 
@@ -222,7 +222,7 @@ app.get("/lists/:listId", async (c) => {
   const userId = authUser?.session?.user?.id ?? null;
   if (!await canViewList(list, userId)) return c.json({ error: "Not found" }, 404);
   if (userId && list.collaborative && list.ownerId !== userId) {
-    await db.insert(participations).values({ sourceListId: list.id, userId }).onConflictDoNothing();
+    await db.insert(participations).values({ sourceListId: list.id, userId, role: "collaborator" }).onConflictDoNothing();
   }
   const participation = userId
     ? await getParticipation(list.id, userId)
@@ -275,7 +275,7 @@ app.get("/lists/:listId/items", async (c) => {
   const userId = authUser?.session?.user?.id ?? null;
   if (!await canViewList(list, userId)) return c.json({ error: "Not found" }, 404);
   const isOwner = list.ownerId === null || list.ownerId === userId;
-  const participation = userId && list.public && !isOwner
+  const participation = userId && !isOwner
     ? await getParticipation(list.id, userId)
     : null;
 
@@ -284,7 +284,7 @@ app.get("/lists/:listId/items", async (c) => {
     orderBy: (t, { asc }) => [asc(t.position), asc(t.createdAt)],
   });
 
-  if (!participation) return c.json(rows);
+  if (!participation || participation.role !== "challenger") return c.json(rows);
 
   const progressRows = await db.query.itemProgress.findMany({
     where: and(
@@ -368,7 +368,6 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
   if (!list) return c.json({ error: "Not found" }, 404);
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id ?? null;
-  if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
   const itemId = c.req.param("itemId");
 
   const item = await db.query.items.findFirst({
@@ -378,11 +377,11 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
   if (!item) return c.json({ error: "Not found" }, 404);
 
   const isOwner = list.ownerId === null || list.ownerId === userId;
-  const participation = userId && list.public && !isOwner
+  const participation = userId && !isOwner
     ? await getParticipation(list.id, userId)
     : null;
 
-  if (participation && userId) {
+  if (participation?.role === "challenger" && userId) {
     const existing = await db.query.itemProgress.findFirst({
       where: and(eq(itemProgress.userId, userId), eq(itemProgress.itemId, itemId)),
       columns: { done: true },
@@ -419,26 +418,16 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
     return c.json({ ...item, done: newDone });
   }
 
+  if (participation?.role !== "collaborator" && !canModifyList(list, userId)) {
+    return c.json({ error: "Forbidden" }, 403);
+  }
+
   const [updated] = await db
     .update(items)
     .set({ done: sql`NOT ${items.done}`, updatedAt: new Date() })
     .where(and(eq(items.id, itemId), eq(items.listId, list.id)))
     .returning();
   if (!updated) return c.json({ error: "Not found" }, 404);
-
-  if (userId && !list.public) {
-    const allItems = await db.query.items.findMany({
-      where: eq(items.listId, list.id),
-      columns: { done: true },
-    });
-    const allDone = allItems.length > 0 && allItems.every((i) => i.done);
-    if (allDone) {
-      await db
-        .update(participations)
-        .set({ completedAt: new Date() })
-        .where(and(eq(participations.userListId, list.id), eq(participations.userId, userId)));
-    }
-  }
 
   return c.json(updated);
 });
@@ -666,7 +655,7 @@ app.post("/lists/:listId/accept", async (c) => {
   const existing = await getParticipation(source.id, userId);
   if (existing) return c.json({ error: "Already participating" }, 409);
 
-  await db.insert(participations).values({ sourceListId: source.id, userId });
+  await db.insert(participations).values({ sourceListId: source.id, userId, role: "challenger" });
   await logActivity(source.id, userId, "challenge_accepted");
 
   return c.json(source, 201);
@@ -688,15 +677,15 @@ app.get("/lists/:listId/collaborators", async (c) => {
       id: users.id,
       name: users.name,
       image: users.image,
-      userListId: participations.userListId,
+      role: participations.role,
       completedAt: participations.completedAt,
       doneCount: sql<number>`cast(coalesce((select count(*) from ${itemProgress} where ${itemProgress.userId} = ${users.id} and ${itemProgress.itemId} in (select id from ${items} where ${items.listId} = ${list.id}) and ${itemProgress.done} = true), 0) as int)`,
     })
     .from(participations)
     .innerJoin(users, eq(participations.userId, users.id))
     .where(eq(participations.sourceListId, list.id));
-  const collaborators = rows.filter((r) => r.userListId === null).map(({ userListId: _, completedAt: __, doneCount: ___, ...rest }) => rest);
-  const challengers = rows.filter((r) => r.userListId !== null).map(({ userListId: _, ...rest }) => ({ ...rest, totalItems }));
+  const collaborators = rows.filter((r) => r.role === "collaborator").map(({ role: _, completedAt: __, doneCount: ___, ...rest }) => rest);
+  const challengers = rows.filter((r) => r.role === "challenger").map(({ role: _, ...rest }) => ({ ...rest, totalItems }));
   return c.json({ collaborators, challengers });
 });
 
