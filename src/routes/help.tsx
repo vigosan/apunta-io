@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppFooter } from "@/components/AppFooter";
 import { AppNav } from "@/components/AppNav";
 import { useLanguage } from "@/i18n/service";
+import { renderInlineMarkdown } from "@/lib/inline-markdown";
 
 export const Route = createFileRoute("/help")({
   component: HelpPage,
@@ -68,6 +69,17 @@ const content = {
           "Sign in with Google to accept challenges and track progress",
         ],
       },
+      {
+        title: "Formatting",
+        items: [
+          "Item text supports inline markdown",
+          "**Bold** — wrap text with double asterisks: **bold**",
+          "*Italic* — wrap text with single asterisks: *italic*",
+          "`Code` — wrap text with backticks: `code`",
+          "[Link](https://…) — write [label](url) to add a clickable link",
+          "Bare URLs like https://… are automatically turned into links",
+        ],
+      },
     ],
   },
   es: {
@@ -130,6 +142,17 @@ const content = {
           "Inicia sesión con Google para aceptar retos y registrar el progreso",
         ],
       },
+      {
+        title: "Formato",
+        items: [
+          "El texto de los elementos admite markdown básico",
+          "**Negrita** — rodea el texto con dobles asteriscos: **negrita**",
+          "*Cursiva* — rodea el texto con asteriscos simples: *cursiva*",
+          "`Código` — rodea el texto con acentos graves: `código`",
+          "[Enlace](https://…) — escribe [etiqueta](url) para añadir un enlace",
+          "Las URLs como https://… se convierten automáticamente en enlaces",
+        ],
+      },
     ],
   },
 } as const;
@@ -153,7 +176,7 @@ function HelpSection({
             className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed"
           >
             <span className="mt-2 shrink-0 w-1 h-1 rounded-full bg-gray-300" />
-            {item}
+            <span>{renderInlineMarkdown(item)}</span>
           </li>
         ))}
       </ul>
