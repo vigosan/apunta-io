@@ -14,27 +14,31 @@ export function AppNav() {
         <Link to="/" data-testid="nav-logo" className="cursor-pointer font-mono text-sm font-bold text-gray-900 tracking-tight hover:text-gray-400 transition-colors duration-150">
           welist
         </Link>
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
           <Link
             to="/explore"
             data-testid="nav-explore"
-            className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
+            className="cursor-pointer px-2.5 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
           >
             {t("nav.explore")}
           </Link>
           {session?.user && (
-            <Link
-              to="/lists"
-              data-testid="nav-my-lists"
-              className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
-            >
-              {t("nav.myLists")}
-            </Link>
+            <>
+              <span className="text-gray-200 text-xs select-none">·</span>
+              <Link
+                to="/lists"
+                data-testid="nav-my-lists"
+                className="cursor-pointer px-2.5 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
+              >
+                {t("nav.myLists")}
+              </Link>
+            </>
           )}
+          <span className="text-gray-200 text-xs select-none">·</span>
           <Link
             to="/help"
             data-testid="nav-help"
-            className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
+            className="cursor-pointer px-2.5 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 rounded-lg transition-colors duration-150"
           >
             {t("help.nav")}
           </Link>
