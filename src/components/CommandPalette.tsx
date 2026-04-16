@@ -65,7 +65,7 @@ export function CommandPalette({ open, onClose, actions }: Props) {
         role="dialog"
         aria-modal="true"
         aria-label={t("command.ariaLabel")}
-        className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden"
+        className="relative w-full max-w-sm bg-white rounded-2xl border border-gray-200 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >

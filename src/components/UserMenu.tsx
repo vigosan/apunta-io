@@ -42,7 +42,7 @@ export function UserMenu() {
         </button>
 
         {open && (
-          <div className="absolute right-0 top-full mt-1 min-w-40 bg-white border border-gray-100 rounded-xl shadow-sm z-50 py-1">
+          <div className="absolute right-0 top-full mt-1 min-w-40 bg-white border border-gray-200 rounded-xl z-50 py-1">
             <Link
               to="/lists"
               onClick={() => setOpen(false)}
