@@ -171,6 +171,26 @@ describe("useListHeader", () => {
     expect(result.current.slugError).toBe("slugError.taken");
   });
 
+  it("clears the share timeout on unmount", () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, "clearTimeout");
+    setupMocks();
+    Object.assign(navigator, {
+      clipboard: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+    const { result, unmount } = renderHook(() =>
+      useListHeader({ listId: "l1", onSlugUpdated: vi.fn() })
+    );
+    act(() => {
+      result.current.handleShare();
+    });
+    expect(result.current.copied).toBe(true);
+    unmount();
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
   it("sets slugError.saveFailed on generic error", async () => {
     let capturedOnError: ((err: unknown) => void) | undefined;
     const mutateFn = vi.fn(

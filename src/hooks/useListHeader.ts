@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n/service";
 import type { ApiError } from "@/lib/api-client";
 import {
@@ -30,6 +30,15 @@ export function useListHeader({ listId, onSlugUpdated }: Options) {
   const [editingDescription, setEditingDescription] = useState(false);
   const [descriptionValue, setDescriptionValue] = useState("");
   const [copied, setCopied] = useState(false);
+  const copiedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copiedTimeoutRef.current !== null) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const updateName = useUpdateName(listId);
   const updateSlug = useUpdateSlug(listId);
@@ -39,7 +48,10 @@ export function useListHeader({ listId, onSlugUpdated }: Options) {
   const handleShare = useCallback(() => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copiedTimeoutRef.current !== null) {
+      clearTimeout(copiedTimeoutRef.current);
+    }
+    copiedTimeoutRef.current = setTimeout(() => setCopied(false), 2000);
   }, []);
 
   function startEditingSlug() {
