@@ -1,13 +1,19 @@
-import { describe, it, expect } from "vitest";
-import { parseTags, tagColor, getPartialTag } from "./tags";
+import { describe, expect, it } from "vitest";
+import { getPartialTag, parseTags, tagColor } from "./tags";
 
 describe("parseTags", () => {
   it("returns empty tags and full text when no hashtags", () => {
-    expect(parseTags("comprar leche")).toEqual({ display: "comprar leche", tags: [] });
+    expect(parseTags("comprar leche")).toEqual({
+      display: "comprar leche",
+      tags: [],
+    });
   });
 
   it("extracts a single tag", () => {
-    expect(parseTags("viaje a París #viajes")).toEqual({ display: "viaje a París", tags: ["viajes"] });
+    expect(parseTags("viaje a París #viajes")).toEqual({
+      display: "viaje a París",
+      tags: ["viajes"],
+    });
   });
 
   it("extracts multiple tags", () => {
@@ -18,7 +24,10 @@ describe("parseTags", () => {
   });
 
   it("lowercases tags", () => {
-    expect(parseTags("algo #Urgente")).toEqual({ display: "algo", tags: ["urgente"] });
+    expect(parseTags("algo #Urgente")).toEqual({
+      display: "algo",
+      tags: ["urgente"],
+    });
   });
 
   it("handles tags in the middle of text", () => {

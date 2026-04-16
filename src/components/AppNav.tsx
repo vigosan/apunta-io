@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
 import { useSession } from "@hono/auth-js/react";
+import { Link } from "@tanstack/react-router";
+import { setLanguage, useLanguage, useTranslation } from "@/i18n/service";
 import { UserMenu } from "./UserMenu";
-import { useTranslation, useLanguage, setLanguage } from "@/i18n/service";
 
 export function AppNav() {
   const { data: session } = useSession();
@@ -11,7 +11,11 @@ export function AppNav() {
   return (
     <nav className="border-b border-gray-100 bg-white shrink-0">
       <div className="flex items-center justify-between px-6 h-13 max-w-3xl mx-auto w-full">
-        <Link to="/" data-testid="nav-logo" className="cursor-pointer font-mono text-sm font-bold text-gray-900 tracking-tight hover:text-gray-400 transition-colors duration-150">
+        <Link
+          to="/"
+          data-testid="nav-logo"
+          className="cursor-pointer font-mono text-sm font-bold text-gray-900 tracking-tight hover:text-gray-400 transition-colors duration-150"
+        >
           welist
         </Link>
         <div className="flex items-center gap-1">
@@ -44,6 +48,7 @@ export function AppNav() {
           </Link>
           <div className="w-px h-4 bg-gray-200 mx-2" />
           <button
+            type="button"
             onClick={() => setLanguage(language === "es" ? "en" : "es")}
             data-testid="lang-switcher"
             className="cursor-pointer px-2 py-1 text-xs font-medium text-gray-400 hover:text-gray-900 rounded-md transition-colors duration-150 tabular-nums"

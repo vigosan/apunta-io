@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { listsService } from "@/services/lists.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
 import type { ListPrice } from "@/services/lists.service";
+import { listsService } from "@/services/lists.service";
 
 export function useListPrice(listId: string, enabled: boolean) {
   return useQuery<ListPrice | null>({
@@ -14,7 +14,8 @@ export function useListPrice(listId: string, enabled: boolean) {
 export function useSetPrice(listId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (priceInCents: number) => listsService.setPrice(listId, priceInCents),
+    mutationFn: (priceInCents: number) =>
+      listsService.setPrice(listId, priceInCents),
     onSuccess: (price) => qc.setQueryData(queryKeys.listPrice(listId), price),
   });
 }

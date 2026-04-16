@@ -22,6 +22,7 @@ export function usePullToRefresh(onRefresh: () => Promise<unknown>) {
     if (!el) return;
 
     function handleTouchStart(e: TouchEvent) {
+      // biome-ignore lint/style/noNonNullAssertion: el is checked above before this closure is registered
       if (el!.scrollTop > 0) return;
       startY.current = e.touches[0].clientY;
       isPulling.current = true;
@@ -29,6 +30,7 @@ export function usePullToRefresh(onRefresh: () => Promise<unknown>) {
 
     function handleTouchMove(e: TouchEvent) {
       if (!isPulling.current) return;
+      // biome-ignore lint/style/noNonNullAssertion: el is checked above before this closure is registered
       if (el!.scrollTop > 0) {
         isPulling.current = false;
         currentPull.current = 0;
@@ -61,8 +63,12 @@ export function usePullToRefresh(onRefresh: () => Promise<unknown>) {
       }
     }
 
-    el.addEventListener("touchstart", handleTouchStart, { passive: true });
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
+    el.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    el.addEventListener("touchmove", handleTouchMove, {
+      passive: false,
+    });
     el.addEventListener("touchend", handleTouchEnd);
 
     return () => {

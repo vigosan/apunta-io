@@ -1,17 +1,20 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
-import { useExplore, useAcceptChallenge } from "@/hooks/useList";
-import { useSession, signIn } from "@hono/auth-js/react";
+import { signIn, useSession } from "@hono/auth-js/react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { AppNav } from "@/components/AppNav";
-import type { ExploreItem } from "@/services/lists.service";
+import { useAcceptChallenge, useExplore } from "@/hooks/useList";
 import { useTranslation } from "@/i18n/service";
+import type { ExploreItem } from "@/services/lists.service";
 
 export const Route = createFileRoute("/explore/")({
   component: ExplorePage,
 });
 
-
-function ExploreListCard({ list, onAccept, acceptPending }: {
+function ExploreListCard({
+  list,
+  onAccept,
+  acceptPending,
+}: {
   list: ExploreItem;
   onAccept: (id: string) => void;
   acceptPending: boolean;
@@ -28,39 +31,87 @@ function ExploreListCard({ list, onAccept, acceptPending }: {
           className="flex items-start justify-between gap-3 hover:opacity-80 transition-opacity duration-150"
         >
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 leading-snug">{list.name}</p>
+            <p className="font-semibold text-gray-900 leading-snug">
+              {list.name}
+            </p>
             {list.description && (
-              <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">{list.description}</p>
+              <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">
+                {list.description}
+              </p>
             )}
           </div>
           {list.owner?.image && (
-            <img src={list.owner.image} alt="" className="w-7 h-7 rounded-full shrink-0 outline outline-1 outline-black/10" />
+            <img
+              src={list.owner.image}
+              alt=""
+              className="w-7 h-7 rounded-full shrink-0 outline outline-1 outline-black/10"
+            />
           )}
         </Link>
 
         <div className="flex items-center gap-1.5">
           <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg">
-            <svg aria-hidden="true" className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <svg
+              aria-hidden="true"
+              className="w-3 h-3 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+              />
             </svg>
-            <span className="text-xs font-medium text-gray-500 tabular-nums">{list.itemCount}</span>
+            <span className="text-xs font-medium text-gray-500 tabular-nums">
+              {list.itemCount}
+            </span>
           </div>
           <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg">
-            <svg aria-hidden="true" className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              aria-hidden="true"
+              className="w-3 h-3 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
-            <span className="text-xs font-medium text-gray-500 tabular-nums">{list.participantCount}</span>
+            <span className="text-xs font-medium text-gray-500 tabular-nums">
+              {list.participantCount}
+            </span>
           </div>
           <div className="flex items-center gap-1 px-2 py-1 bg-gray-50 rounded-lg">
-            <svg aria-hidden="true" className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              aria-hidden="true"
+              className="w-3 h-3 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <span className="text-xs font-medium text-gray-500 tabular-nums">{list.completedCount}</span>
+            <span className="text-xs font-medium text-gray-500 tabular-nums">
+              {list.completedCount}
+            </span>
           </div>
         </div>
 
         <div className="pt-1 border-t border-gray-50">
           <button
+            type="button"
             onClick={() => {
               if (session?.user) {
                 onAccept(list.id);
@@ -84,7 +135,8 @@ function ExplorePage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [search, setSearch] = useState("");
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useExplore(search || undefined);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useExplore(search || undefined);
   const acceptChallenge = useAcceptChallenge();
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
@@ -113,7 +165,11 @@ function ExplorePage() {
 
   function handleAccept(listId: string) {
     acceptChallenge.mutate(listId, {
-      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.id } }),
+      onSuccess: (list) =>
+        navigate({
+          to: "/lists/$listId",
+          params: { listId: list.id },
+        }),
     });
   }
 
@@ -123,7 +179,10 @@ function ExplorePage() {
 
       <div className="flex-1 flex flex-col w-full max-w-3xl mx-auto overflow-hidden">
         <div className="px-4 pt-6 pb-4 shrink-0">
-          <form onSubmit={handleSearch} className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150">
+          <form
+            onSubmit={handleSearch}
+            className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150"
+          >
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -143,7 +202,9 @@ function ExplorePage() {
 
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           {isLoading && (
-            <p className="text-sm text-gray-400 text-center py-10">{t("explore.loading")}</p>
+            <p className="text-sm text-gray-400 text-center py-10">
+              {t("explore.loading")}
+            </p>
           )}
           {!isLoading && lists.length === 0 && (
             <p className="text-sm text-gray-400 text-center py-10">
@@ -163,7 +224,9 @@ function ExplorePage() {
 
           <div ref={sentinelRef} className="h-4" />
           {isFetchingNextPage && (
-            <p className="text-sm text-gray-400 text-center py-4">{t("explore.loading")}</p>
+            <p className="text-sm text-gray-400 text-center py-4">
+              {t("explore.loading")}
+            </p>
           )}
         </div>
       </div>

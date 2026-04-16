@@ -1,9 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { validateEnv } from "./env";
 
 describe("validateEnv", () => {
   it("returns typed env when DATABASE_URL is valid", () => {
-    const result = validateEnv({ DATABASE_URL: "postgresql://user:pass@host/db" });
+    const result = validateEnv({
+      DATABASE_URL: "postgresql://user:pass@host/db",
+    });
     expect(result.DATABASE_URL).toBe("postgresql://user:pass@host/db");
   });
 

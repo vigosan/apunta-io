@@ -14,7 +14,8 @@ export function rateLimit({ limit, windowMs }: Options): MiddlewareHandler {
   const store = new Map<string, Entry>();
 
   return async (c, next) => {
-    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const ip =
+      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
     const now = Date.now();
     const entry = store.get(ip);
 

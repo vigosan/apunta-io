@@ -14,13 +14,17 @@ const en: Translations = {
     createList: "Create list",
     footer: "© {{year}} Welist",
     step1Title: "Create a list",
-    step1Desc: "Add anything: movies to watch, places to visit, books to read. It's your list.",
+    step1Desc:
+      "Add anything: movies to watch, places to visit, books to read. It's your list.",
     step2Title: "Share the link",
-    step2Desc: "Make it public and share the link. Anyone with it can see your list.",
+    step2Desc:
+      "Make it public and share the link. Anyone with it can see your list.",
     step3Title: "Others take the challenge",
-    step3Desc: "People copy your list and complete the items. Progress is tracked for everyone.",
+    step3Desc:
+      "People copy your list and complete the items. Progress is tracked for everyone.",
     step4Title: "Sell access",
-    step4Desc: "Set a price and get paid directly. Connect Stripe and start earning.",
+    step4Desc:
+      "Set a price and get paid directly. Connect Stripe and start earning.",
   },
   list: {
     back: "← My lists",
@@ -44,7 +48,7 @@ const en: Translations = {
     searchPlaceholder: "Search in this list…",
     results_one: "{{count}} result",
     results_other: "{{count}} results",
-    noResults: "No results for \"{{query}}\".",
+    noResults: 'No results for "{{query}}".',
     noItemsFilter: "No items match that filter.",
     addFirst: "Add the first item to your list.",
     addItemPlaceholder: "Add item…",
@@ -137,7 +141,7 @@ const en: Translations = {
   items: {
     markPending: "Mark as pending",
     markDone: "Mark as done",
-    delete: "Delete \"{{text}}\"",
+    delete: 'Delete "{{text}}"',
   },
   bulk: {
     header_one: "{{count}} item to add",
@@ -147,7 +151,7 @@ const en: Translations = {
     adding: "Adding…",
     confirm_one: "Add {{count}} item",
     confirm_other: "Add {{count}} items",
-    removeItem: "Delete \"{{text}}\"",
+    removeItem: 'Delete "{{text}}"',
   },
   error: {
     title: "Something went wrong",

@@ -1,16 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
-import { useCommandPalette } from "./useCommandPalette";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { List } from "@/db/schema";
+import { useCommandPalette } from "./useCommandPalette";
 
-vi.mock("@/lib/confetti", () => ({ fireConfetti: vi.fn() }));
+vi.mock("@/lib/confetti", () => ({
+  fireConfetti: vi.fn(),
+}));
 
 const LIST: List = {
-  id: "l1", name: "Mi lista", slug: null, description: null,
-  public: false, collaborative: false, ownerId: null, createdAt: new Date(),
+  id: "l1",
+  name: "Mi lista",
+  slug: null,
+  description: null,
+  public: false,
+  collaborative: false,
+  ownerId: null,
+  createdAt: new Date(),
 };
 
-function makeOpts(overrides: Partial<Parameters<typeof useCommandPalette>[0]> = {}) {
+function makeOpts(
+  overrides: Partial<Parameters<typeof useCommandPalette>[0]> = {}
+) {
   return {
     list: LIST,
     allTags: [],
@@ -38,7 +48,12 @@ describe("useCommandPalette", () => {
   it("Ctrl+K opens the palette", () => {
     const { result } = renderHook(() => useCommandPalette(makeOpts()));
     act(() => {
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "k",
+          ctrlKey: true,
+        })
+      );
     });
     expect(result.current.paletteOpen).toBe(true);
   });
@@ -46,10 +61,20 @@ describe("useCommandPalette", () => {
   it("Ctrl+K a second time closes the palette", () => {
     const { result } = renderHook(() => useCommandPalette(makeOpts()));
     act(() => {
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "k",
+          ctrlKey: true,
+        })
+      );
     });
     act(() => {
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }));
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "k",
+          ctrlKey: true,
+        })
+      );
     });
     expect(result.current.paletteOpen).toBe(false);
   });
@@ -58,7 +83,12 @@ describe("useCommandPalette", () => {
     const onSearch = vi.fn();
     renderHook(() => useCommandPalette(makeOpts({ onSearch })));
     act(() => {
-      document.dispatchEvent(new KeyboardEvent("keydown", { key: "f", ctrlKey: true }));
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          key: "f",
+          ctrlKey: true,
+        })
+      );
     });
     expect(onSearch).toHaveBeenCalledTimes(1);
   });
@@ -78,7 +108,7 @@ describe("useCommandPalette", () => {
 
   it("includes tag filter actions for each tag", () => {
     const { result } = renderHook(() =>
-      useCommandPalette(makeOpts({ allTags: ["work", "personal"] })),
+      useCommandPalette(makeOpts({ allTags: ["work", "personal"] }))
     );
     const ids = result.current.paletteActions.map((a) => a.id);
     expect(ids).toContain("filter-work");
@@ -87,7 +117,7 @@ describe("useCommandPalette", () => {
 
   it("includes clear-filter action when a tag is active", () => {
     const { result } = renderHook(() =>
-      useCommandPalette(makeOpts({ allTags: ["work"], activeTag: "work" })),
+      useCommandPalette(makeOpts({ allTags: ["work"], activeTag: "work" }))
     );
     const ids = result.current.paletteActions.map((a) => a.id);
     expect(ids).toContain("clear-filter");
@@ -95,7 +125,9 @@ describe("useCommandPalette", () => {
 
   it("setPaletteOpen controls palette visibility", () => {
     const { result } = renderHook(() => useCommandPalette(makeOpts()));
-    act(() => { result.current.setPaletteOpen(true); });
+    act(() => {
+      result.current.setPaletteOpen(true);
+    });
     expect(result.current.paletteOpen).toBe(true);
   });
 });

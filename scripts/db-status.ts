@@ -1,7 +1,7 @@
-import crypto from "node:crypto";
 import { execSync } from "node:child_process";
-import { resolve } from "node:path";
+import crypto from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { neon } from "@neondatabase/serverless";
 
 const env = process.argv[2] ?? "dev";
@@ -20,16 +20,23 @@ if (!opPath) {
 
 let dbUrl: string;
 try {
-  dbUrl = execSync(`op read "${opPath}"`, { encoding: "utf-8" }).trim();
+  dbUrl = execSync(`op read "${opPath}"`, {
+    encoding: "utf-8",
+  }).trim();
 } catch {
   console.error(`Failed to read database URL from 1Password: ${opPath}`);
   console.error("Make sure you are signed in to 1Password CLI (op signin)");
   process.exit(1);
 }
 
-const journalPath = resolve(process.cwd(), "src/db/migrations/meta/_journal.json");
+const journalPath = resolve(
+  process.cwd(),
+  "src/db/migrations/meta/_journal.json"
+);
 const migrationsDir = resolve(process.cwd(), "src/db/migrations");
-const journal = JSON.parse(readFileSync(journalPath, "utf-8")) as { entries: { tag: string }[] };
+const journal = JSON.parse(readFileSync(journalPath, "utf-8")) as {
+  entries: { tag: string }[];
+};
 
 function computeHash(tag: string): string | null {
   const sqlPath = resolve(migrationsDir, `${tag}.sql`);
@@ -41,7 +48,7 @@ function computeHash(tag: string): string | null {
 console.log(`\nMigration Status for ${env.toUpperCase()}`);
 console.log(`Using: 1Password (${opPath})\n`);
 
-const sql = neon(dbUrl!);
+const sql = neon(dbUrl);
 
 try {
   const tableExists = await sql`

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import i18next from "./index";
 
 describe("i18n", () => {
@@ -11,13 +11,21 @@ describe("i18n", () => {
   });
 
   it("handles interpolation", () => {
-    expect(i18next.t("list.progress", { done: 3, total: 10 })).toBe("3 / 10 completados");
-    expect(i18next.t("list.noResults", { query: "hola" })).toBe('Sin resultados para "hola".');
+    expect(i18next.t("list.progress", { done: 3, total: 10 })).toBe(
+      "3 / 10 completados"
+    );
+    expect(i18next.t("list.noResults", { query: "hola" })).toBe(
+      'Sin resultados para "hola".'
+    );
   });
 
   it("handles plurals in Spanish", () => {
-    expect(i18next.t("bulk.header", { count: 1 })).toBe("1 elemento para añadir");
-    expect(i18next.t("bulk.header", { count: 3 })).toBe("3 elementos para añadir");
+    expect(i18next.t("bulk.header", { count: 1 })).toBe(
+      "1 elemento para añadir"
+    );
+    expect(i18next.t("bulk.header", { count: 3 })).toBe(
+      "3 elementos para añadir"
+    );
     expect(i18next.t("bulk.confirm", { count: 1 })).toBe("Añadir 1 elemento");
     expect(i18next.t("bulk.confirm", { count: 5 })).toBe("Añadir 5 elementos");
   });

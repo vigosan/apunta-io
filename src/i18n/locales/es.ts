@@ -12,13 +12,17 @@ const es = {
     createList: "Crear lista",
     footer: "© {{year}} Welist",
     step1Title: "Crea una lista",
-    step1Desc: "Añade lo que quieras: pelis para ver, lugares a visitar, libros. Es tu lista.",
+    step1Desc:
+      "Añade lo que quieras: pelis para ver, lugares a visitar, libros. Es tu lista.",
     step2Title: "Comparte el enlace",
-    step2Desc: "Hazla pública y comparte el link. Cualquiera con él puede ver tu lista.",
+    step2Desc:
+      "Hazla pública y comparte el link. Cualquiera con él puede ver tu lista.",
     step3Title: "Otros aceptan el reto",
-    step3Desc: "La gente copia tu lista y va completando los elementos. El progreso queda registrado para todos.",
+    step3Desc:
+      "La gente copia tu lista y va completando los elementos. El progreso queda registrado para todos.",
     step4Title: "Vende el acceso",
-    step4Desc: "Pon precio a tu lista y cobra directamente. Conecta Stripe y empieza a ganar.",
+    step4Desc:
+      "Pon precio a tu lista y cobra directamente. Conecta Stripe y empieza a ganar.",
   },
   list: {
     back: "← Mis listas",
@@ -33,7 +37,8 @@ const es = {
     collaborative: "Colaborativa",
     collaborativeTitle: "Colaborativa — clic para desactivar",
     soloYou: "Solo tú",
-    soloYouTitle: "Solo tú — clic para permitir edición a cualquiera con el link",
+    soloYouTitle:
+      "Solo tú — clic para permitir edición a cualquiera con el link",
     searchAriaLabel: "Buscar en la lista",
     searchTitle: "Buscar (⌘S)",
     linkCopied: "Enlace copiado",
@@ -42,7 +47,7 @@ const es = {
     searchPlaceholder: "Buscar en esta lista…",
     results_one: "{{count}} resultado",
     results_other: "{{count}} resultados",
-    noResults: "Sin resultados para \"{{query}}\".",
+    noResults: 'Sin resultados para "{{query}}".',
     noItemsFilter: "No hay elementos con ese filtro.",
     addFirst: "Añade el primer elemento a tu lista.",
     addItemPlaceholder: "Añadir elemento…",
@@ -135,7 +140,7 @@ const es = {
   items: {
     markPending: "Marcar como pendiente",
     markDone: "Marcar como hecho",
-    delete: "Eliminar \"{{text}}\"",
+    delete: 'Eliminar "{{text}}"',
   },
   bulk: {
     header_one: "{{count}} elemento para añadir",
@@ -145,7 +150,7 @@ const es = {
     adding: "Añadiendo…",
     confirm_one: "Añadir {{count}} elemento",
     confirm_other: "Añadir {{count}} elementos",
-    removeItem: "Eliminar \"{{text}}\"",
+    removeItem: 'Eliminar "{{text}}"',
   },
   error: {
     title: "Algo fue mal",
@@ -170,7 +175,9 @@ const es = {
   },
 } as const;
 
-type DeepString<T> = T extends string ? string : { [K in keyof T]: DeepString<T[K]> };
+type DeepString<T> = T extends string
+  ? string
+  : { [K in keyof T]: DeepString<T[K]> };
 export type Translations = DeepString<typeof es>;
 
 export default es;

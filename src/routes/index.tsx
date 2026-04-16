@@ -1,8 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useCreateList } from "@/hooks/useList";
-import { AppNav } from "@/components/AppNav";
 import { AppFooter } from "@/components/AppFooter";
+import { AppNav } from "@/components/AppNav";
+import { useCreateList } from "@/hooks/useList";
 import { useTranslation } from "@/i18n/service";
 
 export const Route = createFileRoute("/")({
@@ -18,9 +18,14 @@ function CreateForm() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
-    if (trimmed) createList.mutate(trimmed, {
-      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.id } }),
-    });
+    if (trimmed)
+      createList.mutate(trimmed, {
+        onSuccess: (list) =>
+          navigate({
+            to: "/lists/$listId",
+            params: { listId: list.id },
+          }),
+      });
   }
 
   return (
@@ -53,20 +58,45 @@ function HowItWorks() {
   const { t } = useTranslation();
 
   const steps = [
-    { number: "01", title: t("home.step1Title"), desc: t("home.step1Desc") },
-    { number: "02", title: t("home.step2Title"), desc: t("home.step2Desc") },
-    { number: "03", title: t("home.step3Title"), desc: t("home.step3Desc") },
-    { number: "04", title: t("home.step4Title"), desc: t("home.step4Desc") },
+    {
+      number: "01",
+      title: t("home.step1Title"),
+      desc: t("home.step1Desc"),
+    },
+    {
+      number: "02",
+      title: t("home.step2Title"),
+      desc: t("home.step2Desc"),
+    },
+    {
+      number: "03",
+      title: t("home.step3Title"),
+      desc: t("home.step3Desc"),
+    },
+    {
+      number: "04",
+      title: t("home.step4Title"),
+      desc: t("home.step4Desc"),
+    },
   ];
 
   return (
     <div className="w-full max-w-3xl grid grid-cols-2 sm:grid-cols-4 gap-3">
       {steps.map((step) => (
-        <div key={step.number} className="bg-white border border-gray-100 rounded-2xl px-5 py-5 flex flex-col gap-3 text-left">
-          <span className="font-mono text-[11px] text-gray-300 tracking-widest">{step.number}</span>
+        <div
+          key={step.number}
+          className="bg-white border border-gray-100 rounded-2xl px-5 py-5 flex flex-col gap-3 text-left"
+        >
+          <span className="font-mono text-[11px] text-gray-300 tracking-widest">
+            {step.number}
+          </span>
           <div className="flex flex-col gap-1.5">
-            <p className="text-sm font-semibold text-gray-900 leading-snug text-balance">{step.title}</p>
-            <p className="text-xs text-gray-400 leading-relaxed text-pretty">{step.desc}</p>
+            <p className="text-sm font-semibold text-gray-900 leading-snug text-balance">
+              {step.title}
+            </p>
+            <p className="text-xs text-gray-400 leading-relaxed text-pretty">
+              {step.desc}
+            </p>
           </div>
         </div>
       ))}

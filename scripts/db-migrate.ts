@@ -1,4 +1,4 @@
-import { execSync, spawn } from "child_process";
+import { execSync, spawn } from "node:child_process";
 
 const env = process.argv[2] ?? "dev";
 
@@ -16,14 +16,16 @@ if (!opPath) {
 
 let dbUrl: string;
 try {
-  dbUrl = execSync(`op read "${opPath}"`, { encoding: "utf-8" }).trim();
+  dbUrl = execSync(`op read "${opPath}"`, {
+    encoding: "utf-8",
+  }).trim();
 } catch {
   console.error(`Failed to read database URL from 1Password: ${opPath}`);
   console.error("Make sure you are signed in to 1Password CLI (op signin)");
   process.exit(1);
 }
 
-if (!dbUrl!) {
+if (!dbUrl) {
   console.error(`Empty database URL from 1Password: ${opPath}`);
   process.exit(1);
 }
@@ -33,10 +35,11 @@ console.log(`Using: 1Password (${opPath})\n`);
 
 const child = spawn("npx", ["drizzle-kit", "migrate"], {
   stdio: "inherit",
-  env: { ...process.env, DATABASE_URL: dbUrl! },
+  env: { ...process.env, DATABASE_URL: dbUrl },
 });
 
 child.on("close", (code) => {
-  if (code === 0) console.log(`\nMigrations applied successfully for ${env.toUpperCase()}\n`);
+  if (code === 0)
+    console.log(`\nMigrations applied successfully for ${env.toUpperCase()}\n`);
   process.exit(code ?? 0);
 });

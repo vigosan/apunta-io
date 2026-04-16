@@ -1,8 +1,15 @@
-import { createRootRouteWithContext, Outlet, Link, useRouter } from "@tanstack/react-router";
-import { QueryClient } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
+import {
+  createRootRouteWithContext,
+  Link,
+  Outlet,
+  useRouter,
+} from "@tanstack/react-router";
 import { useTranslation } from "@/i18n/service";
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+}>()({
   component: Outlet,
   notFoundComponent: NotFound,
   errorComponent: RootError,
@@ -18,13 +25,17 @@ function RootError({ error }: { error: Error }) {
         <p className="text-sm text-gray-400">{error.message}</p>
         <div className="flex items-center justify-center gap-4">
           <button
+            type="button"
             onClick={() => router.invalidate()}
             data-testid="error-retry-btn"
             className="text-sm font-medium text-gray-900 underline underline-offset-4"
           >
             {t("error.retry")}
           </button>
-          <Link to="/" className="text-sm text-gray-400 hover:text-gray-700 transition">
+          <Link
+            to="/"
+            className="text-sm text-gray-400 hover:text-gray-700 transition"
+          >
             {t("error.goHome")}
           </Link>
         </div>
@@ -40,7 +51,10 @@ function NotFound() {
       <div className="text-center space-y-4">
         <p className="text-6xl font-bold text-gray-900">404</p>
         <p className="text-sm text-gray-400">{t("error.notFound")}</p>
-        <Link to="/" className="inline-block text-sm font-medium text-gray-900 underline underline-offset-4">
+        <Link
+          to="/"
+          className="inline-block text-sm font-medium text-gray-900 underline underline-offset-4"
+        >
           {t("error.createNew")}
         </Link>
       </div>

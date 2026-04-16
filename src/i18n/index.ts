@@ -1,7 +1,7 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
-import es from "./locales/es";
 import en from "./locales/en";
+import es from "./locales/es";
 
 function detectLanguage(): string {
   try {
@@ -28,6 +28,10 @@ i18next.use(initReactI18next).init({
 export default i18next;
 
 export function setLanguage(lang: "es" | "en") {
-  try { localStorage.setItem("lang", lang); } catch { /* noop */ }
+  try {
+    localStorage.setItem("lang", lang);
+  } catch {
+    /* noop */
+  }
   i18next.changeLanguage(lang);
 }

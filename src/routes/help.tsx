@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppNav } from "@/components/AppNav";
 import { AppFooter } from "@/components/AppFooter";
+import { AppNav } from "@/components/AppNav";
 import { useLanguage } from "@/i18n/service";
 
 export const Route = createFileRoute("/help")({
@@ -134,13 +134,24 @@ const content = {
   },
 } as const;
 
-function HelpSection({ title, items }: { title: string; items: readonly string[] }) {
+function HelpSection({
+  title,
+  items,
+}: {
+  title: string;
+  items: readonly string[];
+}) {
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-sm font-semibold text-gray-900 tracking-tight">{title}</h2>
+      <h2 className="text-sm font-semibold text-gray-900 tracking-tight">
+        {title}
+      </h2>
       <ul className="flex flex-col gap-2">
         {items.map((item) => (
-          <li key={item} className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed">
+          <li
+            key={item}
+            className="flex items-start gap-2.5 text-sm text-gray-600 leading-relaxed"
+          >
             <span className="mt-2 shrink-0 w-1 h-1 rounded-full bg-gray-300" />
             {item}
           </li>
@@ -161,13 +172,21 @@ function HelpPage() {
       <main className="flex-1 py-12">
         <div className="max-w-3xl mx-auto px-6 flex flex-col gap-10">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">{page.title}</h1>
-            <p className="text-sm text-gray-400 leading-relaxed">{page.subtitle}</p>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              {page.title}
+            </h1>
+            <p className="text-sm text-gray-400 leading-relaxed">
+              {page.subtitle}
+            </p>
           </div>
 
           <div className="flex flex-col gap-8">
             {page.sections.map((section) => (
-              <HelpSection key={section.title} title={section.title} items={section.items} />
+              <HelpSection
+                key={section.title}
+                title={section.title}
+                items={section.items}
+              />
             ))}
           </div>
         </div>

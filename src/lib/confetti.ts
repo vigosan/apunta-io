@@ -9,6 +9,14 @@ const SHARED = {
 } satisfies confetti.Options;
 
 export function fireConfetti() {
-  confetti({ ...SHARED, angle: 60, origin: { x: 0, y: 1 } });
-  confetti({ ...SHARED, angle: 120, origin: { x: 1, y: 1 } });
+  confetti({
+    ...SHARED,
+    angle: 60,
+    origin: { x: 0, y: 1 },
+  });
+  confetti({
+    ...SHARED,
+    angle: 120,
+    origin: { x: 1, y: 1 },
+  });
 }

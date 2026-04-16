@@ -1,9 +1,14 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { notFound } from "@tanstack/react-router";
-import { listsService } from "@/services/lists.service";
-import { queryKeys } from "@/lib/query-keys";
 import { POLLING_INTERVAL_MS } from "@/lib/constants";
+import { queryKeys } from "@/lib/query-keys";
 import type { ListWithParticipation } from "@/services/lists.service";
+import { listsService } from "@/services/lists.service";
 
 export function useCollaborators(listId: string, enabled: boolean) {
   return useQuery({
@@ -43,9 +48,15 @@ export function useUpdateName(listId: string) {
   return useMutation({
     mutationFn: (name: string) => listsService.update(listId, { name }),
     onMutate: async (name) => {
-      await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
-      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, name } : old);
+      await qc.cancelQueries({
+        queryKey: queryKeys.list(listId),
+      });
+      const previous = qc.getQueryData<ListWithParticipation>(
+        queryKeys.list(listId)
+      );
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) =>
+        old ? { ...old, name } : old
+      );
       return { previous };
     },
     onError: (_err, _name, ctx) => {
@@ -60,11 +71,18 @@ export function useUpdateName(listId: string) {
 export function useUpdateDescription(listId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (description: string | null) => listsService.update(listId, { description }),
+    mutationFn: (description: string | null) =>
+      listsService.update(listId, { description }),
     onMutate: async (description) => {
-      await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
-      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, description } : old);
+      await qc.cancelQueries({
+        queryKey: queryKeys.list(listId),
+      });
+      const previous = qc.getQueryData<ListWithParticipation>(
+        queryKeys.list(listId)
+      );
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) =>
+        old ? { ...old, description } : old
+      );
       return { previous };
     },
     onError: (_err, _val, ctx) => {
@@ -87,11 +105,18 @@ export function useUpdateSlug(listId: string) {
 export function useTogglePublic(listId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (isPublic: boolean) => listsService.update(listId, { public: isPublic }),
+    mutationFn: (isPublic: boolean) =>
+      listsService.update(listId, { public: isPublic }),
     onMutate: async (isPublic) => {
-      await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
-      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, public: isPublic } : old);
+      await qc.cancelQueries({
+        queryKey: queryKeys.list(listId),
+      });
+      const previous = qc.getQueryData<ListWithParticipation>(
+        queryKeys.list(listId)
+      );
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) =>
+        old ? { ...old, public: isPublic } : old
+      );
       return { previous };
     },
     onError: (_err, _val, ctx) => {
@@ -106,11 +131,18 @@ export function useTogglePublic(listId: string) {
 export function useToggleCollaborative(listId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (collaborative: boolean) => listsService.update(listId, { collaborative }),
+    mutationFn: (collaborative: boolean) =>
+      listsService.update(listId, { collaborative }),
     onMutate: async (collaborative) => {
-      await qc.cancelQueries({ queryKey: queryKeys.list(listId) });
-      const previous = qc.getQueryData<ListWithParticipation>(queryKeys.list(listId));
-      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) => old ? { ...old, collaborative } : old);
+      await qc.cancelQueries({
+        queryKey: queryKeys.list(listId),
+      });
+      const previous = qc.getQueryData<ListWithParticipation>(
+        queryKeys.list(listId)
+      );
+      qc.setQueryData<ListWithParticipation>(queryKeys.list(listId), (old) =>
+        old ? { ...old, collaborative } : old
+      );
       return { previous };
     },
     onError: (_err, _val, ctx) => {
@@ -153,10 +185,15 @@ export function useExploreItems(listId: string, enabled: boolean) {
   });
 }
 
-export function useMyLists(search?: string, sort?: string, visibility?: string) {
+export function useMyLists(
+  search?: string,
+  sort?: string,
+  visibility?: string
+) {
   return useInfiniteQuery({
     queryKey: queryKeys.myLists(search, sort, visibility),
-    queryFn: ({ pageParam }) => listsService.myLists(pageParam, search, sort, visibility),
+    queryFn: ({ pageParam }) =>
+      listsService.myLists(pageParam, search, sort, visibility),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
     staleTime: POLLING_INTERVAL_MS,

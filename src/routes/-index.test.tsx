@@ -1,24 +1,41 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  createMemoryHistory,
+  createRouter,
+  RouterProvider,
+} from "@tanstack/react-router";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createRouter, createMemoryHistory, RouterProvider } from "@tanstack/react-router";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { routeTree } from "@/routeTree.gen";
 
 vi.mock("@/hooks/useList");
-vi.mock("@hono/auth-js/react", () => ({ useSession: vi.fn() }));
+vi.mock("@hono/auth-js/react", () => ({
+  useSession: vi.fn(),
+}));
 
-import { useCreateList } from "@/hooks/useList";
 import { useSession } from "@hono/auth-js/react";
+import { useCreateList } from "@/hooks/useList";
 
 function renderPage() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  const history = createMemoryHistory({ initialEntries: ["/"] });
-  const router = createRouter({ routeTree, history, context: { queryClient: qc } });
+  const qc = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  const history = createMemoryHistory({
+    initialEntries: ["/"],
+  });
+  const router = createRouter({
+    routeTree,
+    history,
+    context: { queryClient: qc },
+  });
   return render(
     <QueryClientProvider client={qc}>
       <RouterProvider router={router} />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -28,7 +45,10 @@ function setupMocks(mutateFn = vi.fn()) {
     status: "unauthenticated",
     update: vi.fn(),
   } as never);
-  vi.mocked(useCreateList).mockReturnValue({ mutate: mutateFn, isPending: false } as never);
+  vi.mocked(useCreateList).mockReturnValue({
+    mutate: mutateFn,
+    isPending: false,
+  } as never);
 }
 
 beforeEach(() => vi.clearAllMocks());
@@ -37,22 +57,31 @@ describe("HomePage", () => {
   it("renders the name input and create button", async () => {
     setupMocks();
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("list-name-input")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId("list-name-input")).toBeInTheDocument()
+    );
     expect(screen.getByTestId("create-list-btn")).toBeInTheDocument();
   });
 
   it("create button is disabled when input is empty", async () => {
     setupMocks();
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("create-list-btn")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId("create-list-btn")).toBeInTheDocument()
+    );
     expect(screen.getByTestId("create-list-btn")).toBeDisabled();
   });
 
   it("create button is enabled when input has text", async () => {
     setupMocks();
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("list-name-input")).toBeInTheDocument());
-    await userEvent.type(screen.getByTestId("list-name-input"), "Mi nueva lista");
+    await waitFor(() =>
+      expect(screen.getByTestId("list-name-input")).toBeInTheDocument()
+    );
+    await userEvent.type(
+      screen.getByTestId("list-name-input"),
+      "Mi nueva lista"
+    );
     expect(screen.getByTestId("create-list-btn")).not.toBeDisabled();
   });
 
@@ -60,7 +89,9 @@ describe("HomePage", () => {
     const mutateFn = vi.fn();
     setupMocks(mutateFn);
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("list-name-input")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId("list-name-input")).toBeInTheDocument()
+    );
     await userEvent.type(screen.getByTestId("list-name-input"), "Test lista");
     await userEvent.click(screen.getByTestId("create-list-btn"));
     expect(mutateFn).toHaveBeenCalledWith("Test lista", expect.any(Object));
@@ -70,7 +101,9 @@ describe("HomePage", () => {
     const mutateFn = vi.fn();
     setupMocks(mutateFn);
     renderPage();
-    await waitFor(() => expect(screen.getByTestId("list-name-input")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByTestId("list-name-input")).toBeInTheDocument()
+    );
     await userEvent.type(screen.getByTestId("list-name-input"), "   ");
     await userEvent.click(screen.getByTestId("create-list-btn"));
     expect(mutateFn).not.toHaveBeenCalled();

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { usePullToRefresh } from "./usePullToRefresh";
 
 function TestComponent({ onRefresh }: { onRefresh: () => Promise<unknown> }) {
-  const { containerRef, pullDistance, refreshing } = usePullToRefresh(onRefresh);
+  const { containerRef, pullDistance, refreshing } =
+    usePullToRefresh(onRefresh);
   return (
     <div
       ref={containerRef}
@@ -28,8 +29,19 @@ describe("usePullToRefresh", () => {
     const el = screen.getByTestId("container");
 
     act(() => {
-      el.dispatchEvent(new TouchEvent("touchstart", { touches: [{ clientY: 0 } as Touch], bubbles: true }));
-      el.dispatchEvent(new TouchEvent("touchmove", { touches: [{ clientY: 200 } as Touch], bubbles: true, cancelable: true }));
+      el.dispatchEvent(
+        new TouchEvent("touchstart", {
+          touches: [{ clientY: 0 } as Touch],
+          bubbles: true,
+        })
+      );
+      el.dispatchEvent(
+        new TouchEvent("touchmove", {
+          touches: [{ clientY: 200 } as Touch],
+          bubbles: true,
+          cancelable: true,
+        })
+      );
       el.dispatchEvent(new TouchEvent("touchend", { bubbles: true }));
     });
 
@@ -44,8 +56,19 @@ describe("usePullToRefresh", () => {
     const el = screen.getByTestId("container");
 
     act(() => {
-      el.dispatchEvent(new TouchEvent("touchstart", { touches: [{ clientY: 0 } as Touch], bubbles: true }));
-      el.dispatchEvent(new TouchEvent("touchmove", { touches: [{ clientY: 10 } as Touch], bubbles: true, cancelable: true }));
+      el.dispatchEvent(
+        new TouchEvent("touchstart", {
+          touches: [{ clientY: 0 } as Touch],
+          bubbles: true,
+        })
+      );
+      el.dispatchEvent(
+        new TouchEvent("touchmove", {
+          touches: [{ clientY: 10 } as Touch],
+          bubbles: true,
+          cancelable: true,
+        })
+      );
       el.dispatchEvent(new TouchEvent("touchend", { bubbles: true }));
     });
 

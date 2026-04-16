@@ -1,13 +1,18 @@
-import { describe, it, expect } from "vitest";
-import { renderInlineMarkdown } from "./inline-markdown";
 import type { ReactElement } from "react";
+import { describe, expect, it } from "vitest";
+import { renderInlineMarkdown } from "./inline-markdown";
 
 function toHtml(nodes: ReturnType<typeof renderInlineMarkdown>): string {
   return nodes
     .map((n) => {
       if (typeof n === "string") return n;
-      const el = n as ReactElement<{ href?: string; children?: unknown; className?: string }>;
-      const inner = typeof el.props.children === "string" ? el.props.children : "";
+      const el = n as ReactElement<{
+        href?: string;
+        children?: unknown;
+        className?: string;
+      }>;
+      const inner =
+        typeof el.props.children === "string" ? el.props.children : "";
       const tag = el.type as string;
       if (tag === "a") return `<a href="${el.props.href}">${inner}</a>`;
       return `<${tag}>${inner}</${tag}>`;
@@ -21,7 +26,9 @@ describe("renderInlineMarkdown", () => {
   });
 
   it("renders **bold**", () => {
-    expect(toHtml(renderInlineMarkdown("**bold**"))).toBe("<strong>bold</strong>");
+    expect(toHtml(renderInlineMarkdown("**bold**"))).toBe(
+      "<strong>bold</strong>"
+    );
   });
 
   it("renders *italic*", () => {
@@ -29,7 +36,9 @@ describe("renderInlineMarkdown", () => {
   });
 
   it("renders [text](url) as link", () => {
-    expect(toHtml(renderInlineMarkdown("[click](https://x.com)"))).toBe('<a href="https://x.com">click</a>');
+    expect(toHtml(renderInlineMarkdown("[click](https://x.com)"))).toBe(
+      '<a href="https://x.com">click</a>'
+    );
   });
 
   it("renders `code`", () => {
@@ -37,11 +46,15 @@ describe("renderInlineMarkdown", () => {
   });
 
   it("renders mixed bold and italic", () => {
-    expect(toHtml(renderInlineMarkdown("**bold** y *italic*"))).toBe("<strong>bold</strong> y <em>italic</em>");
+    expect(toHtml(renderInlineMarkdown("**bold** y *italic*"))).toBe(
+      "<strong>bold</strong> y <em>italic</em>"
+    );
   });
 
   it("does not process markdown inside backticks", () => {
-    expect(toHtml(renderInlineMarkdown("`**no bold**`"))).toBe("<code>**no bold**</code>");
+    expect(toHtml(renderInlineMarkdown("`**no bold**`"))).toBe(
+      "<code>**no bold**</code>"
+    );
   });
 
   it("ignores non-http links", () => {
@@ -51,7 +64,9 @@ describe("renderInlineMarkdown", () => {
   });
 
   it("renders bare URLs as links", () => {
-    const result = toHtml(renderInlineMarkdown("visita https://example.com hoy"));
+    const result = toHtml(
+      renderInlineMarkdown("visita https://example.com hoy")
+    );
     expect(result).toContain('<a href="https://example.com">');
   });
 
@@ -62,6 +77,8 @@ describe("renderInlineMarkdown", () => {
   });
 
   it("renders text before and after bold", () => {
-    expect(toHtml(renderInlineMarkdown("antes **importante** después"))).toBe("antes <strong>importante</strong> después");
+    expect(toHtml(renderInlineMarkdown("antes **importante** después"))).toBe(
+      "antes <strong>importante</strong> después"
+    );
   });
 });

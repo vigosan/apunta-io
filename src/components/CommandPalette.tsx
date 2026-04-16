@@ -20,7 +20,7 @@ export function CommandPalette({ open, onClose, actions }: Props) {
   const { t } = useTranslation();
 
   const filtered = actions.filter((a) =>
-    a.label.toLowerCase().includes(query.toLowerCase()),
+    a.label.toLowerCase().includes(query.toLowerCase())
   );
 
   useEffect(() => {
@@ -31,6 +31,7 @@ export function CommandPalette({ open, onClose, actions }: Props) {
     }
   }, [open]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional
   useEffect(() => {
     setSelectedIndex(0);
   }, [query]);
@@ -45,7 +46,10 @@ export function CommandPalette({ open, onClose, actions }: Props) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       const action = filtered[selectedIndex];
-      if (action) { action.onSelect(); onClose(); }
+      if (action) {
+        action.onSelect();
+        onClose();
+      }
     } else if (e.key === "Escape") {
       onClose();
     }
@@ -53,14 +57,21 @@ export function CommandPalette({ open, onClose, actions }: Props) {
 
   if (!open) return null;
 
-  const activeId = filtered[selectedIndex] ? `command-option-${filtered[selectedIndex].id}` : undefined;
+  const activeId = filtered[selectedIndex]
+    ? `command-option-${filtered[selectedIndex].id}`
+    : undefined;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay dismisses on click
     <div
+      role="presentation"
       className="fixed inset-0 z-50 flex items-start justify-center pt-[18vh] px-4"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" aria-hidden />
+      <div
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        aria-hidden
+      />
       <div
         role="dialog"
         aria-modal="true"
@@ -82,20 +93,32 @@ export function CommandPalette({ open, onClose, actions }: Props) {
           data-testid="command-palette-input"
           className="w-full px-4 py-3.5 text-sm text-gray-900 placeholder-gray-400 outline-none border-b border-gray-100"
         />
-        <div id="command-palette-list" role="listbox" aria-label={t("command.actionsLabel")} className="max-h-72 overflow-y-auto py-1.5">
+        <div
+          id="command-palette-list"
+          role="listbox"
+          aria-label={t("command.actionsLabel")}
+          className="max-h-72 overflow-y-auto py-1.5"
+        >
           {filtered.length === 0 ? (
-            <p data-testid="command-empty" className="px-4 py-3 text-sm text-gray-400">
+            <p
+              data-testid="command-empty"
+              className="px-4 py-3 text-sm text-gray-400"
+            >
               {t("command.noResults")}
             </p>
           ) : (
             filtered.map((action, i) => (
               <button
+                type="button"
                 key={action.id}
                 id={`command-option-${action.id}`}
                 role="option"
                 aria-selected={i === selectedIndex}
                 data-testid={`command-action-${action.id}`}
-                onClick={() => { action.onSelect(); onClose(); }}
+                onClick={() => {
+                  action.onSelect();
+                  onClose();
+                }}
                 className={`cursor-pointer w-full text-left px-4 py-2.5 text-sm transition-[background-color,color] duration-100 ${
                   i === selectedIndex
                     ? "bg-gray-900 text-white"

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -11,7 +11,12 @@ interface Stats {
   items: number;
   participations: number;
   purchases: number;
-  topLists: { id: string; name: string; slug: string | null; participations: number }[];
+  topLists: {
+    id: string;
+    name: string;
+    slug: string | null;
+    participations: number;
+  }[];
   weeklyLists: { week: string; count: number }[];
   revenue: number;
 }
@@ -19,7 +24,7 @@ interface Stats {
 const SESSION_KEY = "admin_password";
 
 function authHeader(password: string) {
-  return "Basic " + btoa(`admin:${password}`);
+  return `Basic ${btoa(`admin:${password}`)}`;
 }
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
@@ -32,7 +37,9 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 }
 
 function AdminPage() {
-  const [password, setPassword] = useState(() => sessionStorage.getItem(SESSION_KEY) ?? "");
+  const [password, setPassword] = useState(
+    () => sessionStorage.getItem(SESSION_KEY) ?? ""
+  );
   const [input, setInput] = useState("");
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -51,7 +58,7 @@ function AdminPage() {
         setPassword("");
         return;
       }
-      const data = await res.json() as Stats;
+      const data = (await res.json()) as Stats;
       setStats(data);
       sessionStorage.setItem(SESSION_KEY, pwd);
       setPassword(pwd);
@@ -62,6 +69,7 @@ function AdminPage() {
     }
   }
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional — run only on mount
   useEffect(() => {
     if (password) fetchStats(password);
   }, []);
@@ -75,10 +83,10 @@ function AdminPage() {
     return (
       <div className="min-h-dvh bg-[#FAFAF8] flex items-center justify-center px-4">
         <div className="w-full max-w-xs flex flex-col gap-6">
-          <h1 className="text-xl font-bold tracking-tight text-gray-900">Admin</h1>
-          {error && (
-            <p className="text-sm text-gray-500">{error}</p>
-          )}
+          <h1 className="text-xl font-bold tracking-tight text-gray-900">
+            Admin
+          </h1>
+          {error && <p className="text-sm text-gray-500">{error}</p>}
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color]">
               <input
@@ -114,8 +122,11 @@ function AdminPage() {
   return (
     <div className="min-h-dvh bg-[#FAFAF8] flex flex-col">
       <header className="w-full max-w-4xl mx-auto px-4 py-6 flex items-center justify-between">
-        <h1 className="text-xl font-bold tracking-tight text-gray-900">Admin</h1>
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">
+          Admin
+        </h1>
         <button
+          type="button"
           onClick={() => {
             sessionStorage.removeItem(SESSION_KEY);
             setPassword("");
@@ -136,18 +147,28 @@ function AdminPage() {
           <StatCard label="Compras" value={stats.purchases} />
         </div>
 
-        <StatCard label="Revenue" value={`$${(stats.revenue / 100).toFixed(2)}`} />
+        <StatCard
+          label="Revenue"
+          value={`$${(stats.revenue / 100).toFixed(2)}`}
+        />
 
         <section className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-gray-900">Top listas por participaciones</p>
+          <p className="text-sm font-semibold text-gray-900">
+            Top listas por participaciones
+          </p>
           {stats.topLists.length === 0 ? (
             <p className="text-sm text-gray-400">Sin datos.</p>
           ) : (
             <ol className="flex flex-col divide-y divide-gray-50">
               {stats.topLists.map((list, i) => (
-                <li key={list.id} className="flex items-center justify-between py-2.5 gap-4">
+                <li
+                  key={list.id}
+                  className="flex items-center justify-between py-2.5 gap-4"
+                >
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-xs text-gray-400 w-4 shrink-0">{i + 1}</span>
+                    <span className="text-xs text-gray-400 w-4 shrink-0">
+                      {i + 1}
+                    </span>
                     <a
                       href={`/${list.slug ?? list.id}`}
                       target="_blank"
@@ -157,7 +178,9 @@ function AdminPage() {
                       {list.name}
                     </a>
                   </div>
-                  <span className="text-sm text-gray-500 shrink-0">{list.participations} part.</span>
+                  <span className="text-sm text-gray-500 shrink-0">
+                    {list.participations} part.
+                  </span>
                 </li>
               ))}
             </ol>
@@ -165,21 +188,33 @@ function AdminPage() {
         </section>
 
         <section className="bg-white border border-gray-100 rounded-2xl p-5 flex flex-col gap-4">
-          <p className="text-sm font-semibold text-gray-900">Listas nuevas por semana (últimas 8 semanas)</p>
+          <p className="text-sm font-semibold text-gray-900">
+            Listas nuevas por semana (últimas 8 semanas)
+          </p>
           {stats.weeklyLists.length === 0 ? (
             <p className="text-sm text-gray-400">Sin datos.</p>
           ) : (
             <div className="flex flex-col gap-2">
               {stats.weeklyLists.map(({ week, count }) => {
-                const max = Math.max(...stats.weeklyLists.map((w) => w.count), 1);
+                const max = Math.max(
+                  ...stats.weeklyLists.map((w) => w.count),
+                  1
+                );
                 const pct = Math.round((count / max) * 100);
                 return (
                   <div key={week} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-400 w-24 shrink-0">{week}</span>
+                    <span className="text-xs text-gray-400 w-24 shrink-0">
+                      {week}
+                    </span>
                     <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gray-900 rounded-full" style={{ width: `${pct}%` }} />
+                      <div
+                        className="h-full bg-gray-900 rounded-full"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
-                    <span className="text-xs text-gray-500 w-6 text-right">{count}</span>
+                    <span className="text-xs text-gray-500 w-6 text-right">
+                      {count}
+                    </span>
                   </div>
                 );
               })}

@@ -1,6 +1,6 @@
-import { useRef, useState, useEffect } from "react";
-import { useSession, signIn, signOut } from "@hono/auth-js/react";
+import { signIn, signOut, useSession } from "@hono/auth-js/react";
 import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "@/i18n/service";
 
 export function UserMenu() {
@@ -13,7 +13,10 @@ export function UserMenu() {
     if (!open) return;
 
     function handleMouseDown(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     }
@@ -30,6 +33,7 @@ export function UserMenu() {
     return (
       <div ref={containerRef} className="relative">
         <button
+          type="button"
           onClick={() => setOpen((prev) => !prev)}
           data-testid="user-avatar-btn"
           aria-label={t("user.menuAriaLabel")}
@@ -63,6 +67,7 @@ export function UserMenu() {
             </Link>
             <div className="border-t border-gray-100 my-1" />
             <button
+              type="button"
               onClick={() => {
                 setOpen(false);
                 signOut();
@@ -80,6 +85,7 @@ export function UserMenu() {
 
   return (
     <button
+      type="button"
       onClick={() => signIn("google")}
       data-testid="sign-in-btn"
       className="cursor-pointer h-7 flex items-center px-2.5 rounded-md border border-gray-200 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-900 transition-[border-color,color] duration-150 active:scale-[0.96]"

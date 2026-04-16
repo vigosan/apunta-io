@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("canvas-confetti", () => ({ default: vi.fn() }));
 
-import { fireConfetti } from "./confetti";
 import confetti from "canvas-confetti";
+import { fireConfetti } from "./confetti";
 
 describe("fireConfetti", () => {
   beforeEach(() => vi.clearAllMocks());

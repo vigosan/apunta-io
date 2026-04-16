@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
-import { useMyLists, useDeleteList, useCreateList } from "@/hooks/useList";
+import { useEffect, useRef, useState } from "react";
 import { AppNav } from "@/components/AppNav";
 import type { List } from "@/db/schema/lists.schema";
+import { useCreateList, useDeleteList, useMyLists } from "@/hooks/useList";
 import { useTranslation } from "@/i18n/service";
 
 export const Route = createFileRoute("/lists/")({
@@ -16,9 +16,15 @@ function MyListCard({ list }: { list: List }) {
 
   if (confirming) {
     return (
-      <div className="flex items-center gap-2 bg-white rounded-2xl border border-gray-200 px-4 py-3" data-testid="my-list-card">
-        <span className="flex-1 text-sm text-gray-500 truncate">{t("myLists.deleteConfirm", { name: list.name })}</span>
+      <div
+        className="flex items-center gap-2 bg-white rounded-2xl border border-gray-200 px-4 py-3"
+        data-testid="my-list-card"
+      >
+        <span className="flex-1 text-sm text-gray-500 truncate">
+          {t("myLists.deleteConfirm", { name: list.name })}
+        </span>
         <button
+          type="button"
           data-testid="delete-cancel-btn"
           onClick={() => setConfirming(false)}
           className="cursor-pointer px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg hover:border-gray-400 hover:text-gray-700 transition-[border-color,color,transform] duration-150 active:scale-[0.96]"
@@ -26,6 +32,7 @@ function MyListCard({ list }: { list: List }) {
           {t("myLists.deleteNo")}
         </button>
         <button
+          type="button"
           data-testid="delete-confirm-btn"
           onClick={() => deleteList.mutate(list.id)}
           disabled={deleteList.isPending}
@@ -47,18 +54,39 @@ function MyListCard({ list }: { list: List }) {
       <div className="p-4 flex flex-col gap-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-gray-900 leading-snug">{list.name}</p>
+            <p className="font-semibold text-gray-900 leading-snug">
+              {list.name}
+            </p>
             {list.description && (
-              <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">{list.description}</p>
+              <p className="text-sm text-gray-500 mt-0.5 leading-snug line-clamp-2">
+                {list.description}
+              </p>
             )}
           </div>
           <button
+            type="button"
             data-testid="delete-list-btn"
-            aria-label={t("myLists.deleteList", { name: list.name })}
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirming(true); }}
+            aria-label={t("myLists.deleteList", {
+              name: list.name,
+            })}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setConfirming(true);
+            }}
             className="cursor-pointer h-10 w-10 flex items-center justify-center rounded-lg text-gray-300 hover:text-gray-500 transition-colors active:scale-[0.96] opacity-100 sm:opacity-0 sm:group-hover:opacity-100 shrink-0"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              aria-hidden="true"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <polyline points="3 6 5 6 21 6" />
               <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
               <path d="M10 11v6M14 11v6" />
@@ -69,12 +97,25 @@ function MyListCard({ list }: { list: List }) {
 
         <div className="flex items-center gap-1.5">
           {list.public && (
-            <span className="text-xs font-medium text-gray-500 px-2 py-1 bg-gray-50 rounded-lg">{t("myLists.public")}</span>
+            <span className="text-xs font-medium text-gray-500 px-2 py-1 bg-gray-50 rounded-lg">
+              {t("myLists.public")}
+            </span>
           )}
           {list.collaborative && (
-            <span className="text-xs font-medium text-gray-500 px-2 py-1 bg-gray-50 rounded-lg">{t("myLists.collaborative")}</span>
+            <span className="text-xs font-medium text-gray-500 px-2 py-1 bg-gray-50 rounded-lg">
+              {t("myLists.collaborative")}
+            </span>
           )}
-          <svg aria-hidden="true" className="text-gray-200 w-4 h-4 shrink-0 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            aria-hidden="true"
+            className="text-gray-200 w-4 h-4 shrink-0 ml-auto"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M9 18l6-6-6-6" />
           </svg>
         </div>
@@ -92,9 +133,14 @@ function CreateListInline({ onClose }: { onClose: () => void }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = name.trim();
-    if (trimmed) createList.mutate(trimmed, {
-      onSuccess: (list) => navigate({ to: "/lists/$listId", params: { listId: list.id } }),
-    });
+    if (trimmed)
+      createList.mutate(trimmed, {
+        onSuccess: (list) =>
+          navigate({
+            to: "/lists/$listId",
+            params: { listId: list.id },
+          }),
+      });
   }
 
   return (
@@ -141,17 +187,30 @@ function MyListsPage() {
   const [sort, setSort] = useState<SortOption>("recent");
   const [visibility, setVisibility] = useState<VisibilityFilter>("all");
   const [creating, setCreating] = useState(false);
-  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMyLists(search || undefined, sort, visibility);
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    useMyLists(search || undefined, sort, visibility);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
 
-  const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  const SORT_OPTIONS: {
+    value: SortOption;
+    label: string;
+  }[] = [
     { value: "recent", label: t("myLists.sortRecent") },
-    { value: "created_desc", label: t("myLists.sortNewest") },
-    { value: "created_asc", label: t("myLists.sortOldest") },
+    {
+      value: "created_desc",
+      label: t("myLists.sortNewest"),
+    },
+    {
+      value: "created_asc",
+      label: t("myLists.sortOldest"),
+    },
   ];
 
-  const VISIBILITY_OPTIONS: { value: VisibilityFilter; label: string }[] = [
+  const VISIBILITY_OPTIONS: {
+    value: VisibilityFilter;
+    label: string;
+  }[] = [
     { value: "all", label: t("myLists.filterAll") },
     { value: "public", label: t("myLists.filterPublic") },
     { value: "private", label: t("myLists.filterPrivate") },
@@ -189,7 +248,10 @@ function MyListsPage() {
             <CreateListInline onClose={() => setCreating(false)} />
           ) : (
             <div className="flex gap-2">
-              <form onSubmit={handleSearch} className="flex-1 flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150">
+              <form
+                onSubmit={handleSearch}
+                className="flex-1 flex gap-2 p-1.5 bg-gray-50 border border-gray-200 rounded-2xl focus-within:border-gray-400 transition-[border-color] duration-150"
+              >
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -206,20 +268,35 @@ function MyListsPage() {
                 </button>
               </form>
               <button
+                type="button"
                 data-testid="new-list-btn"
                 onClick={() => setCreating(true)}
                 className="cursor-pointer h-[46px] w-[46px] flex items-center justify-center rounded-xl border border-gray-200 text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-[border-color,color,transform] duration-150 active:scale-[0.96] shrink-0"
                 aria-label={t("myLists.newList")}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  aria-hidden="true"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </button>
             </div>
           )}
-          <div className="flex items-center gap-1.5 mt-3 overflow-x-auto no-scrollbar" data-testid="sort-options">
+          <div
+            className="flex items-center gap-1.5 mt-3 overflow-x-auto no-scrollbar"
+            data-testid="sort-options"
+          >
             {SORT_OPTIONS.map((opt) => (
               <button
+                type="button"
                 key={opt.value}
                 data-testid={`sort-${opt.value}`}
                 onClick={() => setSort(opt.value)}
@@ -233,9 +310,13 @@ function MyListsPage() {
               </button>
             ))}
             <div className="w-px h-4 bg-gray-200 mx-0.5 shrink-0" />
-            <div className="flex gap-1.5 shrink-0" data-testid="visibility-filter">
+            <div
+              className="flex gap-1.5 shrink-0"
+              data-testid="visibility-filter"
+            >
               {VISIBILITY_OPTIONS.map((opt) => (
                 <button
+                  type="button"
                   key={opt.value}
                   data-testid={`visibility-${opt.value}`}
                   onClick={() => setVisibility(opt.value)}
@@ -254,8 +335,11 @@ function MyListsPage() {
         <div className="flex-1 overflow-y-auto px-4 pb-6">
           {isLoading && (
             <div className="flex flex-col gap-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-16 rounded-2xl bg-gray-100 animate-pulse" />
+              {Array.from({ length: 6 }, (_, i) => i).map((i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-16 rounded-2xl bg-gray-100 animate-pulse"
+                />
               ))}
             </div>
           )}
@@ -274,7 +358,9 @@ function MyListsPage() {
 
           <div ref={sentinelRef} className="h-4" />
           {isFetchingNextPage && (
-            <p className="text-sm text-gray-400 text-center py-4">{t("myLists.loading")}</p>
+            <p className="text-sm text-gray-400 text-center py-4">
+              {t("myLists.loading")}
+            </p>
           )}
         </div>
       </div>

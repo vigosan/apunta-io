@@ -1,18 +1,43 @@
-import { Hono, type Context } from "hono";
-import { zValidator } from "@hono/zod-validator";
-import { z } from "zod";
-import { eq, max, min, sql, and, or, ilike, gt, lt, inArray, desc, countDistinct } from "drizzle-orm";
-import { db } from "../src/db/client.js";
-import { lists, items, participations, itemProgress, listActivity, users, stripeAccounts, listPrices, listPurchases } from "../src/db/schema/index.js";
-import { rateLimit } from "./rate-limit.js";
-import { authHandler, initAuthConfig, getAuthUser } from "@hono/auth-js";
 import Google from "@auth/core/providers/google";
 import type { AuthUser } from "@hono/auth-js";
+import { authHandler, getAuthUser, initAuthConfig } from "@hono/auth-js";
+import { zValidator } from "@hono/zod-validator";
+import {
+  and,
+  countDistinct,
+  desc,
+  eq,
+  gt,
+  ilike,
+  inArray,
+  lt,
+  max,
+  min,
+  or,
+  sql,
+} from "drizzle-orm";
+import { type Context, Hono } from "hono";
 import Stripe from "stripe";
+import { z } from "zod";
+import { db } from "../src/db/client.js";
+import {
+  itemProgress,
+  items,
+  listActivity,
+  listPrices,
+  listPurchases,
+  lists,
+  participations,
+  stripeAccounts,
+  users,
+} from "../src/db/schema/index.js";
+import { rateLimit } from "./rate-limit.js";
 
 type Variables = { authUser: AuthUser | null };
 
-export const app = new Hono<{ Variables: Variables }>().basePath("/api");
+export const app = new Hono<{
+  Variables: Variables;
+}>().basePath("/api");
 
 app.use(rateLimit({ limit: 120, windowMs: 60_000 }));
 
@@ -24,16 +49,29 @@ app.use(
     providers: [
       Google({
         clientId: c.env?.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
-        clientSecret: c.env?.GOOGLE_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET ?? "",
+        clientSecret:
+          c.env?.GOOGLE_CLIENT_SECRET ?? process.env.GOOGLE_CLIENT_SECRET ?? "",
       }),
     ],
     session: { strategy: "jwt" },
     callbacks: {
       async signIn({ user, account }) {
         if (!user.email || !account) return true;
-        const existing = await db.query.users.findFirst({ where: eq(users.email, user.email), columns: { id: true } });
+        const existing = await db.query.users.findFirst({
+          where: eq(users.email, user.email),
+          columns: { id: true },
+        });
         if (!existing) {
-          const [created] = await db.insert(users).values({ id: user.id!, name: user.name, email: user.email, image: user.image }).returning({ id: users.id });
+          const [created] = await db
+            .insert(users)
+            .values({
+              // biome-ignore lint/style/noNonNullAssertion: user.id is guaranteed by auth provider
+              id: user.id!,
+              name: user.name,
+              email: user.email,
+              image: user.image,
+            })
+            .returning({ id: users.id });
           user.id = created.id;
         } else {
           user.id = existing.id;
@@ -50,7 +88,7 @@ app.use(
       },
     },
     trustHost: true,
-  })),
+  }))
 );
 
 app.use("/auth/*", authHandler());
@@ -65,7 +103,9 @@ app.use("*", async (c, next) => {
   await next();
 });
 
-function getOptionalUser(c: Context<{ Variables: Variables }>): AuthUser | null {
+function getOptionalUser(
+  c: Context<{ Variables: Variables }>
+): AuthUser | null {
   return c.get("authUser") ?? null;
 }
 
@@ -80,17 +120,34 @@ function isUniqueViolation(e: unknown): boolean {
   return code === "23505";
 }
 
-async function canViewList(list: { id?: string; ownerId: string | null; public: boolean; collaborative: boolean }, userId: string | null): Promise<boolean> {
-  if (list.public || list.collaborative || (userId !== null && list.ownerId === userId)) return true;
+async function canViewList(
+  list: {
+    id?: string;
+    ownerId: string | null;
+    public: boolean;
+    collaborative: boolean;
+  },
+  userId: string | null
+): Promise<boolean> {
+  if (
+    list.public ||
+    list.collaborative ||
+    (userId !== null && list.ownerId === userId)
+  )
+    return true;
   if (userId && list.id) return hasPurchased(userId, list.id);
   return false;
 }
 
-function canModifyList(list: { ownerId: string | null; collaborative: boolean }, userId: string | null): boolean {
+function canModifyList(
+  list: { ownerId: string | null; collaborative: boolean },
+  userId: string | null
+): boolean {
   return list.ownerId === null || list.ownerId === userId || list.collaborative;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function listWhere(param: string) {
   return UUID_RE.test(param)
@@ -98,17 +155,30 @@ function listWhere(param: string) {
     : eq(lists.slug, param);
 }
 
-async function resolveList(param: string): Promise<{ id: string; ownerId: string | null; collaborative: boolean; public: boolean } | null> {
+async function resolveList(param: string): Promise<{
+  id: string;
+  ownerId: string | null;
+  collaborative: boolean;
+  public: boolean;
+} | null> {
   const list = await db.query.lists.findFirst({
     where: listWhere(param),
-    columns: { id: true, ownerId: true, collaborative: true, public: true },
+    columns: {
+      id: true,
+      ownerId: true,
+      collaborative: true,
+      public: true,
+    },
   });
   return list ?? null;
 }
 
 async function getParticipation(sourceListId: string, userId: string) {
   return db.query.participations.findFirst({
-    where: and(eq(participations.sourceListId, sourceListId), eq(participations.userId, userId)),
+    where: and(
+      eq(participations.sourceListId, sourceListId),
+      eq(participations.userId, userId)
+    ),
     columns: { id: true, completedAt: true, role: true },
   });
 }
@@ -116,10 +186,15 @@ async function getParticipation(sourceListId: string, userId: string) {
 async function logActivity(
   listId: string,
   userId: string | null,
-  action: "item_added" | "item_edited" | "item_deleted" | "challenge_accepted" | "challenge_completed",
+  action:
+    | "item_added"
+    | "item_edited"
+    | "item_deleted"
+    | "challenge_accepted"
+    | "challenge_completed",
   itemId?: string,
   previousValue?: unknown,
-  newValue?: unknown,
+  newValue?: unknown
 ) {
   await db.insert(listActivity).values({
     listId,
@@ -140,7 +215,7 @@ app.post(
     const ownerId = authUser?.session?.user?.id ?? null;
     const [list] = await db.insert(lists).values({ name, ownerId }).returning();
     return c.json(list, 201);
-  },
+  }
 );
 
 app.get("/my-lists", async (c) => {
@@ -151,23 +226,27 @@ app.get("/my-lists", async (c) => {
   const q = c.req.query("q")?.trim();
   const sort = c.req.query("sort") ?? "recent";
   const visibility = c.req.query("visibility");
-  const visibilityFilter = visibility === "public" ? eq(lists.public, true)
-    : visibility === "private" ? eq(lists.public, false)
-    : undefined;
+  const visibilityFilter =
+    visibility === "public"
+      ? eq(lists.public, true)
+      : visibility === "private"
+        ? eq(lists.public, false)
+        : undefined;
   const participated = await db
     .select({ sourceListId: participations.sourceListId })
     .from(participations)
     .where(eq(participations.userId, userId));
   const participatedIds = participated
-    .map(p => p.sourceListId)
+    .map((p) => p.sourceListId)
     .filter((id): id is string => id !== null);
-  const ownerOrParticipant = participatedIds.length > 0
-    ? or(eq(lists.ownerId, userId), inArray(lists.id, participatedIds))
-    : eq(lists.ownerId, userId);
+  const ownerOrParticipant =
+    participatedIds.length > 0
+      ? or(eq(lists.ownerId, userId), inArray(lists.id, participatedIds))
+      : eq(lists.ownerId, userId);
   const baseWhere = and(
     ownerOrParticipant,
     q ? ilike(lists.name, `%${q}%`) : undefined,
-    visibilityFilter,
+    visibilityFilter
   );
 
   if (sort === "recent") {
@@ -191,24 +270,36 @@ app.get("/my-lists", async (c) => {
       .having(cursor ? lt(activityExpr, new Date(cursor)) : undefined)
       .orderBy(desc(activityExpr))
       .limit(MY_LISTS_PAGE_SIZE);
-    const nextCursor = rows.length === MY_LISTS_PAGE_SIZE
-      ? new Date(rows[rows.length - 1].lastActivity).toISOString()
-      : null;
-    return c.json({ items: rows.map(({ lastActivity: _la, ...list }) => list), nextCursor });
+    const nextCursor =
+      rows.length === MY_LISTS_PAGE_SIZE
+        ? new Date(rows[rows.length - 1].lastActivity).toISOString()
+        : null;
+    return c.json({
+      items: rows.map(({ lastActivity: _la, ...list }) => list),
+      nextCursor,
+    });
   }
 
   const isAsc = sort === "created_asc";
   const where = cursor
-    ? and(baseWhere, isAsc ? gt(lists.createdAt, new Date(cursor)) : lt(lists.createdAt, new Date(cursor)))
+    ? and(
+        baseWhere,
+        isAsc
+          ? gt(lists.createdAt, new Date(cursor))
+          : lt(lists.createdAt, new Date(cursor))
+      )
     : baseWhere;
   const rows = await db.query.lists.findMany({
     where,
-    orderBy: (t, { asc, desc }) => [isAsc ? asc(t.createdAt) : desc(t.createdAt)],
+    orderBy: (t, { asc, desc }) => [
+      isAsc ? asc(t.createdAt) : desc(t.createdAt),
+    ],
     limit: MY_LISTS_PAGE_SIZE,
   });
-  const nextCursor = rows.length === MY_LISTS_PAGE_SIZE
-    ? rows[rows.length - 1].createdAt.toISOString()
-    : null;
+  const nextCursor =
+    rows.length === MY_LISTS_PAGE_SIZE
+      ? rows[rows.length - 1].createdAt.toISOString()
+      : null;
   return c.json({ items: rows, nextCursor });
 });
 
@@ -220,39 +311,62 @@ app.get("/lists/:listId", async (c) => {
   if (!list) return c.json({ error: "Not found" }, 404);
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id ?? null;
-  if (!await canViewList(list, userId)) return c.json({ error: "Not found" }, 404);
+  if (!(await canViewList(list, userId)))
+    return c.json({ error: "Not found" }, 404);
   if (userId && list.collaborative && list.ownerId !== userId) {
-    await db.insert(participations).values({ sourceListId: list.id, userId, role: "collaborator" }).onConflictDoNothing();
+    await db
+      .insert(participations)
+      .values({
+        sourceListId: list.id,
+        userId,
+        role: "collaborator",
+      })
+      .onConflictDoNothing();
   }
-  const participation = userId
-    ? await getParticipation(list.id, userId)
-    : null;
-  return c.json({ ...list, participated: !!participation, participationCompletedAt: participation?.completedAt ?? null });
+  const participation = userId ? await getParticipation(list.id, userId) : null;
+  return c.json({
+    ...list,
+    participated: !!participation,
+    participationCompletedAt: participation?.completedAt ?? null,
+  });
 });
 
 app.patch(
   "/lists/:listId",
-  zValidator("json", z.object({
-    name: z.string().min(1).max(200).optional(),
-    slug: z.string().min(1).max(100).regex(/^[a-z0-9-]+$/).optional().nullable(),
-    description: z.string().max(500).optional().nullable(),
-    public: z.boolean().optional(),
-    collaborative: z.boolean().optional(),
-  })),
+  zValidator(
+    "json",
+    z.object({
+      name: z.string().min(1).max(200).optional(),
+      slug: z
+        .string()
+        .min(1)
+        .max(100)
+        .regex(/^[a-z0-9-]+$/)
+        .optional()
+        .nullable(),
+      description: z.string().max(500).optional().nullable(),
+      public: z.boolean().optional(),
+      collaborative: z.boolean().optional(),
+    })
+  ),
   async (c) => {
     const listId = c.req.param("listId");
     const body = c.req.valid("json");
-    const list = await db.query.lists.findFirst({ where: listWhere(listId) });
+    const list = await db.query.lists.findFirst({
+      where: listWhere(listId),
+    });
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (list.ownerId !== null && list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
+    if (list.ownerId !== null && list.ownerId !== userId)
+      return c.json({ error: "Forbidden" }, 403);
     const patch: Record<string, unknown> = {};
     if (body.name !== undefined) patch.name = body.name;
     if ("slug" in body) patch.slug = body.slug ?? null;
     if ("description" in body) patch.description = body.description ?? null;
     if (body.public !== undefined) patch.public = body.public;
-    if (body.collaborative !== undefined) patch.collaborative = body.collaborative;
+    if (body.collaborative !== undefined)
+      patch.collaborative = body.collaborative;
     try {
       const [updated] = await db
         .update(lists)
@@ -265,7 +379,7 @@ app.patch(
       if (isUniqueViolation(e)) return c.json({ error: "slug_taken" }, 409);
       throw e;
     }
-  },
+  }
 );
 
 app.get("/lists/:listId/items", async (c) => {
@@ -273,28 +387,38 @@ app.get("/lists/:listId/items", async (c) => {
   if (!list) return c.json({ error: "Not found" }, 404);
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id ?? null;
-  if (!await canViewList(list, userId)) return c.json({ error: "Not found" }, 404);
+  if (!(await canViewList(list, userId)))
+    return c.json({ error: "Not found" }, 404);
   const isOwner = list.ownerId === null || list.ownerId === userId;
-  const participation = userId && !isOwner
-    ? await getParticipation(list.id, userId)
-    : null;
+  const participation =
+    userId && !isOwner ? await getParticipation(list.id, userId) : null;
 
   const rows = await db.query.items.findMany({
     where: eq(items.listId, list.id),
     orderBy: (t, { asc }) => [asc(t.position), asc(t.createdAt)],
   });
 
-  if (!participation || participation.role !== "challenger") return c.json(rows);
+  if (!participation || participation.role !== "challenger")
+    return c.json(rows);
 
   const progressRows = await db.query.itemProgress.findMany({
     where: and(
+      // biome-ignore lint/style/noNonNullAssertion: userId checked by participation lookup above
       eq(itemProgress.userId, userId!),
-      inArray(itemProgress.itemId, rows.map((r) => r.id)),
+      inArray(
+        itemProgress.itemId,
+        rows.map((r) => r.id)
+      )
     ),
     columns: { itemId: true, done: true },
   });
   const progressMap = new Map(progressRows.map((p) => [p.itemId, p.done]));
-  return c.json(rows.map((item) => ({ ...item, done: progressMap.get(item.id) ?? false })));
+  return c.json(
+    rows.map((item) => ({
+      ...item,
+      done: progressMap.get(item.id) ?? false,
+    }))
+  );
 });
 
 app.post(
@@ -305,62 +429,101 @@ app.post(
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
+    if (!canModifyList(list, userId))
+      return c.json({ error: "Forbidden" }, 403);
     const { text } = c.req.valid("json");
-    const [minRow] = await db.select({ pos: min(items.position) }).from(items).where(eq(items.listId, list.id));
+    const [minRow] = await db
+      .select({ pos: min(items.position) })
+      .from(items)
+      .where(eq(items.listId, list.id));
     const position = (minRow?.pos ?? 0) - 1;
-    const [item] = await db.insert(items).values({ listId: list.id, text, position }).returning();
+    const [item] = await db
+      .insert(items)
+      .values({ listId: list.id, text, position })
+      .returning();
     if (list.public && list.collaborative && userId) {
       await logActivity(list.id, userId, "item_added", item.id, null, { text });
     }
     return c.json(item, 201);
-  },
+  }
 );
 
 app.patch(
   "/lists/:listId/items/reorder",
-  zValidator("json", z.object({ ids: z.array(z.string().uuid()).min(1).max(500) })),
+  zValidator(
+    "json",
+    z.object({
+      ids: z.array(z.string().uuid()).min(1).max(500),
+    })
+  ),
   async (c) => {
     const list = await resolveList(c.req.param("listId"));
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
+    if (!canModifyList(list, userId))
+      return c.json({ error: "Forbidden" }, 403);
     const { ids } = c.req.valid("json");
     await Promise.all(
       ids.map((id, i) =>
-        db.update(items).set({ position: i }).where(and(eq(items.id, id), eq(items.listId, list.id))),
-      ),
+        db
+          .update(items)
+          .set({ position: i })
+          .where(and(eq(items.id, id), eq(items.listId, list.id)))
+      )
     );
     return c.body(null, 204);
-  },
+  }
 );
 
 app.patch(
   "/lists/:listId/items/:itemId",
-  zValidator("json", z.object({ text: z.string().min(1).max(1000).optional(), done: z.boolean().optional() })),
+  zValidator(
+    "json",
+    z.object({
+      text: z.string().min(1).max(1000).optional(),
+      done: z.boolean().optional(),
+    })
+  ),
   async (c) => {
     const list = await resolveList(c.req.param("listId"));
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
+    if (!canModifyList(list, userId))
+      return c.json({ error: "Forbidden" }, 403);
     const itemId = c.req.param("itemId");
     const body = c.req.valid("json");
-    const previous = list.public && list.collaborative && userId
-      ? await db.query.items.findFirst({ where: and(eq(items.id, itemId), eq(items.listId, list.id)), columns: { text: true } })
-      : null;
+    const previous =
+      list.public && list.collaborative && userId
+        ? await db.query.items.findFirst({
+            where: and(eq(items.id, itemId), eq(items.listId, list.id)),
+            columns: { text: true },
+          })
+        : null;
     const [updated] = await db
       .update(items)
       .set({ ...body, updatedAt: new Date() })
       .where(and(eq(items.id, itemId), eq(items.listId, list.id)))
       .returning();
     if (!updated) return c.json({ error: "Not found" }, 404);
-    if (list.public && list.collaborative && userId && body.text !== undefined) {
-      await logActivity(list.id, userId, "item_edited", itemId, { text: previous?.text }, { text: body.text });
+    if (
+      list.public &&
+      list.collaborative &&
+      userId &&
+      body.text !== undefined
+    ) {
+      await logActivity(
+        list.id,
+        userId,
+        "item_edited",
+        itemId,
+        { text: previous?.text },
+        { text: body.text }
+      );
     }
     return c.json(updated);
-  },
+  }
 );
 
 app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
@@ -377,13 +540,15 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
   if (!item) return c.json({ error: "Not found" }, 404);
 
   const isOwner = list.ownerId === null || list.ownerId === userId;
-  const participation = userId && !isOwner
-    ? await getParticipation(list.id, userId)
-    : null;
+  const participation =
+    userId && !isOwner ? await getParticipation(list.id, userId) : null;
 
   if (participation?.role === "challenger" && userId) {
     const existing = await db.query.itemProgress.findFirst({
-      where: and(eq(itemProgress.userId, userId), eq(itemProgress.itemId, itemId)),
+      where: and(
+        eq(itemProgress.userId, userId),
+        eq(itemProgress.itemId, itemId)
+      ),
       columns: { done: true },
     });
     const newDone = !(existing?.done ?? false);
@@ -402,16 +567,27 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
     const allProgress = await db.query.itemProgress.findMany({
       where: and(
         eq(itemProgress.userId, userId),
-        inArray(itemProgress.itemId, allItems.map((i) => i.id)),
+        inArray(
+          itemProgress.itemId,
+          allItems.map((i) => i.id)
+        )
       ),
       columns: { done: true },
     });
-    const allDone = allItems.length > 0 && allProgress.length === allItems.length && allProgress.every((p) => p.done);
+    const allDone =
+      allItems.length > 0 &&
+      allProgress.length === allItems.length &&
+      allProgress.every((p) => p.done);
     if (allDone && !participation.completedAt) {
       await db
         .update(participations)
         .set({ completedAt: new Date() })
-        .where(and(eq(participations.sourceListId, list.id), eq(participations.userId, userId)));
+        .where(
+          and(
+            eq(participations.sourceListId, list.id),
+            eq(participations.userId, userId)
+          )
+        );
       await logActivity(list.id, userId, "challenge_completed");
     }
 
@@ -424,7 +600,10 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
 
   const [updated] = await db
     .update(items)
-    .set({ done: sql`NOT ${items.done}`, updatedAt: new Date() })
+    .set({
+      done: sql`NOT ${items.done}`,
+      updatedAt: new Date(),
+    })
     .where(and(eq(items.id, itemId), eq(items.listId, list.id)))
     .returning();
   if (!updated) return c.json({ error: "Not found" }, 404);
@@ -439,12 +618,25 @@ app.delete("/lists/:listId/items/:itemId", async (c) => {
   const userId = authUser?.session?.user?.id ?? null;
   if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
   const itemId = c.req.param("itemId");
-  const previous = list.public && list.collaborative && userId
-    ? await db.query.items.findFirst({ where: and(eq(items.id, itemId), eq(items.listId, list.id)), columns: { text: true } })
-    : null;
-  await db.delete(items).where(and(eq(items.id, itemId), eq(items.listId, list.id)));
+  const previous =
+    list.public && list.collaborative && userId
+      ? await db.query.items.findFirst({
+          where: and(eq(items.id, itemId), eq(items.listId, list.id)),
+          columns: { text: true },
+        })
+      : null;
+  await db
+    .delete(items)
+    .where(and(eq(items.id, itemId), eq(items.listId, list.id)));
   if (list.public && list.collaborative && userId && previous) {
-    await logActivity(list.id, userId, "item_deleted", itemId, { text: previous.text }, null);
+    await logActivity(
+      list.id,
+      userId,
+      "item_deleted",
+      itemId,
+      { text: previous.text },
+      null
+    );
   }
   return c.body(null, 204);
 });
@@ -457,11 +649,14 @@ app.delete(
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
+    if (!canModifyList(list, userId))
+      return c.json({ error: "Forbidden" }, 403);
     const { ids } = c.req.valid("json");
-    await db.delete(items).where(and(eq(items.listId, list.id), inArray(items.id, ids)));
+    await db
+      .delete(items)
+      .where(and(eq(items.listId, list.id), inArray(items.id, ids)));
     return c.body(null, 204);
-  },
+  }
 );
 
 const EXPLORE_PAGE_SIZE = 6;
@@ -471,23 +666,37 @@ const BULK_ITEM_LIMIT = 100;
 
 app.post(
   "/lists/:listId/items/bulk",
-  zValidator("json", z.object({
-    texts: z.array(z.string().min(1).max(1000)).min(1).max(BULK_ITEM_LIMIT),
-  })),
+  zValidator(
+    "json",
+    z.object({
+      texts: z.array(z.string().min(1).max(1000)).min(1).max(BULK_ITEM_LIMIT),
+    })
+  ),
   async (c) => {
     const list = await resolveList(c.req.param("listId"));
     if (!list) return c.json({ error: "Not found" }, 404);
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id ?? null;
-    if (!canModifyList(list, userId)) return c.json({ error: "Forbidden" }, 403);
+    if (!canModifyList(list, userId))
+      return c.json({ error: "Forbidden" }, 403);
     const { texts } = c.req.valid("json");
-    const [maxRow] = await db.select({ pos: max(items.position) }).from(items).where(eq(items.listId, list.id));
+    const [maxRow] = await db
+      .select({ pos: max(items.position) })
+      .from(items)
+      .where(eq(items.listId, list.id));
     const basePosition = (maxRow?.pos ?? -1) + 1;
-    const created = await db.insert(items).values(
-      texts.map((text, i) => ({ listId: list.id, text, position: basePosition + i })),
-    ).returning();
+    const created = await db
+      .insert(items)
+      .values(
+        texts.map((text, i) => ({
+          listId: list.id,
+          text,
+          position: basePosition + i,
+        }))
+      )
+      .returning();
     return c.json(created, 201);
-  },
+  }
 );
 
 app.get("/explore", async (c) => {
@@ -496,9 +705,16 @@ app.get("/explore", async (c) => {
   const sort = c.req.query("sort") ?? "created_desc";
   const isAsc = sort === "created_asc";
 
-  const baseWhere = q ? and(eq(lists.public, true), ilike(lists.name, `%${q}%`)) : eq(lists.public, true);
+  const baseWhere = q
+    ? and(eq(lists.public, true), ilike(lists.name, `%${q}%`))
+    : eq(lists.public, true);
   const where = cursor
-    ? and(baseWhere, isAsc ? gt(lists.createdAt, new Date(cursor)) : lt(lists.createdAt, new Date(cursor)))
+    ? and(
+        baseWhere,
+        isAsc
+          ? gt(lists.createdAt, new Date(cursor))
+          : lt(lists.createdAt, new Date(cursor))
+      )
     : baseWhere;
 
   const rows = await db
@@ -519,9 +735,10 @@ app.get("/explore", async (c) => {
     .orderBy(isAsc ? lists.createdAt : desc(lists.createdAt))
     .limit(EXPLORE_PAGE_SIZE);
 
-  const nextCursor = rows.length === EXPLORE_PAGE_SIZE
-    ? rows[rows.length - 1].createdAt.toISOString()
-    : null;
+  const nextCursor =
+    rows.length === EXPLORE_PAGE_SIZE
+      ? rows[rows.length - 1].createdAt.toISOString()
+      : null;
 
   const exploreItems = rows.map(({ ownerImage, completedCount, ...row }) => ({
     ...row,
@@ -536,9 +753,17 @@ app.get("/explore/:listId", async (c) => {
   const listId = c.req.param("listId");
   const list = await db.query.lists.findFirst({
     where: listWhere(listId),
-    columns: { id: true, name: true, slug: true, description: true, public: true, createdAt: true, ownerId: true },
+    columns: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      public: true,
+      createdAt: true,
+      ownerId: true,
+    },
   });
-  if (!list || !list.public) return c.json({ error: "Not found" }, 404);
+  if (!list?.public) return c.json({ error: "Not found" }, 404);
 
   const [stats] = await db
     .select({
@@ -564,9 +789,10 @@ app.get("/explore/:listId", async (c) => {
     .from(participations)
     .where(eq(participations.sourceListId, list.id));
 
-  const owner = stats?.ownerName || stats?.ownerImage
-    ? { name: stats.ownerName, image: stats.ownerImage }
-    : null;
+  const owner =
+    stats?.ownerName || stats?.ownerImage
+      ? { name: stats.ownerName, image: stats.ownerImage }
+      : null;
 
   return c.json({
     id: list.id,
@@ -588,7 +814,7 @@ app.get("/explore/:listId/items", async (c) => {
     where: listWhere(listId),
     columns: { id: true, public: true },
   });
-  if (!list || !list.public) return c.json({ error: "Not found" }, 404);
+  if (!list?.public) return c.json({ error: "Not found" }, 404);
   const rows = await db.query.items.findMany({
     where: eq(items.listId, list.id),
     orderBy: (t, { asc }) => [asc(t.position), asc(t.createdAt)],
@@ -608,7 +834,10 @@ app.post("/lists/:listId/clone", async (c) => {
     orderBy: (t, { asc }) => [asc(t.position), asc(t.createdAt)],
   });
 
-  const [newList] = await db.insert(lists).values({ name: source.name }).returning();
+  const [newList] = await db
+    .insert(lists)
+    .values({ name: source.name })
+    .returning();
 
   if (sourceItems.length > 0) {
     await db.insert(items).values(
@@ -617,7 +846,7 @@ app.post("/lists/:listId/clone", async (c) => {
         text: item.text,
         done: false,
         position: i,
-      })),
+      }))
     );
   }
 
@@ -626,7 +855,10 @@ app.post("/lists/:listId/clone", async (c) => {
 
 app.delete("/lists/:listId", async (c) => {
   const listId = c.req.param("listId");
-  const list = await db.query.lists.findFirst({ where: listWhere(listId), columns: { id: true, ownerId: true } });
+  const list = await db.query.lists.findFirst({
+    where: listWhere(listId),
+    columns: { id: true, ownerId: true },
+  });
   if (!list) return c.json({ error: "Not found" }, 404);
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id ?? null;
@@ -634,7 +866,14 @@ app.delete("/lists/:listId", async (c) => {
   if (list.ownerId !== userId) {
     const participation = await getParticipation(list.id, userId);
     if (!participation) return c.json({ error: "Forbidden" }, 403);
-    await db.delete(participations).where(and(eq(participations.sourceListId, list.id), eq(participations.userId, userId)));
+    await db
+      .delete(participations)
+      .where(
+        and(
+          eq(participations.sourceListId, list.id),
+          eq(participations.userId, userId)
+        )
+      );
     return c.body(null, 204);
   }
   await db.delete(lists).where(eq(lists.id, list.id));
@@ -647,15 +886,22 @@ app.post("/lists/:listId/accept", async (c) => {
   if (!userId) return c.json({ error: "Unauthorized" }, 401);
 
   const listId = c.req.param("listId");
-  const source = await db.query.lists.findFirst({ where: listWhere(listId) });
+  const source = await db.query.lists.findFirst({
+    where: listWhere(listId),
+  });
   if (!source) return c.json({ error: "Not found" }, 404);
   if (!source.public) return c.json({ error: "Forbidden" }, 403);
-  if (source.ownerId === userId) return c.json({ error: "Cannot accept your own list" }, 409);
+  if (source.ownerId === userId)
+    return c.json({ error: "Cannot accept your own list" }, 409);
 
   const existing = await getParticipation(source.id, userId);
   if (existing) return c.json({ error: "Already participating" }, 409);
 
-  await db.insert(participations).values({ sourceListId: source.id, userId, role: "challenger" });
+  await db.insert(participations).values({
+    sourceListId: source.id,
+    userId,
+    role: "challenger",
+  });
   await logActivity(source.id, userId, "challenge_accepted");
 
   return c.json(source, 201);
@@ -684,8 +930,15 @@ app.get("/lists/:listId/collaborators", async (c) => {
     .from(participations)
     .innerJoin(users, eq(participations.userId, users.id))
     .where(eq(participations.sourceListId, list.id));
-  const collaborators = rows.filter((r) => r.role === "collaborator").map(({ role: _, completedAt: __, doneCount: ___, ...rest }) => rest);
-  const challengers = rows.filter((r) => r.role === "challenger").map(({ role: _, ...rest }) => ({ ...rest, totalItems }));
+  const collaborators = rows
+    .filter((r) => r.role === "collaborator")
+    .map(({ role: _, completedAt: __, doneCount: ___, ...rest }) => rest);
+  const challengers = rows
+    .filter((r) => r.role === "challenger")
+    .map(({ role: _, ...rest }) => ({
+      ...rest,
+      totalItems,
+    }));
   return c.json({ collaborators, challengers });
 });
 
@@ -721,11 +974,18 @@ app.get("/lists/:listId/activity", async (c) => {
 app.get("/lists/:listId/participation", async (c) => {
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id;
-  if (!userId) return c.json({ participated: false, completedAt: null });
+  if (!userId)
+    return c.json({
+      participated: false,
+      completedAt: null,
+    });
   const list = await resolveList(c.req.param("listId"));
   if (!list) return c.json({ error: "Not found" }, 404);
   const participation = await getParticipation(list.id, userId);
-  return c.json({ participated: !!participation, completedAt: participation?.completedAt ?? null });
+  return c.json({
+    participated: !!participation,
+    completedAt: participation?.completedAt ?? null,
+  });
 });
 
 function getStripe(c: Context) {
@@ -734,12 +994,17 @@ function getStripe(c: Context) {
 }
 
 function getStripeWebhookSecret(c: Context) {
-  return c.env?.STRIPE_WEBHOOK_SECRET ?? process.env.STRIPE_WEBHOOK_SECRET ?? "";
+  return (
+    c.env?.STRIPE_WEBHOOK_SECRET ?? process.env.STRIPE_WEBHOOK_SECRET ?? ""
+  );
 }
 
 async function hasPurchased(userId: string, listId: string): Promise<boolean> {
   const purchase = await db.query.listPurchases.findFirst({
-    where: and(eq(listPurchases.buyerId, userId), eq(listPurchases.listId, listId)),
+    where: and(
+      eq(listPurchases.buyerId, userId),
+      eq(listPurchases.listId, listId)
+    ),
     columns: { id: true },
   });
   return !!purchase;
@@ -755,16 +1020,23 @@ app.post("/stripe/connect", async (c) => {
 
   const existing = await db.query.stripeAccounts.findFirst({
     where: eq(stripeAccounts.userId, userId),
-    columns: { stripeAccountId: true, onboardingComplete: true },
+    columns: {
+      stripeAccountId: true,
+      onboardingComplete: true,
+    },
   });
 
   let accountId: string;
   if (existing) {
     accountId = existing.stripeAccountId;
   } else {
-    const account = await stripe.accounts.create({ type: "express" });
+    const account = await stripe.accounts.create({
+      type: "express",
+    });
     accountId = account.id;
-    await db.insert(stripeAccounts).values({ userId, stripeAccountId: accountId });
+    await db
+      .insert(stripeAccounts)
+      .values({ userId, stripeAccountId: accountId });
   }
 
   const link = await stripe.accountLinks.create({
@@ -780,27 +1052,48 @@ app.post("/stripe/connect", async (c) => {
 app.get("/stripe/account-status", async (c) => {
   const authUser = getOptionalUser(c);
   const userId = authUser?.session?.user?.id;
-  if (!userId) return c.json({ connected: false, onboardingComplete: false });
+  if (!userId)
+    return c.json({
+      connected: false,
+      onboardingComplete: false,
+    });
 
   const record = await db.query.stripeAccounts.findFirst({
     where: eq(stripeAccounts.userId, userId),
-    columns: { stripeAccountId: true, onboardingComplete: true },
+    columns: {
+      stripeAccountId: true,
+      onboardingComplete: true,
+    },
   });
-  if (!record) return c.json({ connected: false, onboardingComplete: false });
+  if (!record)
+    return c.json({
+      connected: false,
+      onboardingComplete: false,
+    });
 
   if (!record.onboardingComplete) {
     const stripe = getStripe(c);
     const account = await stripe.accounts.retrieve(record.stripeAccountId);
     if (account.details_submitted) {
-      await db.update(stripeAccounts)
+      await db
+        .update(stripeAccounts)
         .set({ onboardingComplete: true })
         .where(eq(stripeAccounts.userId, userId));
-      return c.json({ connected: true, onboardingComplete: true });
+      return c.json({
+        connected: true,
+        onboardingComplete: true,
+      });
     }
-    return c.json({ connected: true, onboardingComplete: false });
+    return c.json({
+      connected: true,
+      onboardingComplete: false,
+    });
   }
 
-  return c.json({ connected: true, onboardingComplete: true });
+  return c.json({
+    connected: true,
+    onboardingComplete: true,
+  });
 });
 
 app.get("/lists/:listId/price", async (c) => {
@@ -824,7 +1117,12 @@ app.get("/lists/:listId/price", async (c) => {
 
 app.post(
   "/lists/:listId/price",
-  zValidator("json", z.object({ priceInCents: z.number().int().min(100).max(100_000) })),
+  zValidator(
+    "json",
+    z.object({
+      priceInCents: z.number().int().min(100).max(100_000),
+    })
+  ),
   async (c) => {
     const authUser = getOptionalUser(c);
     const userId = authUser?.session?.user?.id;
@@ -838,7 +1136,10 @@ app.post(
     if (list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
 
     const stripeAccount = await db.query.stripeAccounts.findFirst({
-      where: and(eq(stripeAccounts.userId, userId), eq(stripeAccounts.onboardingComplete, true)),
+      where: and(
+        eq(stripeAccounts.userId, userId),
+        eq(stripeAccounts.onboardingComplete, true)
+      ),
       columns: { id: true },
     });
     if (!stripeAccount) return c.json({ error: "stripe_not_connected" }, 400);
@@ -854,7 +1155,7 @@ app.post(
       .returning();
 
     return c.json(price);
-  },
+  }
 );
 
 app.delete("/lists/:listId/price", async (c) => {
@@ -881,10 +1182,16 @@ app.post("/lists/:listId/checkout", async (c) => {
   const listParam = c.req.param("listId");
   const list = await db.query.lists.findFirst({
     where: listWhere(listParam),
-    columns: { id: true, ownerId: true, name: true, public: true },
+    columns: {
+      id: true,
+      ownerId: true,
+      name: true,
+      public: true,
+    },
   });
   if (!list) return c.json({ error: "Not found" }, 404);
-  if (list.ownerId === userId) return c.json({ error: "Cannot buy your own list" }, 409);
+  if (list.ownerId === userId)
+    return c.json({ error: "Cannot buy your own list" }, 409);
 
   const alreadyPurchased = await hasPurchased(userId, list.id);
   if (alreadyPurchased) return c.json({ error: "Already purchased" }, 409);
@@ -897,8 +1204,9 @@ app.post("/lists/:listId/checkout", async (c) => {
 
   const sellerAccount = await db.query.stripeAccounts.findFirst({
     where: and(
+      // biome-ignore lint/style/noNonNullAssertion: list.ownerId guaranteed by prior list query
       eq(stripeAccounts.userId, list.ownerId!),
-      eq(stripeAccounts.onboardingComplete, true),
+      eq(stripeAccounts.onboardingComplete, true)
     ),
     columns: { stripeAccountId: true },
   });
@@ -911,11 +1219,15 @@ app.post("/lists/:listId/checkout", async (c) => {
     amount: price.priceInCents,
     currency: price.currency,
     application_fee_amount: appFeeAmount,
-    transfer_data: { destination: sellerAccount.stripeAccountId },
+    transfer_data: {
+      destination: sellerAccount.stripeAccountId,
+    },
     metadata: { listId: list.id, buyerId: userId },
   });
 
-  return c.json({ clientSecret: paymentIntent.client_secret });
+  return c.json({
+    clientSecret: paymentIntent.client_secret,
+  });
 });
 
 app.post("/stripe/webhook", async (c) => {
@@ -937,7 +1249,11 @@ app.post("/stripe/webhook", async (c) => {
     if (listId && buyerId) {
       await db
         .insert(listPurchases)
-        .values({ buyerId, listId, stripePaymentIntentId: intent.id })
+        .values({
+          buyerId,
+          listId,
+          stripePaymentIntentId: intent.id,
+        })
         .onConflictDoNothing();
     }
   }
@@ -971,13 +1287,29 @@ app.get("/admin/stats", async (c) => {
     return c.json({ error: "Unauthorized" }, 401);
   }
 
-  const [userCount, listCount, itemCount, participationCount, purchaseCount] = await Promise.all([
-    db.select({ count: sql<number>`count(*)::int` }).from(users).then(([r]) => r?.count ?? 0),
-    db.select({ count: sql<number>`count(*)::int` }).from(lists).then(([r]) => r?.count ?? 0),
-    db.select({ count: sql<number>`count(*)::int` }).from(items).then(([r]) => r?.count ?? 0),
-    db.select({ count: sql<number>`count(*)::int` }).from(participations).then(([r]) => r?.count ?? 0),
-    db.select({ count: sql<number>`count(*)::int` }).from(listPurchases).then(([r]) => r?.count ?? 0),
-  ]);
+  const [userCount, listCount, itemCount, participationCount, purchaseCount] =
+    await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(users)
+        .then(([r]) => r?.count ?? 0),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(lists)
+        .then(([r]) => r?.count ?? 0),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(items)
+        .then(([r]) => r?.count ?? 0),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(participations)
+        .then(([r]) => r?.count ?? 0),
+      db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(listPurchases)
+        .then(([r]) => r?.count ?? 0),
+    ]);
 
   const topLists = await db
     .select({
@@ -1003,7 +1335,9 @@ app.get("/admin/stats", async (c) => {
     .orderBy(sql`date_trunc('week', ${lists.createdAt})`);
 
   const revenueRow = await db
-    .select({ total: sql<number>`coalesce(sum(${listPrices.priceInCents}), 0)::int` })
+    .select({
+      total: sql<number>`coalesce(sum(${listPrices.priceInCents}), 0)::int`,
+    })
     .from(listPurchases)
     .leftJoin(listPrices, eq(listPrices.listId, listPurchases.listId));
 

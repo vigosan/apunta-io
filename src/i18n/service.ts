@@ -16,6 +16,10 @@ export function t(key: string, options?: Record<string, unknown>): string {
 }
 
 export function setLanguage(lang: "es" | "en") {
-  try { localStorage.setItem("lang", lang); } catch { /* noop */ }
+  try {
+    localStorage.setItem("lang", lang);
+  } catch {
+    /* noop */
+  }
   i18next.changeLanguage(lang);
 }

@@ -88,7 +88,7 @@ export function ListSettingsPanel({
 
   function handlePriceBlur() {
     const dollars = parseFloat(priceInput);
-    if (!isNaN(dollars) && dollars >= 1) {
+    if (!Number.isNaN(dollars) && dollars >= 1) {
       const cents = Math.round(dollars * 100);
       const clamped = Math.max(100, Math.min(100_000, cents));
       onSetPrice(clamped);

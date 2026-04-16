@@ -1,9 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
-import { useItems, useAddItem, useToggleItem, useDeleteItem, useUpdateItem, useBulkAddItems } from "./useItems";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import type React from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Item } from "./useItems";
+import {
+  useAddItem,
+  useBulkAddItems,
+  useDeleteItem,
+  useItems,
+  useToggleItem,
+  useUpdateItem,
+} from "./useItems";
 
 vi.mock("@/services/items.service", () => ({
   itemsService: {
@@ -20,11 +27,32 @@ import { itemsService } from "@/services/items.service";
 
 const LIST_ID = "list-1";
 
-const ITEM_A: Item = { id: "i1", listId: LIST_ID, text: "Tarea A", done: false, position: 0, createdAt: new Date(), updatedAt: new Date() };
-const ITEM_B: Item = { id: "i2", listId: LIST_ID, text: "Tarea B", done: true,  position: 1, createdAt: new Date(), updatedAt: new Date() };
+const ITEM_A: Item = {
+  id: "i1",
+  listId: LIST_ID,
+  text: "Tarea A",
+  done: false,
+  position: 0,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+const ITEM_B: Item = {
+  id: "i2",
+  listId: LIST_ID,
+  text: "Tarea B",
+  done: true,
+  position: 1,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 function makeWrapper() {
-  const qc = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const qc = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
@@ -38,7 +66,9 @@ describe("useItems", () => {
     vi.mocked(itemsService.list).mockResolvedValue([ITEM_A, ITEM_B]);
     const { Wrapper } = makeWrapper();
 
-    const { result } = renderHook(() => useItems(LIST_ID), { wrapper: Wrapper });
+    const { result } = renderHook(() => useItems(LIST_ID), {
+      wrapper: Wrapper,
+    });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(result.current.data).toEqual([ITEM_A, ITEM_B]);
@@ -48,24 +78,37 @@ describe("useItems", () => {
 
 describe("useToggleItem", () => {
   it("optimistically flips done before server responds", async () => {
-    vi.mocked(itemsService.toggle).mockResolvedValue({ ...ITEM_A, done: true });
+    vi.mocked(itemsService.toggle).mockResolvedValue({
+      ...ITEM_A,
+      done: true,
+    });
     const { qc, Wrapper } = makeWrapper();
     qc.setQueryData(["items", LIST_ID], [ITEM_A, ITEM_B]);
 
-    const { result } = renderHook(() => useToggleItem(LIST_ID), { wrapper: Wrapper });
-    await act(async () => { result.current.mutate(ITEM_A.id); });
+    const { result } = renderHook(() => useToggleItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    await act(async () => {
+      result.current.mutate(ITEM_A.id);
+    });
 
     const cached = qc.getQueryData<Item[]>(["items", LIST_ID]);
     expect(cached?.find((i) => i.id === ITEM_A.id)?.done).toBe(true);
   });
 
   it("rolls back optimistic update on error", async () => {
-    vi.mocked(itemsService.toggle).mockRejectedValue(new Error("Network error"));
+    vi.mocked(itemsService.toggle).mockRejectedValue(
+      new Error("Network error")
+    );
     const { qc, Wrapper } = makeWrapper();
     qc.setQueryData(["items", LIST_ID], [ITEM_A]);
 
-    const { result } = renderHook(() => useToggleItem(LIST_ID), { wrapper: Wrapper });
-    act(() => { result.current.mutate(ITEM_A.id); });
+    const { result } = renderHook(() => useToggleItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    act(() => {
+      result.current.mutate(ITEM_A.id);
+    });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     const cached = qc.getQueryData<Item[]>(["items", LIST_ID]);
@@ -79,8 +122,12 @@ describe("useDeleteItem", () => {
     const { qc, Wrapper } = makeWrapper();
     qc.setQueryData(["items", LIST_ID], [ITEM_A, ITEM_B]);
 
-    const { result } = renderHook(() => useDeleteItem(LIST_ID), { wrapper: Wrapper });
-    await act(async () => { result.current.mutate(ITEM_A.id); });
+    const { result } = renderHook(() => useDeleteItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    await act(async () => {
+      result.current.mutate(ITEM_A.id);
+    });
 
     const cached = qc.getQueryData<Item[]>(["items", LIST_ID]);
     expect(cached?.map((i) => i.id)).not.toContain(ITEM_A.id);
@@ -91,8 +138,12 @@ describe("useDeleteItem", () => {
     const { qc, Wrapper } = makeWrapper();
     qc.setQueryData(["items", LIST_ID], [ITEM_A, ITEM_B]);
 
-    const { result } = renderHook(() => useDeleteItem(LIST_ID), { wrapper: Wrapper });
-    act(() => { result.current.mutate(ITEM_A.id); });
+    const { result } = renderHook(() => useDeleteItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    act(() => {
+      result.current.mutate(ITEM_A.id);
+    });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     const cached = qc.getQueryData<Item[]>(["items", LIST_ID]);
@@ -102,12 +153,22 @@ describe("useDeleteItem", () => {
 
 describe("useUpdateItem", () => {
   it("optimistically updates text in cache", async () => {
-    vi.mocked(itemsService.update).mockResolvedValue({ ...ITEM_A, text: "Nuevo texto" });
+    vi.mocked(itemsService.update).mockResolvedValue({
+      ...ITEM_A,
+      text: "Nuevo texto",
+    });
     const { qc, Wrapper } = makeWrapper();
     qc.setQueryData(["items", LIST_ID], [ITEM_A]);
 
-    const { result } = renderHook(() => useUpdateItem(LIST_ID), { wrapper: Wrapper });
-    await act(async () => { result.current.mutate({ id: ITEM_A.id, text: "Nuevo texto" }); });
+    const { result } = renderHook(() => useUpdateItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    await act(async () => {
+      result.current.mutate({
+        id: ITEM_A.id,
+        text: "Nuevo texto",
+      });
+    });
 
     const cached = qc.getQueryData<Item[]>(["items", LIST_ID]);
     expect(cached?.find((i) => i.id === ITEM_A.id)?.text).toBe("Nuevo texto");
@@ -118,8 +179,15 @@ describe("useUpdateItem", () => {
     const { qc, Wrapper } = makeWrapper();
     qc.setQueryData(["items", LIST_ID], [ITEM_A]);
 
-    const { result } = renderHook(() => useUpdateItem(LIST_ID), { wrapper: Wrapper });
-    act(() => { result.current.mutate({ id: ITEM_A.id, text: "Nuevo texto" }); });
+    const { result } = renderHook(() => useUpdateItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    act(() => {
+      result.current.mutate({
+        id: ITEM_A.id,
+        text: "Nuevo texto",
+      });
+    });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
     const cached = qc.getQueryData<Item[]>(["items", LIST_ID]);
@@ -133,10 +201,18 @@ describe("useAddItem", () => {
     const { qc, Wrapper } = makeWrapper();
     const invalidate = vi.spyOn(qc, "invalidateQueries");
 
-    const { result } = renderHook(() => useAddItem(LIST_ID), { wrapper: Wrapper });
-    await act(async () => { await result.current.mutateAsync({ text: "Tarea A" }); });
+    const { result } = renderHook(() => useAddItem(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    await act(async () => {
+      await result.current.mutateAsync({ text: "Tarea A" });
+    });
 
-    expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ["items", LIST_ID] }));
+    expect(invalidate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["items", LIST_ID],
+      })
+    );
   });
 });
 
@@ -146,9 +222,17 @@ describe("useBulkAddItems", () => {
     const { qc, Wrapper } = makeWrapper();
     const invalidate = vi.spyOn(qc, "invalidateQueries");
 
-    const { result } = renderHook(() => useBulkAddItems(LIST_ID), { wrapper: Wrapper });
-    await act(async () => { await result.current.mutateAsync(["Tarea A", "Tarea B"]); });
+    const { result } = renderHook(() => useBulkAddItems(LIST_ID), {
+      wrapper: Wrapper,
+    });
+    await act(async () => {
+      await result.current.mutateAsync(["Tarea A", "Tarea B"]);
+    });
 
-    expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ queryKey: ["items", LIST_ID] }));
+    expect(invalidate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: ["items", LIST_ID],
+      })
+    );
   });
 });
