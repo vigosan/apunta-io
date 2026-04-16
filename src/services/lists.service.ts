@@ -42,6 +42,11 @@ export type ExploreDetail = {
     image: string | null;
     name: string | null;
   }>;
+  completedParticipants: Array<{
+    name: string | null;
+    image: string | null;
+    completedAt: string | null;
+  }>;
 };
 
 export const stripeService = {

@@ -170,6 +170,11 @@ const es = {
   help: {
     nav: "Ayuda",
   },
+  hallOfFame: {
+    title: "Hall of Fame",
+    empty: "Nadie ha completado este reto aún.",
+    completedOn: "Completado el {{date}}",
+  },
   globalSearch: {
     ariaLabel: "Búsqueda global de listas",
     placeholder: "Buscar mis listas…",

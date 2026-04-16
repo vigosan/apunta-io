@@ -807,6 +807,23 @@ app.get("/explore/:listId", async (c) => {
     .from(participations)
     .where(eq(participations.sourceListId, list.id));
 
+  const completedRows = await db
+    .select({
+      name: users.name,
+      image: users.image,
+      completedAt: participations.completedAt,
+    })
+    .from(participations)
+    .leftJoin(users, eq(users.id, participations.userId))
+    .where(
+      and(
+        eq(participations.sourceListId, list.id),
+        sql`${participations.completedAt} is not null`
+      )
+    )
+    .orderBy(participations.completedAt)
+    .limit(20);
+
   const owner =
     stats?.ownerName || stats?.ownerImage
       ? { name: stats.ownerName, image: stats.ownerImage }
@@ -823,6 +840,7 @@ app.get("/explore/:listId", async (c) => {
     itemCount: stats?.itemCount ?? 0,
     participantCount: totalParticipants[0]?.count ?? 0,
     participants: participantRows,
+    completedParticipants: completedRows,
   });
 });
 

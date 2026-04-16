@@ -171,6 +171,11 @@ const en: Translations = {
   help: {
     nav: "Help",
   },
+  hallOfFame: {
+    title: "Hall of Fame",
+    empty: "No one has completed this challenge yet.",
+    completedOn: "Completed on {{date}}",
+  },
   globalSearch: {
     ariaLabel: "Global list search",
     placeholder: "Search my lists…",
