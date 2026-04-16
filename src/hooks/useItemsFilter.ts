@@ -1,6 +1,8 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { parseTags, getPartialTag } from "@/lib/tags";
 import type { Item } from "@/db/schema";
+
+const REORDER_DELAY_MS = 600;
 
 interface Options {
   items: Item[];
@@ -14,22 +16,37 @@ interface Options {
 export function useItemsFilter({ items, itemsLoading, statusFilter, activeTag, searchQuery, newItemText }: Options) {
   const [sortedIds, setSortedIds] = useState<string[] | null>(null);
   const initializedRef = useRef(false);
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Delayed snapshot of items used for ordering — only updated after REORDER_DELAY_MS
+  const [delayedItems, setDelayedItems] = useState<Item[]>(items);
+
+  useEffect(() => {
+    if (itemsLoading) return;
+    if (reorderTimerRef.current) clearTimeout(reorderTimerRef.current);
+    reorderTimerRef.current = setTimeout(() => setDelayedItems(items), REORDER_DELAY_MS);
+    return () => { if (reorderTimerRef.current) clearTimeout(reorderTimerRef.current); };
+  }, [items, itemsLoading]);
 
   const stableItems = useMemo(() => {
     if (itemsLoading) return items;
     let ids = sortedIds;
-    if (ids === null && items.length > 0 && !initializedRef.current) {
-      ids = [...items].sort((a, b) => Number(a.done) - Number(b.done)).map((i) => i.id);
+    if (ids === null && delayedItems.length > 0 && !initializedRef.current) {
+      ids = [...delayedItems].sort((a, b) => Number(a.done) - Number(b.done)).map((i) => i.id);
       initializedRef.current = true;
       setSortedIds(ids);
     }
     if (!ids) return items;
-    const byId = new Map(items.map((i) => [i.id, i]));
+    // Order by sortedIds but use live items for done state
+    const liveById = new Map(items.map((i) => [i.id, i]));
+    const delayedById = new Map(delayedItems.map((i) => [i.id, i]));
     const sortedSet = new Set(ids);
-    const inOrder = ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
+    const inOrder = ids.flatMap((id) => (liveById.has(id) ? [liveById.get(id)!] : []));
     const newItems = items.filter((i) => !sortedSet.has(i.id));
-    return [...inOrder, ...newItems];
-  }, [items, itemsLoading, sortedIds]);
+    const all = [...inOrder, ...newItems];
+    // Sort by done state using delayed snapshot so position updates after the delay
+    return [...all.filter((i) => !delayedById.get(i.id)?.done), ...all.filter((i) => delayedById.get(i.id)?.done)];
+  }, [items, delayedItems, itemsLoading, sortedIds]);
 
   const allTags = useMemo(() => {
     const seen = new Set<string>();
