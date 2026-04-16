@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { act } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { Action } from "./CommandPalette";
 import { CommandPalette } from "./CommandPalette";
@@ -73,6 +74,25 @@ describe("CommandPalette", () => {
     await userEvent.click(screen.getByTestId("command-action-test"));
     expect(onSelect).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("cancels focus rAF on rapid open/close", () => {
+    const cancelRafSpy = vi.spyOn(globalThis, "cancelAnimationFrame");
+    const { rerender } = render(
+      <CommandPalette open={false} onClose={vi.fn()} actions={actions} />
+    );
+    act(() => {
+      rerender(
+        <CommandPalette open={true} onClose={vi.fn()} actions={actions} />
+      );
+    });
+    act(() => {
+      rerender(
+        <CommandPalette open={false} onClose={vi.fn()} actions={actions} />
+      );
+    });
+    expect(cancelRafSpy).toHaveBeenCalled();
+    cancelRafSpy.mockRestore();
   });
 
   it("calls onSelect and onClose when Enter is pressed on the first action", async () => {

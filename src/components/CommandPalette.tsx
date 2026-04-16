@@ -27,7 +27,8 @@ export function CommandPalette({ open, onClose, actions }: Props) {
     if (open) {
       setQuery("");
       setSelectedIndex(0);
-      requestAnimationFrame(() => inputRef.current?.focus());
+      const rafId = requestAnimationFrame(() => inputRef.current?.focus());
+      return () => cancelAnimationFrame(rafId);
     }
   }, [open]);
 
