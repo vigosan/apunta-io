@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { routeTree } from "./routeTree.gen";
 import "./i18n";
 import "./index.css";
@@ -29,10 +30,12 @@ if (!root) throw new Error("No root element");
 
 createRoot(root).render(
   <StrictMode>
-    <SessionProvider>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </SessionProvider>
+    <ErrorBoundary>
+      <SessionProvider>
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
+      </SessionProvider>
+    </ErrorBoundary>
   </StrictMode>
 );
