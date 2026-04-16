@@ -62,7 +62,7 @@ function ExploreDetailPage() {
     <div className="min-h-dvh bg-[#FAFAF8] flex flex-col">
       <AppNav />
 
-      <main className="flex-1 w-full max-w-xl mx-auto px-4 py-6 flex flex-col gap-5">
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-6 flex flex-col gap-5">
         <Link
           to="/explore"
           className="text-sm text-gray-500 hover:text-gray-900 transition-colors duration-150 w-fit"
