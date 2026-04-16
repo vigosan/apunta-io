@@ -7,7 +7,7 @@
     "dev": "concurrently -n api,vite -c blue,green \"tsx watch api/serve.ts\" \"vite\"",
     "dev:frontend": "vite",
     "build": "vite build",
-    "type-check": "tsc -b",
+    "check:types": "tsc -b",
     "preview": "vite preview",
     "test": "vitest",
     "db:generate": "drizzle-kit generate",
