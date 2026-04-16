@@ -884,8 +884,8 @@ function ListDetailPage() {
               )}
 
               {!itemsLoading && items.length > 0 && (
-                <div className="relative mt-3 -mx-5">
-                  <div className="flex gap-1.5 overflow-x-auto scrollbar-none px-5 pb-0.5">
+                <div className="mt-3 -mx-5">
+                  <div className="flex flex-wrap gap-1.5 px-5 pb-0.5">
                     {(["pending", "done"] as const).map((s) => (
                       <button
                         type="button"
@@ -926,7 +926,6 @@ function ListDetailPage() {
                       </button>
                     ))}
                   </div>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white to-transparent" />
                 </div>
               )}
             </div>
