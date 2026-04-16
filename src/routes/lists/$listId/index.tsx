@@ -92,7 +92,9 @@ function ListDetailPage() {
   const isOwner = !list ? false : (list.ownerId === null || list.ownerId === session?.user?.id);
   const isParticipant = !!list?.participated && !isOwner && !!list?.public;
   const canWrite = isOwner || (isParticipant && !!list?.collaborative) || (!list?.public && !!list?.collaborative);
-  const { data: collaborators = [] } = useCollaborators(listId, isOwner && !!list?.collaborative);
+  const { data: participantData } = useCollaborators(listId, isOwner && (!!list?.public || !!list?.collaborative));
+  const collaborators = participantData?.collaborators ?? [];
+  const challengers = participantData?.challengers ?? [];
 
   const { data: items = [], isLoading: itemsLoading, refetch: refetchItems } = useItems(listId);
 
@@ -313,54 +315,6 @@ function ListDetailPage() {
             </div>
           )}
 
-          {isOwner && list?.collaborative && collaborators.length > 0 && (
-            <div className="mt-3 flex items-center gap-2">
-              <div className="flex -space-x-1.5">
-                {collaborators.slice(0, 5).map((c) =>
-                  c.image ? (
-                    <img
-                      key={c.id}
-                      src={c.image}
-                      alt={c.name ?? ""}
-                      title={c.name ?? ""}
-                      className="w-6 h-6 rounded-full outline outline-2 outline-white"
-                    />
-                  ) : (
-                    <div
-                      key={c.id}
-                      title={c.name ?? ""}
-                      className="w-6 h-6 rounded-full bg-gray-200 outline outline-2 outline-white flex items-center justify-center"
-                    >
-                      <span className="text-[8px] text-gray-500 font-medium">
-                        {(c.name ?? "?")[0]?.toUpperCase()}
-                      </span>
-                    </div>
-                  )
-                )}
-              </div>
-              <span className="text-xs text-gray-400">
-                {collaborators.length === 1
-                  ? collaborators[0].name ?? "1 collaborator"
-                  : `${collaborators.length} collaborators`}
-              </span>
-            </div>
-          )}
-
-          {isParticipant && (
-            <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-100 rounded-xl">
-              <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-              <span className="text-xs text-gray-500 flex-1">
-                {list?.participationCompletedAt
-                  ? t("list.challengeCompleted")
-                  : t("list.challengeInProgress")}
-              </span>
-              {list?.collaborative && (
-                <span className="text-xs text-gray-400">{t("list.canContribute")}</span>
-              )}
-            </div>
-          )}
 
           <div className="flex items-center justify-between gap-2 mt-2">
             {listLoading ? (
@@ -416,6 +370,56 @@ function ListDetailPage() {
               )}
               {slugError && <p className="text-xs text-gray-400 mt-1">{slugError}</p>}
             </div>
+
+            {isOwner && challengers.length > 0 && (
+              <>
+                <span className="text-gray-200 text-xs shrink-0">·</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex -space-x-1">
+                    {challengers.slice(0, 4).map((c) =>
+                      c.image ? (
+                        <img key={c.id} src={c.image} alt={c.name ?? ""} title={c.name ?? ""} className="w-4 h-4 rounded-full outline outline-1 outline-white" />
+                      ) : (
+                        <div key={c.id} title={c.name ?? ""} className="w-4 h-4 rounded-full bg-gray-200 outline outline-1 outline-white flex items-center justify-center">
+                          <span className="text-[6px] text-gray-500 font-medium">{(c.name ?? "?")[0]?.toUpperCase()}</span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-400 tabular-nums">{challengers.length}</span>
+                </div>
+              </>
+            )}
+
+            {isOwner && collaborators.length > 0 && (
+              <>
+                <span className="text-gray-200 text-xs shrink-0">·</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <div className="flex -space-x-1">
+                    {collaborators.slice(0, 4).map((c) =>
+                      c.image ? (
+                        <img key={c.id} src={c.image} alt={c.name ?? ""} title={c.name ?? ""} className="w-4 h-4 rounded-full outline outline-1 outline-white" />
+                      ) : (
+                        <div key={c.id} title={c.name ?? ""} className="w-4 h-4 rounded-full bg-gray-200 outline outline-1 outline-white flex items-center justify-center">
+                          <span className="text-[6px] text-gray-500 font-medium">{(c.name ?? "?")[0]?.toUpperCase()}</span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                  <span className="text-xs text-gray-400 tabular-nums">{collaborators.length}</span>
+                </div>
+              </>
+            )}
+
+            {isParticipant && (
+              <>
+                <span className="text-gray-200 text-xs shrink-0">·</span>
+                <span className="text-xs text-gray-400 shrink-0">
+                  {list?.participationCompletedAt ? t("list.challengeCompleted") : t("list.challengeInProgress")}
+                </span>
+              </>
+            )}
+
             </div>
 
             <div className="flex items-center gap-1.5 shrink-0">

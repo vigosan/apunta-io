@@ -683,11 +683,13 @@ app.get("/lists/:listId/collaborators", async (c) => {
   if (!list) return c.json({ error: "Not found" }, 404);
   if (list.ownerId !== userId) return c.json({ error: "Forbidden" }, 403);
   const rows = await db
-    .select({ id: users.id, name: users.name, image: users.image })
+    .select({ id: users.id, name: users.name, image: users.image, userListId: participations.userListId })
     .from(participations)
     .innerJoin(users, eq(participations.userId, users.id))
     .where(eq(participations.sourceListId, list.id));
-  return c.json(rows);
+  const collaborators = rows.filter((r) => r.userListId === null).map(({ userListId: _, ...rest }) => rest);
+  const challengers = rows.filter((r) => r.userListId !== null).map(({ userListId: _, ...rest }) => rest);
+  return c.json({ collaborators, challengers });
 });
 
 app.get("/lists/:listId/activity", async (c) => {
