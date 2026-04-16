@@ -4,6 +4,7 @@ import { useCachedSession } from "@/hooks/useCachedSession";
 import { useTheme } from "@/hooks/useTheme";
 import { setLanguage, useLanguage, useTranslation } from "@/i18n/service";
 import { GlobalCommandPalette } from "./GlobalCommandPalette";
+import { NotificationBell } from "./NotificationBell";
 import { UserMenu } from "./UserMenu";
 
 export function AppNav() {
@@ -100,6 +101,9 @@ export function AppNav() {
           >
             {language === "es" ? "EN" : "ES"}
           </button>
+          {session?.user && (
+            <NotificationBell userId={session.user.id} />
+          )}
           <div className="ml-1.5">
             <UserMenu />
           </div>

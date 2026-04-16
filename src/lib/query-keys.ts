@@ -12,4 +12,5 @@ export const queryKeys = {
     ["list-collaborators", listId] as const,
   stripeAccountStatus: () => ["stripe-account-status"] as const,
   userProfile: (userId: string) => ["user-profile", userId] as const,
+  notifications: () => ["notifications"] as const,
 };

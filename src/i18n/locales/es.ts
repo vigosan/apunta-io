@@ -170,6 +170,14 @@ const es = {
   help: {
     nav: "Ayuda",
   },
+  notifications: {
+    title: "Notificaciones",
+    ariaLabel: "Notificaciones",
+    empty: "Aún no hay notificaciones.",
+    someone: "Alguien",
+    accepted: "{{name}} ha aceptado tu reto «{{list}}»",
+    completed: "{{name}} ha completado tu reto «{{list}}»",
+  },
   profile: {
     publicLists: "Listas públicas",
     completedChallenges: "Retos completados",

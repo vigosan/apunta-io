@@ -171,6 +171,14 @@ const en: Translations = {
   help: {
     nav: "Help",
   },
+  notifications: {
+    title: "Notifications",
+    ariaLabel: "Notifications",
+    empty: "No notifications yet.",
+    someone: "Someone",
+    accepted: "{{name}} accepted your challenge «{{list}}»",
+    completed: "{{name}} completed your challenge «{{list}}»",
+  },
   profile: {
     publicLists: "Public lists",
     completedChallenges: "Completed challenges",

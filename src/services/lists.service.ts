@@ -71,6 +71,25 @@ export type UserProfile = {
   }>;
 };
 
+export type AppNotification = {
+  id: string;
+  userId: string;
+  type: "challenge_accepted" | "challenge_completed";
+  listId: string | null;
+  listName: string | null;
+  actorId: string | null;
+  actorName: string | null;
+  actorImage: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export const notificationsService = {
+  getAll: () => apiClient<AppNotification[]>("/api/notifications"),
+  readAll: () =>
+    apiClient<void>("/api/notifications/read-all", { method: "PATCH" }),
+};
+
 export const usersService = {
   getProfile: (userId: string) =>
     apiClient<UserProfile>(`/api/users/${userId}/profile`),

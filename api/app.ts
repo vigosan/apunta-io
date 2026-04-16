@@ -27,6 +27,7 @@ import {
   listPrices,
   listPurchases,
   lists,
+  notifications,
   participations,
   stripeAccounts,
   users,
@@ -180,6 +181,26 @@ async function getParticipation(sourceListId: string, userId: string) {
       eq(participations.userId, userId)
     ),
     columns: { id: true, completedAt: true, role: true },
+  });
+}
+
+async function createNotification(
+  recipientId: string,
+  type: "challenge_accepted" | "challenge_completed",
+  listId: string,
+  listName: string,
+  actorId: string | null,
+  actorName: string | null | undefined,
+  actorImage: string | null | undefined
+) {
+  await db.insert(notifications).values({
+    userId: recipientId,
+    type,
+    listId,
+    listName,
+    actorId: actorId ?? null,
+    actorName: actorName ?? null,
+    actorImage: actorImage ?? null,
   });
 }
 
@@ -607,6 +628,25 @@ app.patch("/lists/:listId/items/:itemId/toggle", async (c) => {
           )
         );
       await logActivity(list.id, userId, "challenge_completed");
+      if (list.ownerId) {
+        const actor = await db.query.users.findFirst({
+          where: eq(users.id, userId),
+          columns: { name: true, image: true },
+        });
+        const listMeta = await db.query.lists.findFirst({
+          where: eq(lists.id, list.id),
+          columns: { name: true },
+        });
+        await createNotification(
+          list.ownerId,
+          "challenge_completed",
+          list.id,
+          listMeta?.name ?? "",
+          userId,
+          actor?.name,
+          actor?.image
+        );
+      }
     }
 
     return c.json({ ...item, done: newDone });
@@ -992,6 +1032,22 @@ app.post("/lists/:listId/accept", async (c) => {
   });
   await logActivity(source.id, userId, "challenge_accepted");
 
+  if (source.ownerId) {
+    const actor = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { name: true, image: true },
+    });
+    await createNotification(
+      source.ownerId,
+      "challenge_accepted",
+      source.id,
+      source.name,
+      userId,
+      actor?.name,
+      actor?.image
+    );
+  }
+
   return c.json(source, 201);
 });
 
@@ -1369,6 +1425,38 @@ function checkAdminAuth(c: Context): boolean {
   const adminPassword = c.env?.ADMIN_PASSWORD ?? process.env.ADMIN_PASSWORD;
   return !!adminPassword && password === adminPassword;
 }
+
+app.get("/notifications", async (c) => {
+  const authUser = getOptionalUser(c);
+  const userId = authUser?.session?.user?.id;
+  if (!userId) return c.json({ error: "Unauthorized" }, 401);
+
+  const rows = await db.query.notifications.findMany({
+    where: eq(notifications.userId, userId),
+    orderBy: (t, { desc: d }) => [d(t.createdAt)],
+    limit: 30,
+  });
+
+  return c.json(rows);
+});
+
+app.patch("/notifications/read-all", async (c) => {
+  const authUser = getOptionalUser(c);
+  const userId = authUser?.session?.user?.id;
+  if (!userId) return c.json({ error: "Unauthorized" }, 401);
+
+  await db
+    .update(notifications)
+    .set({ readAt: new Date() })
+    .where(
+      and(
+        eq(notifications.userId, userId),
+        sql`${notifications.readAt} is null`
+      )
+    );
+
+  return c.body(null, 204);
+});
 
 app.get("/admin/stats", async (c) => {
   if (!checkAdminAuth(c)) {

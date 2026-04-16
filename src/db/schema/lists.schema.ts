@@ -192,6 +192,35 @@ export const listPurchases = pgTable(
   ]
 );
 
+export const notificationTypeEnum = pgEnum("notification_type", [
+  "challenge_accepted",
+  "challenge_completed",
+]);
+
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum("type").notNull(),
+    listId: uuid("list_id").references(() => lists.id, { onDelete: "cascade" }),
+    listName: text("list_name"),
+    actorId: text("actor_id").references(() => users.id, { onDelete: "set null" }),
+    actorName: text("actor_name"),
+    actorImage: text("actor_image"),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (t) => [
+    index("notifications_user_idx").on(t.userId),
+    index("notifications_user_read_idx").on(t.userId, t.readAt),
+  ]
+);
+
 export type List = typeof lists.$inferSelect;
 export type Item = typeof items.$inferSelect;
 export type Participation = typeof participations.$inferSelect;
@@ -200,3 +229,4 @@ export type ListActivity = typeof listActivity.$inferSelect;
 export type StripeAccount = typeof stripeAccounts.$inferSelect;
 export type ListPrice = typeof listPrices.$inferSelect;
 export type ListPurchase = typeof listPurchases.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
