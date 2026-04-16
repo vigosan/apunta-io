@@ -171,6 +171,13 @@ const en: Translations = {
   help: {
     nav: "Help",
   },
+  stats: {
+    title: "Stats",
+    challengers: "Challengers",
+    completed: "Completed",
+    completionRate: "Completion rate",
+    avgProgress: "Avg. progress",
+  },
   hallOfFame: {
     title: "Hall of Fame",
     empty: "No one has completed this challenge yet.",

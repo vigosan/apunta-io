@@ -170,6 +170,13 @@ const es = {
   help: {
     nav: "Ayuda",
   },
+  stats: {
+    title: "Estadísticas",
+    challengers: "Participantes",
+    completed: "Completados",
+    completionRate: "Tasa de completado",
+    avgProgress: "Progreso medio",
+  },
   hallOfFame: {
     title: "Hall of Fame",
     empty: "Nadie ha completado este reto aún.",
