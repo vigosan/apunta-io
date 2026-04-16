@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import type { Item } from "@/hooks/useItems";
-import { parseTags, tagColor } from "@/lib/tags";
+import { parseTags } from "@/lib/tags";
+import { renderInlineMarkdown } from "@/lib/inline-markdown";
 import { useTranslation } from "@/i18n/service";
 
 interface Props {
@@ -97,11 +98,12 @@ export function ItemRow({ item, onToggle, onDelete, onEdit, onTagClick, activeTa
             <span
               data-testid={`item-text-${item.id}`}
               onDoubleClick={canWrite && !item.done ? () => setEditing(true) : undefined}
+              onClick={(e) => { if ((e.target as HTMLElement).tagName === "A") e.stopPropagation(); }}
               className={`text-sm font-medium cursor-default select-none leading-snug ${
                 item.done ? "line-through text-gray-400" : "text-gray-800"
               }`}
             >
-              {display || item.text}
+              {renderInlineMarkdown(display || item.text)}
             </span>
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-1">

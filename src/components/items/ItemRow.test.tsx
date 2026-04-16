@@ -69,4 +69,25 @@ describe("ItemRow", () => {
     await userEvent.tab();
     expect(onEdit).toHaveBeenCalledWith("Comprar pan");
   });
+
+  it("renders bold markdown in item text", () => {
+    const boldItem = { ...baseItem, text: "**importante** revisar" };
+    render(<ItemRow item={boldItem} onToggle={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />);
+    expect(screen.getByTestId("item-text-i1").querySelector("strong")).toHaveTextContent("importante");
+  });
+
+  it("renders link markdown in item text", () => {
+    const linkItem = { ...baseItem, text: "[docs](https://docs.com)" };
+    render(<ItemRow item={linkItem} onToggle={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />);
+    const anchor = screen.getByTestId("item-text-i1").querySelector("a");
+    expect(anchor).toHaveAttribute("href", "https://docs.com");
+    expect(anchor).toHaveTextContent("docs");
+  });
+
+  it("renders tags alongside markdown without interference", () => {
+    const mixedItem = { ...baseItem, text: "**importante** revisar #trabajo" };
+    render(<ItemRow item={mixedItem} onToggle={vi.fn()} onDelete={vi.fn()} onEdit={vi.fn()} />);
+    expect(screen.getByTestId("item-text-i1").querySelector("strong")).toHaveTextContent("importante");
+    expect(screen.getByTestId("item-tag-i1-trabajo")).toBeInTheDocument();
+  });
 });
