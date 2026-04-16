@@ -507,7 +507,17 @@ function ListDetailPage() {
                         <span className="text-[8px] text-gray-500 font-medium">{(c.name ?? "?")[0]?.toUpperCase()}</span>
                       </div>
                     )}
-                    <span className="text-xs text-gray-700 flex-1 truncate">{c.name ?? "—"}</span>
+                    <div className="flex-1 min-w-0 flex flex-col gap-1">
+                      <span className="text-xs text-gray-700 truncate">{c.name ?? "—"}</span>
+                      {!c.completedAt && c.totalItems > 0 && (
+                        <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gray-900 rounded-full transition-all"
+                            style={{ width: `${Math.round((c.doneCount / c.totalItems) * 100)}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
                     <span className="text-xs text-gray-400 tabular-nums shrink-0">
                       {c.completedAt ? "✓" : `${c.doneCount}/${c.totalItems}`}
                     </span>
