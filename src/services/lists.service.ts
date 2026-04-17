@@ -41,6 +41,7 @@ export type ExploreDetail = {
   participants: Array<{
     image: string | null;
     name: string | null;
+    userId: string | null;
   }>;
   completedParticipants: Array<{
     name: string | null;
