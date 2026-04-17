@@ -229,7 +229,7 @@ function ExploreDetailPage() {
                     {/* biome-ignore lint/a11y/noStaticElementInteractions: link click passthrough */}
                     {/* biome-ignore lint/a11y/useKeyWithClickEvents: link click passthrough */}
                     <span
-                      className="text-sm text-gray-700 dark:text-gray-300"
+                      className="text-sm font-medium text-gray-800 dark:text-gray-200"
                       onClick={(e) => {
                         if ((e.target as HTMLElement).tagName === "A")
                           e.stopPropagation();
