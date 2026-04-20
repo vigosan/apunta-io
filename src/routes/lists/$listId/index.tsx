@@ -1107,7 +1107,7 @@ function ListDetailPage() {
 
             <div
               ref={pullRef}
-              className="flex-1 overflow-y-auto overscroll-none px-3 py-1"
+              className="flex-1 overflow-y-auto overscroll-y-contain px-3 py-1"
             >
               {itemsLoading ? (
                 <div className="space-y-1">
