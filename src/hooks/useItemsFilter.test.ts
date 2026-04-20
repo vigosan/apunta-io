@@ -10,6 +10,9 @@ function makeItem(id: string, text: string, done = false): Item {
     text,
     done,
     position: 0,
+    latitude: null,
+    longitude: null,
+    placeName: null,
     createdAt: new Date(),
     updatedAt: new Date(),
   };

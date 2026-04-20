@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Item } from "@/db/schema";
+import { parseItemText } from "@/lib/item-text";
+import { getPartialPlace, parsePlaces } from "@/lib/places";
 import { getPartialTag, parseTags } from "@/lib/tags";
 
 const REORDER_DELAY_MS = 600;
@@ -9,6 +11,7 @@ interface Options {
   itemsLoading: boolean;
   statusFilter: "all" | "pending" | "done" | undefined;
   activeTag: string | undefined;
+  activePlace?: string;
   searchQuery: string;
   newItemText: string;
 }
@@ -18,6 +21,7 @@ export function useItemsFilter({
   itemsLoading,
   statusFilter,
   activeTag,
+  activePlace,
   searchQuery,
   newItemText,
 }: Options) {
@@ -78,7 +82,21 @@ export function useItemsFilter({
     return [...seen].sort();
   }, [stableItems]);
 
+  const allPlaces = useMemo(() => {
+    const seen = new Set<string>();
+    stableItems.forEach((i) => {
+      parsePlaces(i.text).places.forEach((p) => {
+        seen.add(p);
+      });
+    });
+    return [...seen].sort();
+  }, [stableItems]);
+
   const partialTag = useMemo(() => getPartialTag(newItemText), [newItemText]);
+  const partialPlace = useMemo(
+    () => getPartialPlace(newItemText),
+    [newItemText]
+  );
 
   const tagSuggestions = useMemo(
     () =>
@@ -86,6 +104,16 @@ export function useItemsFilter({
         ? allTags.filter((t) => t.startsWith(partialTag))
         : [],
     [partialTag, allTags]
+  );
+
+  const placeSuggestions = useMemo(
+    () =>
+      partialPlace !== null
+        ? allPlaces.filter((p) =>
+            p.toLowerCase().startsWith(partialPlace.toLowerCase())
+          )
+        : [],
+    [partialPlace, allPlaces]
   );
 
   const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -102,9 +130,13 @@ export function useItemsFilter({
         .filter((i) => !activeTag || parseTags(i.text).tags.includes(activeTag))
         .filter(
           (i) =>
+            !activePlace || parseItemText(i.text).places.includes(activePlace)
+        )
+        .filter(
+          (i) =>
             !normalizedSearch || i.text.toLowerCase().includes(normalizedSearch)
         ),
-    [stableItems, statusFilter, activeTag, normalizedSearch]
+    [stableItems, statusFilter, activeTag, activePlace, normalizedSearch]
   );
 
   function resetOrder() {
@@ -119,8 +151,11 @@ export function useItemsFilter({
   return {
     stableItems,
     allTags,
+    allPlaces,
     partialTag,
+    partialPlace,
     tagSuggestions,
+    placeSuggestions,
     filteredItems,
     resetOrder,
     setOrder,
