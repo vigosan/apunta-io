@@ -41,6 +41,9 @@ export const items = pgTable(
     text: text("text").notNull(),
     done: boolean("done").notNull().default(false),
     position: integer("position").notNull().default(0),
+    latitude: text("latitude"),
+    longitude: text("longitude"),
+    placeName: text("place_name"),
     createdAt: timestamp("created_at", {
       withTimezone: true,
     })
