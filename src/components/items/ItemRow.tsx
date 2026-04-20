@@ -23,6 +23,7 @@ interface Props {
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
   isDragOver?: boolean;
+  highlighted?: boolean;
 }
 
 export function ItemRow({
@@ -41,6 +42,7 @@ export function ItemRow({
   onDrop,
   onDragEnd,
   isDragOver,
+  highlighted,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(item.text);
@@ -113,7 +115,7 @@ export function ItemRow({
           : item.done
             ? "bg-gray-100 dark:bg-gray-800"
             : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800"
-      }`}
+      } ${highlighted ? "ring-2 ring-gray-900 dark:ring-gray-100" : ""}`}
     >
       {canWrite && onDragStart && (
         <span

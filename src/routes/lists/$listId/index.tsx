@@ -68,6 +68,7 @@ function ListDetailPage() {
   const [placeDropdownOpen, setPlaceDropdownOpen] = useState(false);
   const [activePlace, setActivePlace] = useState<string | undefined>(undefined);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation();
@@ -75,6 +76,19 @@ function ListDetailPage() {
   function openSearch() {
     setSearchActive(true);
     requestAnimationFrame(() => searchInputRef.current?.focus());
+  }
+
+  function pickRandomItem() {
+    const pending = filteredItems.filter((i) => !i.done);
+    if (!pending.length) return;
+    const item = pending[Math.floor(Math.random() * pending.length)];
+    setHighlightedItemId(item.id);
+    setTimeout(() => setHighlightedItemId(null), 2500);
+    requestAnimationFrame(() => {
+      document
+        .querySelector(`[data-testid="item-row-${item.id}"]`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   }
 
   function closeSearch() {
@@ -729,6 +743,31 @@ function ListDetailPage() {
                           )}
                         </button>
                       )}
+                      {!searchActive && filteredItems.some((i) => !i.done) && (
+                        <button
+                          type="button"
+                          onClick={pickRandomItem}
+                          data-testid="random-item-btn"
+                          aria-label={t("list.pickRandom")}
+                          title={t("list.pickRandom")}
+                          className="cursor-pointer h-7 w-7 flex items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition active:scale-[0.96]"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <rect x="2" y="2" width="20" height="20" rx="3" ry="3" strokeWidth={2} />
+                            <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none" />
+                            <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none" />
+                            <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
+                            <circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none" />
+                            <circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none" />
+                          </svg>
+                        </button>
+                      )}
                       {!searchActive && (
                         <button
                           type="button"
@@ -1293,6 +1332,7 @@ function ListDetailPage() {
                       activePlace={activePlace}
                       canWrite={canWrite}
                       canToggle={canToggle}
+                      highlighted={item.id === highlightedItemId}
                       onDragStart={
                         isOwner && !item.done
                           ? handleDragStart(item.id)

@@ -42,6 +42,7 @@ const en: Translations = {
     soloYouTitle: "Only you — click to allow editing by anyone with the link",
     searchAriaLabel: "Search in this list",
     searchTitle: "Search (⌘S)",
+    pickRandom: "Pick a random item",
     linkCopied: "Link copied",
     shareLink: "Share link",
     copiedTooltip: "Copied!",

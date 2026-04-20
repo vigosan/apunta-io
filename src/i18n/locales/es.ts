@@ -41,6 +41,7 @@ const es = {
       "Solo tú — clic para permitir edición a cualquiera con el link",
     searchAriaLabel: "Buscar en la lista",
     searchTitle: "Buscar (⌘S)",
+    pickRandom: "Elegir un elemento aleatorio",
     linkCopied: "Enlace copiado",
     shareLink: "Compartir enlace",
     copiedTooltip: "¡Copiado!",
