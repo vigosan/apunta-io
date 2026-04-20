@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import type { Item } from "@/hooks/useItems";
 import { useTranslation } from "@/i18n/service";
 import { renderInlineMarkdown } from "@/lib/inline-markdown";
-import { parseTags } from "@/lib/tags";
+import { parseItemText } from "@/lib/item-text";
 
 interface Props {
   item: Item;
@@ -11,6 +11,8 @@ interface Props {
   onEdit: (text: string) => void;
   onTagClick?: (tag: string) => void;
   activeTag?: string;
+  onPlaceClick?: (place: string) => void;
+  activePlace?: string;
   canWrite?: boolean;
   canToggle?: boolean;
   onDragStart?: (e: React.DragEvent) => void;
@@ -27,6 +29,8 @@ export function ItemRow({
   onEdit,
   onTagClick,
   activeTag,
+  onPlaceClick,
+  activePlace,
   canWrite = true,
   canToggle,
   onDragStart,
@@ -38,7 +42,7 @@ export function ItemRow({
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(item.text);
   const cancelled = useRef(false);
-  const { display, tags } = parseTags(item.text);
+  const { display, tags, places } = parseItemText(item.text);
   const { t } = useTranslation();
   const effectiveCanToggle = canToggle ?? canWrite;
 
@@ -183,6 +187,34 @@ export function ItemRow({
                   }`}
                 >
                   #{tag}
+                </button>
+              ))}
+            {places.length > 0 &&
+              places.map((place) => (
+                <button
+                  type="button"
+                  key={place}
+                  data-testid={`item-place-${item.id}-${place}`}
+                  onClick={() => onPlaceClick?.(place)}
+                  className={`cursor-pointer inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-medium transition-colors active:scale-[0.96] ${
+                    activePlace === place
+                      ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200"
+                  }`}
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-2.5 h-2.5 shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.07-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-2.007 3.864-5.175 3.864-9.15C20.15 5.413 16.415 2 12 2 7.585 2 3.85 5.413 3.85 10.174c0 3.975 1.92 7.143 3.864 9.15a19.58 19.58 0 002.683 2.282 16.975 16.975 0 001.144.742zM12 13.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  {place}
                 </button>
               ))}
           </div>

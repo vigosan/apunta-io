@@ -9,6 +9,9 @@ const baseItem = {
   text: "Comprar leche",
   done: false,
   position: 0,
+  latitude: null,
+  longitude: null,
+  placeName: null,
   createdAt: new Date(),
   updatedAt: new Date(),
 };
