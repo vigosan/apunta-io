@@ -843,13 +843,7 @@ app.get("/users", async (c) => {
   const where = cursor ? and(baseWhere, lt(users.id, cursor)) : baseWhere;
 
   const rows = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      image: users.image,
-      publicListsCount: sql<number>`cast((select count(*) from ${lists} where ${lists.ownerId} = ${users.id} and ${lists.public} = true) as int)`,
-      completedChallengesCount: sql<number>`cast((select count(*) from ${participations} where ${participations.userId} = ${users.id} and ${participations.completedAt} is not null) as int)`,
-    })
+    .select({ id: users.id, name: users.name, image: users.image })
     .from(users)
     .where(where)
     .orderBy(desc(users.id))
@@ -858,7 +852,40 @@ app.get("/users", async (c) => {
   const nextCursor =
     rows.length === USERS_PAGE_SIZE ? rows[rows.length - 1].id : null;
 
-  return c.json({ users: rows, nextCursor });
+  const userIds = rows.map((r) => r.id);
+
+  const [listCounts, participationCounts] =
+    userIds.length === 0
+      ? [[], []]
+      : await Promise.all([
+          db
+            .select({ ownerId: lists.ownerId, count: countDistinct(lists.id) })
+            .from(lists)
+            .where(and(eq(lists.public, true), inArray(lists.ownerId, userIds)))
+            .groupBy(lists.ownerId),
+          db
+            .select({ userId: participations.userId, count: countDistinct(participations.id) })
+            .from(participations)
+            .where(
+              and(
+                inArray(participations.userId, userIds),
+                sql`${participations.completedAt} is not null`
+              )
+            )
+            .groupBy(participations.userId),
+        ]);
+
+  const listCountMap = new Map(listCounts.map((r) => [r.ownerId, r.count]));
+  const participationCountMap = new Map(participationCounts.map((r) => [r.userId, r.count]));
+
+  return c.json({
+    users: rows.map((u) => ({
+      ...u,
+      publicListsCount: listCountMap.get(u.id) ?? 0,
+      completedChallengesCount: participationCountMap.get(u.id) ?? 0,
+    })),
+    nextCursor,
+  });
 });
 
 app.patch(
