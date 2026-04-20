@@ -6,12 +6,16 @@ const mockDb = {
     items: { findMany: vi.fn(), findFirst: vi.fn() },
     participations: { findFirst: vi.fn() },
     itemProgress: { findFirst: vi.fn(), findMany: vi.fn() },
+    users: { findFirst: vi.fn() },
+    stripeAccounts: { findFirst: vi.fn() },
+    listPurchases: { findFirst: vi.fn() },
   },
   insert: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
   select: vi.fn(),
   transaction: vi.fn(),
+  $count: vi.fn(),
 };
 
 vi.mock("../src/db/client", () => ({ db: mockDb }));
@@ -1308,5 +1312,107 @@ describe("GET /api/admin/stats", () => {
     expect(body).toHaveProperty("topLists");
     expect(body).toHaveProperty("weeklyLists");
     expect(body).toHaveProperty("revenue");
+  });
+});
+
+describe("GET /api/users", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("returns public users with nextCursor null when fewer than page size", async () => {
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue([
+        { id: "u1", name: "Alice", image: null, publicListsCount: 2, completedChallengesCount: 1 },
+      ]),
+    };
+    mockDb.select.mockReturnValue(chain);
+
+    const res = await app.request("/api/users");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.nextCursor).toBeNull();
+    expect(Array.isArray(body.users)).toBe(true);
+  });
+
+  it("returns nextCursor when page is full", async () => {
+    const fullPage = Array.from({ length: 12 }, (_, i) => ({
+      id: `u${i}`,
+      name: `User ${i}`,
+      image: null,
+      publicListsCount: 0,
+      completedChallengesCount: 0,
+    }));
+    const chain = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      orderBy: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue(fullPage),
+    };
+    mockDb.select.mockReturnValue(chain);
+
+    const res = await app.request("/api/users");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.nextCursor).toBe("u11");
+  });
+});
+
+describe("PATCH /api/users/me", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAuthUser.mockRejectedValue(new Error("no session"));
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const res = await app.request("/api/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({ publicProfile: false }),
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it("updates publicProfile and returns new value", async () => {
+    mockGetAuthUser.mockResolvedValue({ session: { user: { id: "u1" } } });
+    mockDb.update.mockReturnValue({
+      set: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([{ publicProfile: false }]),
+        }),
+      }),
+    });
+
+    const res = await app.request("/api/users/me", {
+      method: "PATCH",
+      body: JSON.stringify({ publicProfile: false }),
+      headers: { "Content-Type": "application/json" },
+    });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.publicProfile).toBe(false);
+  });
+});
+
+describe("GET /api/users/me", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetAuthUser.mockRejectedValue(new Error("no session"));
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    const res = await app.request("/api/users/me");
+    expect(res.status).toBe(401);
+  });
+
+  it("returns publicProfile for authenticated user", async () => {
+    mockGetAuthUser.mockResolvedValue({ session: { user: { id: "u1" } } });
+    mockDb.query.users.findFirst.mockResolvedValue({ id: "u1", publicProfile: true });
+
+    const res = await app.request("/api/users/me");
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.publicProfile).toBe(true);
   });
 });

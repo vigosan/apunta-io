@@ -807,6 +807,69 @@ app.get("/explore", async (c) => {
   return c.json({ items: exploreItems, nextCursor });
 });
 
+const USERS_PAGE_SIZE = 12;
+
+app.get("/users", async (c) => {
+  const q = c.req.query("q")?.trim();
+  const cursor = c.req.query("cursor");
+
+  const baseWhere = and(
+    eq(users.publicProfile, true),
+    q ? ilike(users.name, `%${q}%`) : undefined
+  );
+  const where = cursor
+    ? and(baseWhere, lt(users.id, cursor))
+    : baseWhere;
+
+  const rows = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      image: users.image,
+      publicListsCount: sql<number>`cast((select count(*) from ${lists} where ${lists.ownerId} = ${users.id} and ${lists.public} = true) as int)`,
+      completedChallengesCount: sql<number>`cast((select count(*) from ${participations} where ${participations.userId} = ${users.id} and ${participations.completedAt} is not null) as int)`,
+    })
+    .from(users)
+    .where(where)
+    .orderBy(desc(users.id))
+    .limit(USERS_PAGE_SIZE);
+
+  const nextCursor =
+    rows.length === USERS_PAGE_SIZE ? rows[rows.length - 1].id : null;
+
+  return c.json({ users: rows, nextCursor });
+});
+
+app.patch(
+  "/users/me",
+  zValidator("json", z.object({ publicProfile: z.boolean() })),
+  async (c) => {
+    const authUser = getOptionalUser(c);
+    const userId = authUser?.session?.user?.id;
+    if (!userId) return c.json({ error: "Unauthorized" }, 401);
+    const { publicProfile } = c.req.valid("json");
+    const [updated] = await db
+      .update(users)
+      .set({ publicProfile })
+      .where(eq(users.id, userId))
+      .returning({ publicProfile: users.publicProfile });
+    if (!updated) return c.json({ error: "Not found" }, 404);
+    return c.json({ publicProfile: updated.publicProfile });
+  }
+);
+
+app.get("/users/me", async (c) => {
+  const authUser = getOptionalUser(c);
+  const userId = authUser?.session?.user?.id;
+  if (!userId) return c.json({ error: "Unauthorized" }, 401);
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { id: true, publicProfile: true },
+  });
+  if (!user) return c.json({ error: "Not found" }, 404);
+  return c.json({ publicProfile: user.publicProfile });
+});
+
 app.get("/users/:userId/profile", async (c) => {
   const userId = c.req.param("userId");
 
