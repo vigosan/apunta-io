@@ -1227,7 +1227,7 @@ function ListDetailPage() {
             )}
 
             {viewMode === "map" && hasGeoItems && (
-              <div className="flex-1 relative">
+              <div className="flex-1 min-h-0 relative" style={{ minHeight: "300px" }}>
                 <ListMap items={filteredItems} />
               </div>
             )}
@@ -1316,7 +1316,7 @@ function ListDetailPage() {
             </div>
 
             {canWrite && (
-              <div className="shrink-0 px-4 pt-3 pb-6 space-y-2">
+              <div className="relative shrink-0 px-4 pt-3 pb-6 space-y-2">
                 {pendingBulk ? (
                   <BulkPastePreview
                     texts={pendingBulk}
@@ -1384,7 +1384,7 @@ function ListDetailPage() {
                     {placeDropdownOpen &&
                       partialPlace !== null &&
                       partialPlace.length >= 3 && (
-                        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
+                        <div className="absolute bottom-full left-0 right-0 mb-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden z-10">
                           {geocodingLoading && (
                             <div className="px-3 py-2 text-xs text-gray-400">
                               {t("list.addPlace")}…
