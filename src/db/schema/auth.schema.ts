@@ -1,4 +1,5 @@
 import {
+  boolean,
   integer,
   pgTable,
   primaryKey,
@@ -14,6 +15,7 @@ export const users = pgTable("users", {
     mode: "date",
   }),
   image: text("image"),
+  publicProfile: boolean("public_profile").default(true).notNull(),
 });
 
 export const accounts = pgTable(
