@@ -17,10 +17,10 @@ const es = {
     step2Title: "Comparte el enlace",
     step2Desc:
       "Hazla pública y comparte el link. Cualquiera con él puede ver tu lista.",
-    step3Title: "Otros aceptan el reto",
+    step3Title: "Reta a tus amigos",
     step3Desc:
       "La gente copia tu lista y va completando los elementos. El progreso queda registrado para todos.",
-    step4Title: "Vende el acceso",
+    step4Title: "Cobra por el acceso",
     step4Desc:
       "Pon precio a tu lista y cobra directamente. Conecta Stripe y empieza a ganar.",
   },
