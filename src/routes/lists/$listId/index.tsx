@@ -1227,7 +1227,7 @@ function ListDetailPage() {
             )}
 
             {viewMode === "map" && hasGeoItems && (
-              <div className="flex-1 min-h-0 relative" style={{ minHeight: "300px" }}>
+              <div className="relative" style={{ height: "400px" }}>
                 <ListMap items={filteredItems} />
               </div>
             )}

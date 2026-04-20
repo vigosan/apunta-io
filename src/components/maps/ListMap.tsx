@@ -1,6 +1,7 @@
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useEffect } from "react";
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
 import type { Item } from "@/hooks/useItems";
 
 const proto = L.Icon.Default.prototype as unknown as Record<string, unknown>;
@@ -15,6 +16,14 @@ L.Icon.Default.mergeOptions({
 
 interface Props {
   items: Item[];
+}
+
+function InvalidateSize() {
+  const map = useMap();
+  useEffect(() => {
+    map.invalidateSize();
+  }, [map]);
+  return null;
 }
 
 export function ListMap({ items }: Props) {
@@ -36,6 +45,7 @@ export function ListMap({ items }: Props) {
       style={{ height: "100%", width: "100%" }}
       className="[filter:grayscale(1)]"
     >
+      <InvalidateSize />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
