@@ -29,6 +29,18 @@ const content = {
         ],
       },
       {
+        title: "Places & Map",
+        items: [
+          "Type `@placename` while adding or editing an item to attach a location",
+          "After 3 characters a geocoding dropdown appears — select a result to save coordinates",
+          "Press Escape to dismiss the dropdown without saving a location",
+          "Items with a location show a pin badge with the place name",
+          "Click the map icon in the list header to switch to map view",
+          "The map view shows all items that have coordinates as pins",
+          "Click a pin on the map to see the item name",
+        ],
+      },
+      {
         title: "Challenges",
         items: [
           "Make a list public and share the link",
@@ -99,6 +111,18 @@ const content = {
           "Pon un slug personalizado a tu lista",
           "Añade una descripción para dar contexto",
           "Elimina una lista desde Mis listas",
+        ],
+      },
+      {
+        title: "Lugares y mapa",
+        items: [
+          "Escribe `@lugar` al añadir o editar un elemento para adjuntar una ubicación",
+          "Tras 3 caracteres aparece un desplegable de geocodificación — selecciona un resultado para guardar las coordenadas",
+          "Pulsa Escape para cerrar el desplegable sin guardar la ubicación",
+          "Los elementos con ubicación muestran un pin con el nombre del lugar",
+          "Haz clic en el icono de mapa en la cabecera de la lista para cambiar a la vista de mapa",
+          "La vista de mapa muestra como pines todos los elementos que tienen coordenadas",
+          "Haz clic en un pin del mapa para ver el nombre del elemento",
         ],
       },
       {
