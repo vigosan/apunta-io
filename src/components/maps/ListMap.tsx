@@ -59,7 +59,7 @@ export function ListMap({ items, activeItems }: Props) {
           position={[Number(item.latitude), Number(item.longitude)]}
           opacity={activeIds.size === 0 || activeIds.has(item.id) ? 1 : 0.3}
         >
-          <Popup>{item.text}</Popup>
+          <Popup>{item.text.replace(/\s*@\S+/g, "").trim()}</Popup>
         </Marker>
       ))}
     </MapContainer>
