@@ -817,9 +817,7 @@ app.get("/users", async (c) => {
     eq(users.publicProfile, true),
     q ? ilike(users.name, `%${q}%`) : undefined
   );
-  const where = cursor
-    ? and(baseWhere, lt(users.id, cursor))
-    : baseWhere;
+  const where = cursor ? and(baseWhere, lt(users.id, cursor)) : baseWhere;
 
   const rows = await db
     .select({
@@ -950,7 +948,11 @@ app.get("/explore/:listId", async (c) => {
     .groupBy(lists.id, users.name, users.image);
 
   const participantRows = await db
-    .select({ image: users.image, name: users.name, userId: participations.userId })
+    .select({
+      image: users.image,
+      name: users.name,
+      userId: participations.userId,
+    })
     .from(participations)
     .leftJoin(users, eq(users.id, participations.userId))
     .where(eq(participations.sourceListId, list.id))

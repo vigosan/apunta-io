@@ -4,8 +4,8 @@ import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { AppNav } from "@/components/AppNav";
-import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { useUpdateProfile, useUserMe } from "@/hooks/useList";
+import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { queryKeys } from "@/lib/query-keys";
 
 const searchSchema = z.object({
@@ -87,8 +87,12 @@ function SettingsPage() {
 
         <section className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Cuenta</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{session.user.email}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              Cuenta
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+              {session.user.email}
+            </p>
           </div>
 
           {session.user.image && (
@@ -102,7 +106,9 @@ function SettingsPage() {
 
         <section className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
           <div>
-            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">Perfil</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              Perfil
+            </p>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 leading-relaxed">
               Controla si apareces en el directorio público de usuarios.
             </p>
@@ -130,7 +136,9 @@ function SettingsPage() {
             >
               <span
                 className={`inline-block h-3.5 w-3.5 rounded-full bg-white dark:bg-gray-900 shadow transition-transform duration-150 ${
-                  (userMe?.publicProfile ?? true) ? "translate-x-4.5" : "translate-x-0.5"
+                  (userMe?.publicProfile ?? true)
+                    ? "translate-x-4.5"
+                    : "translate-x-0.5"
                 }`}
               />
             </button>

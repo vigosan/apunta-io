@@ -51,9 +51,13 @@ function UserCard({ user }: { user: DirectoryUser }) {
           <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
             {t("directory.lists_other", { count: user.publicListsCount })}
           </span>
-          <span className="text-gray-200 dark:text-gray-700 text-xs select-none">·</span>
+          <span className="text-gray-200 dark:text-gray-700 text-xs select-none">
+            ·
+          </span>
           <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
-            {t("directory.completed_other", { count: user.completedChallengesCount })}
+            {t("directory.completed_other", {
+              count: user.completedChallengesCount,
+            })}
           </span>
         </div>
       </div>

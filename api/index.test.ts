@@ -1324,7 +1324,13 @@ describe("GET /api/users", () => {
       where: vi.fn().mockReturnThis(),
       orderBy: vi.fn().mockReturnThis(),
       limit: vi.fn().mockResolvedValue([
-        { id: "u1", name: "Alice", image: null, publicListsCount: 2, completedChallengesCount: 1 },
+        {
+          id: "u1",
+          name: "Alice",
+          image: null,
+          publicListsCount: 2,
+          completedChallengesCount: 1,
+        },
       ]),
     };
     mockDb.select.mockReturnValue(chain);
@@ -1408,7 +1414,10 @@ describe("GET /api/users/me", () => {
 
   it("returns publicProfile for authenticated user", async () => {
     mockGetAuthUser.mockResolvedValue({ session: { user: { id: "u1" } } });
-    mockDb.query.users.findFirst.mockResolvedValue({ id: "u1", publicProfile: true });
+    mockDb.query.users.findFirst.mockResolvedValue({
+      id: "u1",
+      publicProfile: true,
+    });
 
     const res = await app.request("/api/users/me");
     expect(res.status).toBe(200);

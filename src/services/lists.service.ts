@@ -113,8 +113,7 @@ export const usersService = {
     );
   },
 
-  getMe: () =>
-    apiClient<{ publicProfile: boolean }>("/api/users/me"),
+  getMe: () => apiClient<{ publicProfile: boolean }>("/api/users/me"),
 
   updateProfile: (data: { publicProfile: boolean }) =>
     apiClient<{ publicProfile: boolean }>("/api/users/me", {
