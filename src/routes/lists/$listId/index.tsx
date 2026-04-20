@@ -1229,7 +1229,7 @@ function ListDetailPage() {
 
             {viewMode === "map" && hasGeoItems && (
               <div className="relative" style={{ height: "400px" }}>
-                <ListMap items={filteredItems} />
+                <ListMap items={items} activeItems={filteredItems} />
               </div>
             )}
 

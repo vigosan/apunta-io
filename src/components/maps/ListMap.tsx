@@ -16,6 +16,7 @@ L.Icon.Default.mergeOptions({
 
 interface Props {
   items: Item[];
+  activeItems: Item[];
 }
 
 function InvalidateSize() {
@@ -26,12 +27,14 @@ function InvalidateSize() {
   return null;
 }
 
-export function ListMap({ items }: Props) {
+export function ListMap({ items, activeItems }: Props) {
   const geoItems = items.filter(
     (i) => i.latitude !== null && i.longitude !== null
   );
 
   if (geoItems.length === 0) return null;
+
+  const activeIds = new Set(activeItems.map((i) => i.id));
 
   const center: [number, number] = [
     Number(geoItems[0].latitude),
@@ -54,6 +57,7 @@ export function ListMap({ items }: Props) {
         <Marker
           key={item.id}
           position={[Number(item.latitude), Number(item.longitude)]}
+          opacity={activeIds.size === 0 || activeIds.has(item.id) ? 1 : 0.3}
         >
           <Popup>{item.text}</Popup>
         </Marker>
