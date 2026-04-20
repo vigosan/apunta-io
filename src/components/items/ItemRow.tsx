@@ -78,7 +78,8 @@ export function ItemRow({
     setText(val);
     const hasAt = PARTIAL_PLACE_REGEX.test(val);
     setGeoOpen(hasAt);
-    if (!hasAt) setPendingCoords(undefined);
+    if (!hasAt)
+      setPendingCoords(item.latitude !== null ? null : undefined);
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
