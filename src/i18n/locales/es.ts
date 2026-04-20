@@ -213,6 +213,19 @@ const es = {
     myLists: "Mis listas",
     settings: "Configuración",
   },
+  directory: {
+    searchPlaceholder: "Buscar personas…",
+    searchAriaLabel: "Buscar usuarios",
+    search: "Buscar",
+    loading: "Cargando…",
+    noUsersSearch: "No hay usuarios con ese nombre.",
+    noUsers: "Aún no hay usuarios públicos.",
+    lists_one: "{{count}} lista",
+    lists_other: "{{count}} listas",
+    completed_one: "{{count}} reto",
+    completed_other: "{{count}} retos",
+    nav: "Personas",
+  },
 } as const;
 
 type DeepString<T> = T extends string

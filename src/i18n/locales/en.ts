@@ -214,6 +214,19 @@ const en: Translations = {
     myLists: "My lists",
     settings: "Settings",
   },
+  directory: {
+    searchPlaceholder: "Search people…",
+    searchAriaLabel: "Search users",
+    search: "Search",
+    loading: "Loading…",
+    noUsersSearch: "No users found with that name.",
+    noUsers: "No public users yet.",
+    lists_one: "{{count}} list",
+    lists_other: "{{count}} lists",
+    completed_one: "{{count}} challenge",
+    completed_other: "{{count}} challenges",
+    nav: "People",
+  },
 };
 
 export default en;
