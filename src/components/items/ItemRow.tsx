@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { useGeocodingSearch } from "@/hooks/useGeocodingSearch";
 import type { Item } from "@/hooks/useItems";
 import { useTranslation } from "@/i18n/service";
@@ -26,7 +26,7 @@ interface Props {
   highlighted?: boolean;
 }
 
-export function ItemRow({
+export const ItemRow = memo(function ItemRow({
   item,
   onToggle,
   onDelete,
@@ -374,4 +374,14 @@ export function ItemRow({
       )}
     </div>
   );
-}
+}, (prev, next) =>
+  prev.item.id === next.item.id &&
+  prev.item.done === next.item.done &&
+  prev.item.text === next.item.text &&
+  prev.highlighted === next.highlighted &&
+  prev.activeTag === next.activeTag &&
+  prev.activePlace === next.activePlace &&
+  prev.canWrite === next.canWrite &&
+  prev.canToggle === next.canToggle &&
+  prev.isDragOver === next.isDragOver
+);

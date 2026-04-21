@@ -5,7 +5,7 @@ import {
   notFound,
   useNavigate,
 } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { AppNav } from "@/components/AppNav";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -127,6 +127,17 @@ function ListDetailPage() {
       replace: true,
     });
   }
+
+  const handleTagClick = useCallback(
+    (tag: string) => setActiveTag(activeTag === tag ? null : tag),
+    [activeTag]
+  );
+
+  const handlePlaceClick = useCallback(
+    (place: string) =>
+      setActivePlace((prev) => (prev === place ? undefined : place)),
+    []
+  );
 
   const toggleCollaborative = useToggleCollaborative(listId);
   const { data: session } = useSession();
@@ -1352,15 +1363,9 @@ function ListDetailPage() {
                           coords,
                         })
                       }
-                      onTagClick={(tag) =>
-                        setActiveTag(activeTag === tag ? null : tag)
-                      }
+                      onTagClick={handleTagClick}
                       activeTag={activeTag}
-                      onPlaceClick={(place) =>
-                        setActivePlace(
-                          activePlace === place ? undefined : place
-                        )
-                      }
+                      onPlaceClick={handlePlaceClick}
                       activePlace={activePlace}
                       canWrite={canWrite}
                       canToggle={canToggle}
