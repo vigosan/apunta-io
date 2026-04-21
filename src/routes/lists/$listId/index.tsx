@@ -5,7 +5,7 @@ import {
   notFound,
   useNavigate,
 } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { AppNav } from "@/components/AppNav";
 import { CommandPalette } from "@/components/CommandPalette";
@@ -32,7 +32,6 @@ import {
   useRemovePrice,
   useSetPrice,
 } from "@/hooks/useListPrice";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { useTranslation } from "@/i18n/service";
 import { fireConfetti } from "@/lib/confetti";
@@ -142,7 +141,6 @@ function ListDetailPage() {
     list,
     listLoading,
     listError,
-    refetchList,
     editingName,
     setEditingName,
     nameValue,
@@ -201,7 +199,6 @@ function ListDetailPage() {
   const {
     data: items = [],
     isLoading: itemsLoading,
-    refetch: refetchItems,
   } = useItems(listId);
 
   const {
@@ -229,17 +226,6 @@ function ListDetailPage() {
       : "";
   const { results: geocodingResults, isLoading: geocodingLoading } =
     useGeocodingSearch(geocodingQuery);
-
-  const {
-    containerRef: pullRef,
-    pullDistance,
-    refreshing,
-  } = usePullToRefresh(
-    useCallback(async () => {
-      resetOrder();
-      await Promise.all([refetchList(), refetchItems()]);
-    }, [resetOrder, refetchList, refetchItems])
-  );
 
   const { paletteOpen, setPaletteOpen, paletteActions } = useCommandPalette({
     list,
@@ -1278,18 +1264,6 @@ function ListDetailPage() {
               )}
             </div>
 
-            <div
-              className="shrink-0 flex items-end justify-center overflow-hidden"
-              style={{
-                height: refreshing ? 36 : pullDistance,
-                transition: pullDistance === 0 ? "height 0.2s ease" : "none",
-              }}
-            >
-              <div
-                className={`mb-2 w-5 h-5 rounded-full border-2 border-gray-200 border-t-gray-600 ${refreshing ? "animate-spin" : ""}`}
-              />
-            </div>
-
             {searchActive && (
               <div className="shrink-0 px-3 pb-2">
                 <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
@@ -1359,7 +1333,6 @@ function ListDetailPage() {
             )}
 
             <div
-              ref={pullRef}
               className={`flex-1 overflow-y-auto px-3 py-1 ${viewMode === "map" ? "hidden" : ""}`}
             >
               {itemsLoading ? (
