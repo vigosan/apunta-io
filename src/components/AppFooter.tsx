@@ -1,16 +1,36 @@
 import { useTranslation } from "@/i18n/service";
 
+const footerLinks = ["Privacidad", "Términos", "Twitter"];
+
 export function AppFooter() {
   const { t } = useTranslation();
 
   return (
-    <footer className="border-t border-gray-100 shrink-0">
-      <div className="max-w-3xl mx-auto w-full px-6 py-4 flex items-center justify-between">
-        <span className="text-xs text-gray-400">
-          {t("home.footer", {
-            year: new Date().getFullYear(),
-          })}
+    <footer
+      className="shrink-0"
+      style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
+    >
+      <div className="flex items-center justify-between px-12 py-4">
+        <span
+          className="text-[11px]"
+          style={{
+            color: "#a0a09c",
+            fontFamily: "'Space Mono', monospace",
+          }}
+        >
+          {t("home.footer", { year: new Date().getFullYear() })}
         </span>
+        <div className="flex gap-5">
+          {footerLinks.map((label) => (
+            <span
+              key={label}
+              className="text-[11px]"
+              style={{ color: "#a0a09c" }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
       </div>
     </footer>
   );
