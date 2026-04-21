@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useCachedSession } from "@/hooks/useCachedSession";
 import { useTheme } from "@/hooks/useTheme";
@@ -10,8 +10,8 @@ import { UserMenu } from "./UserMenu";
 const SunIcon = () => (
   <svg
     aria-hidden="true"
-    width="14"
-    height="14"
+    width="13"
+    height="13"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -34,8 +34,8 @@ const SunIcon = () => (
 const MoonIcon = () => (
   <svg
     aria-hidden="true"
-    width="14"
-    height="14"
+    width="13"
+    height="13"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -47,6 +47,43 @@ const MoonIcon = () => (
   </svg>
 );
 
+function NavLink({
+  to,
+  label,
+  testId,
+}: {
+  to: string;
+  label: string;
+  testId?: string;
+}) {
+  const routerState = useRouterState();
+  const pathname = routerState.location.pathname;
+  const isActive = to === "/" ? pathname === "/" : pathname.startsWith(to);
+
+  return (
+    <Link
+      to={to}
+      data-testid={testId}
+      className={[
+        "cursor-pointer text-[13px] transition-colors duration-150",
+        "no-underline",
+        isActive
+          ? "text-[#0c0c0b] dark:text-[#f0ede8] font-semibold"
+          : "text-[#a0a09c] dark:text-[#4a4a47] font-normal hover:text-[#0c0c0b] dark:hover:text-[#f0ede8]",
+      ].join(" ")}
+      style={{
+        letterSpacing: "0.01em",
+        borderBottom: isActive
+          ? "1px solid currentColor"
+          : "1px solid transparent",
+        paddingBottom: 2,
+      }}
+    >
+      {label}
+    </Link>
+  );
+}
+
 export function AppNav() {
   const { data: session } = useCachedSession();
   const { t } = useTranslation();
@@ -54,6 +91,7 @@ export function AppNav() {
   const { theme, toggle } = useTheme();
   const [globalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [loginHov, setLoginHov] = useState(false);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -68,11 +106,6 @@ export function AppNav() {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [session?.user]);
 
-  const navLinkClass =
-    "cursor-pointer px-2.5 py-1.5 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg transition-colors duration-150";
-  const mobileLinkClass =
-    "block px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-150";
-
   function closeMobile() {
     setMobileOpen(false);
   }
@@ -83,52 +116,43 @@ export function AppNav() {
         open={globalSearchOpen}
         onClose={() => setGlobalSearchOpen(false)}
       />
-      <nav className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950 shrink-0">
-        <div className="flex items-center justify-between px-6 h-13 max-w-3xl mx-auto w-full">
+      <nav
+        className="shrink-0 sticky top-0 z-50 bg-[#f8f7f5] dark:bg-[#0c0c0b] border-b border-black/[0.08] dark:border-white/[0.08]"
+        style={{ height: 52 }}
+      >
+        <div className="flex items-center justify-between px-12 h-full">
           <Link
             to="/"
             data-testid="nav-logo"
-            className="cursor-pointer font-mono text-sm font-bold text-gray-900 dark:text-gray-100 tracking-tight hover:text-gray-400 dark:hover:text-gray-500 transition-colors duration-150"
+            className="cursor-pointer text-[15px] font-bold text-[#0c0c0b] dark:text-[#f0ede8] hover:opacity-70 transition-opacity duration-150 no-underline"
+            style={{ letterSpacing: "-0.01em" }}
           >
             welist
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden sm:flex items-center gap-1">
-            <Link
+          <div className="hidden sm:flex items-center gap-7">
+            <NavLink
               to="/explore"
-              data-testid="nav-explore"
-              className={navLinkClass}
-            >
-              {t("nav.explore")}
-            </Link>
-            <span className="text-gray-300 dark:text-gray-700 text-xs select-none">
-              ·
-            </span>
-            <Link to="/users" data-testid="nav-users" className={navLinkClass}>
-              {t("directory.nav")}
-            </Link>
+              label={t("nav.explore")}
+              testId="nav-explore"
+            />
+            <NavLink
+              to="/users"
+              label={t("directory.nav")}
+              testId="nav-users"
+            />
             {session?.user && (
-              <>
-                <span className="text-gray-300 dark:text-gray-700 text-xs select-none">
-                  ·
-                </span>
-                <Link
-                  to="/lists"
-                  data-testid="nav-my-lists"
-                  className={navLinkClass}
-                >
-                  {t("nav.myLists")}
-                </Link>
-              </>
+              <NavLink
+                to="/lists"
+                label={t("nav.myLists")}
+                testId="nav-my-lists"
+              />
             )}
-            <span className="text-gray-300 dark:text-gray-700 text-xs select-none">
-              ·
-            </span>
-            <Link to="/help" data-testid="nav-help" className={navLinkClass}>
-              {t("help.nav")}
-            </Link>
-            <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-2" />
+            <NavLink to="/help" label={t("help.nav")} testId="nav-help" />
+
+            <div className="w-px h-3.5 bg-black/[0.08] dark:bg-white/[0.08]" />
+
             <button
               type="button"
               onClick={toggle}
@@ -138,7 +162,7 @@ export function AppNav() {
                   ? "Switch to light mode"
                   : "Switch to dark mode"
               }
-              className="cursor-pointer px-2 py-1 text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 rounded-md transition-colors duration-150"
+              className="cursor-pointer text-[#a0a09c] dark:text-[#4a4a47] hover:text-[#0c0c0b] dark:hover:text-[#f0ede8] transition-colors duration-150"
             >
               {theme === "dark" ? <SunIcon /> : <MoonIcon />}
             </button>
@@ -146,14 +170,49 @@ export function AppNav() {
               type="button"
               onClick={() => setLanguage(language === "es" ? "en" : "es")}
               data-testid="lang-switcher"
-              className="cursor-pointer px-2 py-1 text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 rounded-md transition-colors duration-150 tabular-nums"
+              className="cursor-pointer text-[11px] font-medium text-[#a0a09c] dark:text-[#4a4a47] hover:text-[#0c0c0b] dark:hover:text-[#f0ede8] transition-colors duration-150 tabular-nums"
+              style={{ fontFamily: "'Space Mono', monospace" }}
             >
               {language === "es" ? "EN" : "ES"}
             </button>
-            {session?.user && <NotificationBell userId={session.user.id} />}
-            <div className="ml-1.5">
-              <UserMenu />
-            </div>
+
+            {session?.user ? (
+              <>
+                <NotificationBell userId={session.user.id} />
+                <div className="ml-0.5">
+                  <UserMenu />
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                onMouseEnter={() => setLoginHov(true)}
+                onMouseLeave={() => setLoginHov(false)}
+                className="cursor-pointer text-[12px] font-medium transition-all duration-150"
+                style={{
+                  padding: "5px 14px",
+                  borderRadius: 6,
+                  border: loginHov
+                    ? "none"
+                    : `1px solid ${theme === "dark" ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.20)"}`,
+                  background: loginHov
+                    ? theme === "dark"
+                      ? "#f0ede8"
+                      : "#0c0c0b"
+                    : "transparent",
+                  color: loginHov
+                    ? theme === "dark"
+                      ? "#0c0c0b"
+                      : "#f8f7f5"
+                    : theme === "dark"
+                      ? "#f0ede8"
+                      : "#0c0c0b",
+                  fontWeight: 500,
+                }}
+              >
+                {t("user.signIn")}
+              </button>
+            )}
           </div>
 
           {/* Mobile right side */}
@@ -165,7 +224,7 @@ export function AppNav() {
               onClick={() => setMobileOpen((o) => !o)}
               data-testid="nav-burger"
               aria-label="Toggle menu"
-              className="cursor-pointer h-8 w-8 flex items-center justify-center rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors duration-150"
+              className="cursor-pointer h-8 w-8 flex items-center justify-center rounded-md text-[#a0a09c] dark:text-[#4a4a47] hover:text-[#0c0c0b] dark:hover:text-[#f0ede8] transition-colors duration-150"
             >
               {mobileOpen ? (
                 <svg
@@ -203,11 +262,11 @@ export function AppNav() {
 
         {/* Mobile dropdown */}
         {mobileOpen && (
-          <div className="sm:hidden border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-950">
+          <div className="sm:hidden absolute top-[52px] left-0 right-0 z-50 bg-[#f8f7f5] dark:bg-[#0c0c0b] border-t border-black/[0.08] dark:border-white/[0.08]">
             <Link
               to="/explore"
               data-testid="nav-explore-mobile"
-              className={mobileLinkClass}
+              className="block px-6 py-3 text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150 no-underline"
               onClick={closeMobile}
             >
               {t("nav.explore")}
@@ -215,7 +274,7 @@ export function AppNav() {
             <Link
               to="/users"
               data-testid="nav-users-mobile"
-              className={mobileLinkClass}
+              className="block px-6 py-3 text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150 no-underline"
               onClick={closeMobile}
             >
               {t("directory.nav")}
@@ -224,7 +283,7 @@ export function AppNav() {
               <Link
                 to="/lists"
                 data-testid="nav-my-lists-mobile"
-                className={mobileLinkClass}
+                className="block px-6 py-3 text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150 no-underline"
                 onClick={closeMobile}
               >
                 {t("nav.myLists")}
@@ -233,12 +292,12 @@ export function AppNav() {
             <Link
               to="/help"
               data-testid="nav-help-mobile"
-              className={mobileLinkClass}
+              className="block px-6 py-3 text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150 no-underline"
               onClick={closeMobile}
             >
               {t("help.nav")}
             </Link>
-            <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-3 flex items-center gap-3">
+            <div className="border-t border-black/[0.08] dark:border-white/[0.08] px-6 py-3 flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -251,7 +310,7 @@ export function AppNav() {
                     ? "Switch to light mode"
                     : "Switch to dark mode"
                 }
-                className="cursor-pointer p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 rounded-md transition-colors duration-150"
+                className="cursor-pointer p-1.5 text-[#a0a09c] dark:text-[#4a4a47] hover:text-[#0c0c0b] dark:hover:text-[#f0ede8] transition-colors duration-150"
               >
                 {theme === "dark" ? <SunIcon /> : <MoonIcon />}
               </button>
@@ -262,7 +321,8 @@ export function AppNav() {
                   closeMobile();
                 }}
                 data-testid="lang-switcher-mobile"
-                className="cursor-pointer px-2 py-1 text-xs font-medium text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 rounded-md transition-colors duration-150 tabular-nums"
+                className="cursor-pointer text-[11px] font-medium text-[#a0a09c] dark:text-[#4a4a47] hover:text-[#0c0c0b] dark:hover:text-[#f0ede8] transition-colors duration-150 tabular-nums"
+                style={{ fontFamily: "'Space Mono', monospace" }}
               >
                 {language === "es" ? "EN" : "ES"}
               </button>
