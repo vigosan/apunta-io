@@ -5,14 +5,16 @@ import {
   notFound,
   useNavigate,
 } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { AppNav } from "@/components/AppNav";
 import { CommandPalette } from "@/components/CommandPalette";
 import { BulkPastePreview } from "@/components/items/BulkPastePreview";
 import { ItemRow } from "@/components/items/ItemRow";
 import { ListSettingsPanel } from "@/components/ListSettingsPanel";
-import { ListMap } from "@/components/maps/ListMap";
+const ListMap = lazy(() =>
+  import("@/components/maps/ListMap").then((m) => ({ default: m.ListMap }))
+);
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { useGeocodingSearch } from "@/hooks/useGeocodingSearch";
 import {
@@ -34,7 +36,8 @@ import {
 } from "@/hooks/useListPrice";
 import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { useTranslation } from "@/i18n/service";
-import { fireConfetti } from "@/lib/confetti";
+const fireConfetti = () =>
+  import("@/lib/confetti").then((m) => m.fireConfetti());
 import { BULK_ITEM_LIMIT } from "@/lib/constants";
 import { PARTIAL_PLACE_REGEX } from "@/lib/places";
 import { tagColor } from "@/lib/tags";
@@ -1312,7 +1315,13 @@ function ListDetailPage() {
 
             {viewMode === "map" && hasGeoItems && (
               <div className="relative" style={{ height: "400px" }}>
-                <ListMap items={items} activeItems={filteredItems} />
+                <Suspense
+                  fallback={
+                    <div className="h-full bg-gray-100 dark:bg-gray-800 animate-pulse rounded-xl" />
+                  }
+                >
+                  <ListMap items={items} activeItems={filteredItems} />
+                </Suspense>
               </div>
             )}
 
