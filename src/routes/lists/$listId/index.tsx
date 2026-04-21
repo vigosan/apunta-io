@@ -58,7 +58,6 @@ function ListDetailPage() {
   const [pendingBulk, setPendingBulk] = useState<string[] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchActive, setSearchActive] = useState(false);
-  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [participantsPanel, setParticipantsPanel] = useState<
     "challengers" | "collaborators" | null
@@ -435,9 +434,7 @@ function ListDetailPage() {
                           className="cursor-pointer w-full text-left text-sm leading-relaxed transition"
                         >
                           {list?.description ? (
-                            <span
-                              className={`text-gray-500 ${descriptionExpanded ? "" : "line-clamp-2"}`}
-                            >
+                            <span className="text-gray-500">
                               {list.description}
                             </span>
                           ) : (
@@ -446,37 +443,13 @@ function ListDetailPage() {
                             </span>
                           )}
                         </button>
-                        {list?.description && list.description.length > 80 && (
-                          <button
-                            type="button"
-                            onClick={() => setDescriptionExpanded((v) => !v)}
-                            className="cursor-pointer text-xs text-gray-400 hover:text-gray-600 transition mt-0.5"
-                          >
-                            {descriptionExpanded
-                              ? t("list.expandLess")
-                              : t("list.expandMore")}
-                          </button>
-                        )}
                       </div>
                     )
                   ) : (
                     <div>
-                      <span
-                        className={`text-sm text-gray-500 leading-relaxed ${descriptionExpanded ? "" : "line-clamp-2"}`}
-                      >
+                      <span className="text-sm text-gray-500 leading-relaxed">
                         {list?.description}
                       </span>
-                      {list?.description && list.description.length > 80 && (
-                        <button
-                          type="button"
-                          onClick={() => setDescriptionExpanded((v) => !v)}
-                          className="cursor-pointer block text-xs text-gray-400 hover:text-gray-600 transition mt-0.5"
-                        >
-                          {descriptionExpanded
-                            ? t("list.expandLess")
-                            : t("list.expandMore")}
-                        </button>
-                      )}
                     </div>
                   )}
                 </div>
