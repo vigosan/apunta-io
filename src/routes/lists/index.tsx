@@ -68,10 +68,10 @@ function MyListRow({
     <div
       onMouseEnter={() => setHov(true)}
       onMouseLeave={() => setHov(false)}
-      className="relative py-4.5 transition-colors duration-150"
+      className="relative py-4.5 px-3 -mx-3 rounded-lg transition-colors duration-150"
       style={{
         borderBottom: "1px solid rgba(0,0,0,0.08)",
-        background: hov ? "rgba(0,0,0,0.02)" : "transparent",
+        background: hov ? "rgba(0,0,0,0.03)" : "transparent",
         cursor: "pointer",
       }}
       data-testid="my-list-card"
@@ -157,7 +157,7 @@ function MyListRow({
           e.stopPropagation();
           setConfirming(true);
         }}
-        className="absolute top-4 right-0 cursor-pointer h-7 w-7 flex items-center justify-center rounded-md text-[#d8d5d0] hover:text-[#a0a09c] transition-colors duration-150"
+        className="absolute top-4 right-3 cursor-pointer h-7 w-7 flex items-center justify-center rounded-md text-[#d8d5d0] hover:text-[#a0a09c] transition-colors duration-150"
         style={{ opacity: hov ? 1 : 0 }}
       >
         {isOwner ? (
