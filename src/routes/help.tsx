@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { AppFooter } from "@/components/AppFooter";
 import { AppNav } from "@/components/AppNav";
 import { useLanguage } from "@/i18n/service";
@@ -184,26 +185,54 @@ const content = {
 function HelpSection({
   title,
   items,
+  defaultOpen,
 }: {
   title: string;
   items: readonly string[];
+  defaultOpen?: boolean;
 }) {
+  const [open, setOpen] = useState(defaultOpen ?? false);
+
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
-        {title}
-      </h2>
-      <ul className="flex flex-col gap-2">
-        {items.map((item) => (
-          <li
-            key={item}
-            className="flex items-start gap-2.5 text-sm text-gray-600 dark:text-gray-400 leading-relaxed"
-          >
-            <span className="mt-2 shrink-0 w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
-            <span>{renderInlineMarkdown(item)}</span>
-          </li>
-        ))}
-      </ul>
+    <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex justify-between items-center py-4 bg-transparent border-none cursor-pointer"
+      >
+        <span className="text-sm font-semibold text-[#0c0c0b] dark:text-[#f0ede8] tracking-[0.01em]">
+          {title}
+        </span>
+        <span
+          className="text-sm transition-transform duration-200"
+          style={{
+            color: "#a0a09c",
+            transform: open ? "rotate(90deg)" : "none",
+          }}
+        >
+          ›
+        </span>
+      </button>
+      {open && (
+        <div className="pb-5">
+          {items.map((item) => (
+            <div key={item} className="flex gap-2.5 py-1.5">
+              <span
+                className="shrink-0 mt-0.5 text-[11px]"
+                style={{ color: "#a0a09c" }}
+              >
+                →
+              </span>
+              <span
+                className="text-sm leading-[1.6]"
+                style={{ color: "#a0a09c" }}
+              >
+                {renderInlineMarkdown(item)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -213,29 +242,32 @@ function HelpPage() {
   const page = content[language] ?? content.es;
 
   return (
-    <div className="min-h-dvh bg-[#FAFAF8] dark:bg-gray-950 flex flex-col">
+    <div className="min-h-dvh bg-[#f8f7f5] dark:bg-[#0c0c0b] flex flex-col">
       <AppNav />
 
-      <main className="flex-1 py-12">
-        <div className="max-w-3xl mx-auto px-6 flex flex-col gap-10">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+      <main className="flex-1 py-10">
+        <div className="max-w-[640px] mx-auto px-12">
+          <div className="mb-9">
+            <h1
+              className="text-[28px] font-bold text-[#0c0c0b] dark:text-[#f0ede8] mb-2"
+              style={{ letterSpacing: "-0.03em" }}
+            >
               {page.title}
             </h1>
-            <p className="text-sm text-gray-400 dark:text-gray-500 leading-relaxed">
+            <p className="text-sm" style={{ color: "#a0a09c" }}>
               {page.subtitle}
             </p>
           </div>
 
-          <div className="flex flex-col gap-8">
-            {page.sections.map((section) => (
-              <HelpSection
-                key={section.title}
-                title={section.title}
-                items={section.items}
-              />
-            ))}
-          </div>
+          {page.sections.map((section, i) => (
+            <HelpSection
+              key={section.title}
+              title={section.title}
+              items={section.items}
+              defaultOpen={i === 0}
+            />
+          ))}
+          <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }} />
         </div>
       </main>
 
