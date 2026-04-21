@@ -5,7 +5,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { notFound } from "@tanstack/react-router";
-import { POLLING_INTERVAL_MS } from "@/lib/constants";
 import { queryKeys } from "@/lib/query-keys";
 import type { ListWithParticipation } from "@/services/lists.service";
 import { listsService, usersService } from "@/services/lists.service";
@@ -29,9 +28,6 @@ export function useList(listId: string) {
         throw notFound();
       }
     },
-    staleTime: POLLING_INTERVAL_MS,
-    refetchInterval: POLLING_INTERVAL_MS,
-    refetchIntervalInBackground: false,
   });
 }
 
@@ -160,7 +156,6 @@ export function useExplore(q?: string, sort?: string) {
     queryFn: ({ pageParam }) => listsService.explore(q, pageParam, sort),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
-    staleTime: POLLING_INTERVAL_MS,
   });
 }
 
@@ -196,7 +191,6 @@ export function useMyLists(
       listsService.myLists(pageParam, search, sort, visibility),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (last) => last.nextCursor ?? undefined,
-    staleTime: POLLING_INTERVAL_MS,
   });
 }
 

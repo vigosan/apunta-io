@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Item } from "@/db/schema";
-import { POLLING_INTERVAL_MS } from "@/lib/constants";
 import { queryKeys } from "@/lib/query-keys";
 import { type Coords, itemsService } from "@/services/items.service";
 
@@ -14,9 +13,6 @@ export function useItems(listId: string) {
   return useQuery({
     queryKey: queryKeys.items(listId),
     queryFn: () => itemsService.list(listId),
-    staleTime: POLLING_INTERVAL_MS,
-    refetchInterval: POLLING_INTERVAL_MS,
-    refetchIntervalInBackground: false,
   });
 }
 
