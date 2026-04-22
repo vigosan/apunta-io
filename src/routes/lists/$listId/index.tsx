@@ -5,17 +5,26 @@ import {
   notFound,
   useNavigate,
 } from "@tanstack/react-router";
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { z } from "zod";
 import { AppNav } from "@/components/AppNav";
 import { CommandPalette } from "@/components/CommandPalette";
 import { BulkPastePreview } from "@/components/items/BulkPastePreview";
 import { ItemRow } from "@/components/items/ItemRow";
-import { ListFilterBar } from "@/components/lists/ListFilterBar";
 import { ListSettingsPanel } from "@/components/ListSettingsPanel";
+import { ListFilterBar } from "@/components/lists/ListFilterBar";
+
 const ListMap = lazy(() =>
   import("@/components/maps/ListMap").then((m) => ({ default: m.ListMap }))
 );
+
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { useGeocodingSearch } from "@/hooks/useGeocodingSearch";
 import {
@@ -37,8 +46,10 @@ import {
 } from "@/hooks/useListPrice";
 import { useStripeAccountStatus } from "@/hooks/useStripeAccount";
 import { useTranslation } from "@/i18n/service";
+
 const fireConfetti = () =>
   import("@/lib/confetti").then((m) => m.fireConfetti());
+
 import { BULK_ITEM_LIMIT } from "@/lib/constants";
 import { PARTIAL_PLACE_REGEX } from "@/lib/places";
 import { tagColor } from "@/lib/tags";
@@ -210,10 +221,7 @@ function ListDetailPage() {
   const collaborators = participantData?.collaborators ?? [];
   const challengers = participantData?.challengers ?? [];
 
-  const {
-    data: items = [],
-    isLoading: itemsLoading,
-  } = useItems(listId);
+  const { data: items = [], isLoading: itemsLoading } = useItems(listId);
 
   const {
     allTags,
@@ -392,7 +400,8 @@ function ListDetailPage() {
                   </form>
                 ) : (
                   <h1
-                    className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight text-pretty cursor-default"
+                    className="text-xl font-bold text-gray-900 dark:text-gray-100 leading-tight cursor-default"
+                    style={{ textWrap: "balance" }}
                     onDoubleClick={
                       isOwner
                         ? () => {
@@ -1283,55 +1292,73 @@ function ListDetailPage() {
                   ))}
                 </div>
               ) : filteredItems.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-10">
-                  {searchQuery
-                    ? t("list.noResults", {
-                        query: searchQuery,
-                      })
-                    : items.length === 0
-                      ? t("list.addFirst")
-                      : t("list.noItemsFilter")}
-                </p>
+                <div className="flex flex-col items-center gap-2 py-12 text-center">
+                  <span className="text-2xl select-none" aria-hidden>
+                    {searchQuery ? "🔍" : items.length === 0 ? "✦" : "◎"}
+                  </span>
+                  <p
+                    className="text-sm text-gray-400"
+                    style={{ textWrap: "balance" }}
+                  >
+                    {searchQuery
+                      ? t("list.noResults", { query: searchQuery })
+                      : items.length === 0
+                        ? t("list.addFirst")
+                        : t("list.noItemsFilter")}
+                  </p>
+                </div>
               ) : (
                 <div className="space-y-1">
-                  {filteredItems.map((item) => (
-                    <ItemRow
+                  {filteredItems.map((item, idx) => (
+                    <div
                       key={item.id}
-                      item={item}
-                      onToggle={() => toggleItem.mutate(item.id)}
-                      onDelete={() => deleteItem.mutate(item.id)}
-                      onEdit={(text, coords) =>
-                        updateItem.mutate({
-                          id: item.id,
-                          text,
-                          coords,
-                        })
-                      }
-                      onTagClick={handleTagClick}
-                      activeTag={activeTag}
-                      onPlaceClick={handlePlaceClick}
-                      activePlace={activePlace}
-                      canWrite={canWrite}
-                      canToggle={canToggle}
-                      highlighted={item.id === highlightedItemId}
-                      onDragStart={
-                        isOwner && !item.done
-                          ? handleDragStart(item.id)
-                          : undefined
-                      }
-                      onDragOver={
-                        isOwner && !item.done
-                          ? handleDragOver(item.id)
-                          : undefined
-                      }
-                      onDrop={
-                        isOwner && !item.done ? handleDrop(item.id) : undefined
-                      }
-                      onDragEnd={
-                        isOwner && !item.done ? handleDragEnd : undefined
-                      }
-                      isDragOver={dragOverId === item.id}
-                    />
+                      style={{
+                        animationName: "fadeInUp",
+                        animationDuration: "240ms",
+                        animationTimingFunction: "cubic-bezier(0.2, 0, 0, 1)",
+                        animationFillMode: "both",
+                        animationDelay: `${Math.min(idx * 40, 400)}ms`,
+                      }}
+                    >
+                      <ItemRow
+                        item={item}
+                        onToggle={() => toggleItem.mutate(item.id)}
+                        onDelete={() => deleteItem.mutate(item.id)}
+                        onEdit={(text, coords) =>
+                          updateItem.mutate({
+                            id: item.id,
+                            text,
+                            coords,
+                          })
+                        }
+                        onTagClick={handleTagClick}
+                        activeTag={activeTag}
+                        onPlaceClick={handlePlaceClick}
+                        activePlace={activePlace}
+                        canWrite={canWrite}
+                        canToggle={canToggle}
+                        highlighted={item.id === highlightedItemId}
+                        onDragStart={
+                          isOwner && !item.done
+                            ? handleDragStart(item.id)
+                            : undefined
+                        }
+                        onDragOver={
+                          isOwner && !item.done
+                            ? handleDragOver(item.id)
+                            : undefined
+                        }
+                        onDrop={
+                          isOwner && !item.done
+                            ? handleDrop(item.id)
+                            : undefined
+                        }
+                        onDragEnd={
+                          isOwner && !item.done ? handleDragEnd : undefined
+                        }
+                        isDragOver={dragOverId === item.id}
+                      />
+                    </div>
                   ))}
                 </div>
               )}

@@ -5,6 +5,8 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useMyLists } from "@/hooks/useList";
 import { useTranslation } from "@/i18n/service";
 
+const EASING = "cubic-bezier(0.2, 0, 0, 1)";
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -73,6 +75,16 @@ export function GlobalCommandPalette({ open, onClose }: Props) {
     }
   }
 
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (open && session?.user) {
+      const id = requestAnimationFrame(() => setVisible(true));
+      return () => cancelAnimationFrame(id);
+    }
+    setVisible(false);
+  }, [open, session?.user]);
+
   if (!open || !session?.user) return null;
 
   const activeId = lists[selectedIndex]
@@ -85,6 +97,10 @@ export function GlobalCommandPalette({ open, onClose }: Props) {
       role="presentation"
       className="fixed inset-0 z-50 flex items-start justify-center pt-[18vh] px-4"
       onClick={onClose}
+      style={{
+        opacity: visible ? 1 : 0,
+        transition: `opacity 150ms ${EASING}`,
+      }}
     >
       <div
         className="absolute inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm"
@@ -98,6 +114,12 @@ export function GlobalCommandPalette({ open, onClose }: Props) {
         className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
+        style={{
+          transform: visible
+            ? "scale(1) translateY(0)"
+            : "scale(0.96) translateY(-4px)",
+          transition: `transform 150ms ${EASING}`,
+        }}
       >
         <input
           ref={inputRef}
@@ -154,7 +176,8 @@ export function GlobalCommandPalette({ open, onClose }: Props) {
                 </p>
                 {list.itemCount > 0 && (
                   <p
-                    className={`text-xs mt-0.5 tabular-nums ${i === selectedIndex ? "text-gray-300 dark:text-gray-600" : "text-gray-400 dark:text-gray-500"}`}
+                    className={`text-xs mt-0.5 font-variant-numeric tabular-nums ${i === selectedIndex ? "text-gray-300 dark:text-gray-600" : "text-gray-400 dark:text-gray-500"}`}
+                    style={{ fontVariantNumeric: "tabular-nums" }}
                   >
                     {list.itemCount} items · {list.doneCount}/{list.itemCount}{" "}
                     done
