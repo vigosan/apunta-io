@@ -6,10 +6,7 @@ export function AppFooter() {
   const { t } = useTranslation();
 
   return (
-    <footer
-      className="shrink-0"
-      style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}
-    >
+    <footer className="shrink-0 border-t border-black/[0.08] dark:border-white/[0.08]">
       <div className="flex items-center justify-between px-12 py-4">
         <span
           className="text-[11px]"

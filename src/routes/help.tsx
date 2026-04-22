@@ -194,7 +194,7 @@ function HelpSection({
   const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
-    <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }}>
+    <div className="border-t border-black/[0.08] dark:border-white/[0.08]">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -267,7 +267,7 @@ function HelpPage() {
               defaultOpen={i === 0}
             />
           ))}
-          <div style={{ borderTop: "1px solid rgba(0,0,0,0.08)" }} />
+          <div className="border-t border-black/[0.08] dark:border-white/[0.08]" />
         </div>
       </main>
 
