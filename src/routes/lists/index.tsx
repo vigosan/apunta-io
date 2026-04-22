@@ -79,8 +79,8 @@ function MyListRow({
         </p>
         {list.description && (
           <p
-            className="text-xs leading-[1.6] mb-2.5"
-            style={{ color: "#a0a09c", maxWidth: 480 }}
+            className="text-xs leading-[1.6] mb-2.5 text-gray-500 dark:text-[#6b6b67]"
+            style={{ maxWidth: 480 }}
           >
             {list.description}
           </p>
