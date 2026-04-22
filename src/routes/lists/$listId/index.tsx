@@ -16,6 +16,7 @@ import {
 import { z } from "zod";
 import { AppNav } from "@/components/AppNav";
 import { CommandPalette } from "@/components/CommandPalette";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { BulkPastePreview } from "@/components/items/BulkPastePreview";
 import { ItemRow } from "@/components/items/ItemRow";
 import { ListSettingsPanel } from "@/components/ListSettingsPanel";
@@ -40,7 +41,11 @@ import {
   useUpdateItem,
 } from "@/hooks/useItems";
 import { useItemsFilter } from "@/hooks/useItemsFilter";
-import { useCollaborators, useToggleCollaborative } from "@/hooks/useList";
+import {
+  useCollaborators,
+  useDeleteList,
+  useToggleCollaborative,
+} from "@/hooks/useList";
 import { useListHeader } from "@/hooks/useListHeader";
 import {
   useListPrice,
@@ -88,6 +93,7 @@ function ListDetailPage() {
     null
   );
   const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const addInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -272,6 +278,7 @@ function ListDetailPage() {
   const deleteItem = useDeleteItem(listId);
   const updateItem = useUpdateItem(listId);
   const reorderItems = useReorderItems(listId);
+  const deleteList = useDeleteList();
 
   const dragItemId = useRef<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -413,6 +420,7 @@ function ListDetailPage() {
                       onShare={handleShare}
                       onExport={handleExport}
                       onToggleSettings={() => setSettingsOpen((v) => !v)}
+                      onDelete={() => setConfirmDelete(true)}
                       onClose={() => setMenuOpen(false)}
                     />
                   )}
@@ -1135,6 +1143,19 @@ function ListDetailPage() {
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
         actions={paletteActions}
+      />
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t("list.deleteConfirm", { name: list?.name ?? "" })}
+        confirmLabel={t("list.deleteYes")}
+        cancelLabel={t("list.deleteNo")}
+        onConfirm={() => {
+          deleteList.mutate(list!.id, {
+            onSuccess: () => navigate({ to: "/lists" }),
+          });
+          setConfirmDelete(false);
+        }}
+        onCancel={() => setConfirmDelete(false)}
       />
     </>
   );

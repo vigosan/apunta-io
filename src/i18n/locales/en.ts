@@ -66,6 +66,7 @@ const en: Translations = {
     challengeCompleted: "Challenge completed!",
     canContribute: "You can add items",
     settings: "List settings",
+    deleteMenuItem: "Delete list",
     visibility: "Visibility",
     access: "Access",
     price: "Price",
