@@ -39,6 +39,11 @@ export function GlobalCommandPalette({ open, onClose }: Props) {
     setSelectedIndex(0);
   }, [query]);
 
+  useEffect(() => {
+    const el = document.getElementById(`global-list-${lists[selectedIndex]?.id}`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [selectedIndex]);
+
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Tab") {
       const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
