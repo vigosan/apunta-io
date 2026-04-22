@@ -144,7 +144,11 @@ export function NotificationBell({ userId }: Props) {
             ) : (
               <ul className="divide-y divide-gray-50 dark:divide-gray-800">
                 {notifs.map((n) => (
-                  <li key={n.id} onClick={() => setOpen(false)}>
+                  <li
+                    key={n.id}
+                    onClick={() => setOpen(false)}
+                    onKeyDown={() => setOpen(false)}
+                  >
                     <NotificationItem n={n} />
                   </li>
                 ))}

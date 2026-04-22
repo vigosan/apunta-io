@@ -128,7 +128,9 @@ function UsersDirectoryPage() {
           className="flex overflow-hidden rounded-lg transition-all duration-200"
           style={{
             border: `1px solid ${focused ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)"}`,
-            background: focused ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
+            background: focused
+              ? "rgba(255,255,255,0.06)"
+              : "rgba(255,255,255,0.03)",
           }}
         >
           <input

@@ -173,21 +173,8 @@ function ExploreDetailPage() {
         {shownParticipants.length > 0 && (
           <div className="flex items-center gap-2">
             <div className="flex -space-x-1.5">
-              {shownParticipants.map((p, i) => {
-                const avatar = p.image ? (
-                  <img
-                    src={p.image}
-                    alt={p.name ?? ""}
-                    className="w-6 h-6 rounded-full outline outline-2 outline-white dark:outline-gray-900"
-                  />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 outline outline-2 outline-white dark:outline-gray-900 flex items-center justify-center">
-                    <span className="text-[8px] text-gray-500 dark:text-gray-400 font-medium">
-                      {(p.name ?? "?")[0]?.toUpperCase()}
-                    </span>
-                  </div>
-                );
-                return p.userId ? (
+              {shownParticipants.map((p, i) =>
+                p.userId ? (
                   <Link
                     // biome-ignore lint/suspicious/noArrayIndexKey: participants have no stable ID; names/images may be duplicate
                     key={i}
@@ -195,13 +182,39 @@ function ExploreDetailPage() {
                     params={{ userId: p.userId }}
                     className="hover:opacity-80 transition-opacity"
                   >
-                    {avatar}
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.name ?? ""}
+                        className="w-6 h-6 rounded-full outline outline-2 outline-white dark:outline-gray-900"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 outline outline-2 outline-white dark:outline-gray-900 flex items-center justify-center">
+                        <span className="text-[8px] text-gray-500 dark:text-gray-400 font-medium">
+                          {(p.name ?? "?")[0]?.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
                   </Link>
                 ) : (
                   // biome-ignore lint/suspicious/noArrayIndexKey: participants have no stable ID; names/images may be duplicate
-                  <span key={i}>{avatar}</span>
-                );
-              })}
+                  <span key={i}>
+                    {p.image ? (
+                      <img
+                        src={p.image}
+                        alt={p.name ?? ""}
+                        className="w-6 h-6 rounded-full outline outline-2 outline-white dark:outline-gray-900"
+                      />
+                    ) : (
+                      <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 outline outline-2 outline-white dark:outline-gray-900 flex items-center justify-center">
+                        <span className="text-[8px] text-gray-500 dark:text-gray-400 font-medium">
+                          {(p.name ?? "?")[0]?.toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </span>
+                )
+              )}
             </div>
             {extraParticipants > 0 && (
               <span className="text-xs text-gray-400 dark:text-gray-500 tabular-nums">
