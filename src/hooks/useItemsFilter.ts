@@ -57,19 +57,13 @@ export function useItemsFilter({
     if (!ids) return items;
     // Order by sortedIds but use live items for done state
     const liveById = new Map(items.map((i) => [i.id, i]));
-    const delayedById = new Map(delayedItems.map((i) => [i.id, i]));
     const sortedSet = new Set(ids);
     const inOrder = ids.flatMap((id) => {
       // biome-ignore lint/style/noNonNullAssertion: id presence verified by has() check
       return liveById.has(id) ? [liveById.get(id)!] : [];
     });
     const newItems = items.filter((i) => !sortedSet.has(i.id));
-    const all = [...inOrder, ...newItems];
-    // Sort by done state using delayed snapshot so position updates after the delay
-    return [
-      ...all.filter((i) => !delayedById.get(i.id)?.done),
-      ...all.filter((i) => delayedById.get(i.id)?.done),
-    ];
+    return [...inOrder, ...newItems];
   }, [items, delayedItems, itemsLoading, sortedIds]);
 
   const allTags = useMemo(() => {

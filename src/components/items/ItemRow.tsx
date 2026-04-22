@@ -121,10 +121,10 @@ export const ItemRow = memo(
               : "bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800"
         } ${highlighted ? "ring-2 ring-gray-900 dark:ring-gray-100" : ""}`}
       >
-        {canWrite && onDragStart && (
+        {canWrite && (
           <span
             aria-hidden="true"
-            className="hidden sm:flex shrink-0 text-gray-300 dark:text-gray-600 cursor-grab active:cursor-grabbing touch-none select-none"
+            className={`hidden sm:flex shrink-0 touch-none select-none transition-opacity ${onDragStart ? "text-gray-300 dark:text-gray-600 cursor-grab active:cursor-grabbing" : "text-gray-200 dark:text-gray-700 cursor-default opacity-0"}`}
           >
             <svg
               aria-hidden="true"
@@ -396,5 +396,6 @@ export const ItemRow = memo(
     prev.activePlace === next.activePlace &&
     prev.canWrite === next.canWrite &&
     prev.canToggle === next.canToggle &&
-    prev.isDragOver === next.isDragOver
+    prev.isDragOver === next.isDragOver &&
+    !!prev.onDragStart === !!next.onDragStart
 );
