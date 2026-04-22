@@ -262,60 +262,23 @@ export function AppNav() {
         {/* Mobile dropdown */}
         {mobileOpen && (
           <div className="sm:hidden absolute top-[52px] left-0 right-0 z-50 bg-[#f8f7f5] dark:bg-[#0c0c0b] border-t border-black/[0.08] dark:border-white/[0.08]">
-            {/* User section */}
-            {session?.user ? (
-              <>
-                <div className="px-6 py-3 flex items-center gap-3">
-                  {session.user.image && (
-                    <img
-                      src={session.user.image}
-                      alt={session.user.name ?? ""}
-                      className="w-7 h-7 rounded-full outline outline-1 outline-black/10 dark:outline-white/10 shrink-0"
-                    />
-                  )}
-                  <span className="text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] truncate">
-                    {session.user.name}
-                  </span>
-                  <div className="ml-auto">
-                    <NotificationBell userId={session.user.id} />
-                  </div>
+            {/* User identity row */}
+            {session?.user && (
+              <div className="px-6 py-3 flex items-center gap-3">
+                {session.user.image && (
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name ?? ""}
+                    className="w-7 h-7 rounded-full outline outline-1 outline-black/10 dark:outline-white/10 shrink-0"
+                  />
+                )}
+                <span className="text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] truncate">
+                  {session.user.name}
+                </span>
+                <div className="ml-auto">
+                  <NotificationBell userId={session.user.id} />
                 </div>
-                <Link
-                  to="/settings"
-                  className="block px-6 py-3 text-sm text-gray-500 dark:text-[#a0a09c] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150 no-underline"
-                  onClick={closeMobile}
-                >
-                  {t("user.settings")}
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeMobile();
-                    signOut();
-                  }}
-                  data-testid="sign-out-btn-mobile"
-                  className="cursor-pointer block w-full text-left px-6 py-3 text-sm text-gray-500 dark:text-[#a0a09c] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150"
-                >
-                  {t("user.signOut")}
-                </button>
-                <div className="border-t border-black/[0.08] dark:border-white/[0.08]" />
-              </>
-            ) : (
-              <>
-                <div className="px-6 py-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      closeMobile();
-                      signIn("google");
-                    }}
-                    className="cursor-pointer text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8]"
-                  >
-                    {t("user.signIn")}
-                  </button>
-                </div>
-                <div className="border-t border-black/[0.08] dark:border-white/[0.08]" />
-              </>
+              </div>
             )}
 
             {/* Nav links */}
@@ -353,6 +316,45 @@ export function AppNav() {
             >
               {t("help.nav")}
             </Link>
+
+            {/* User actions / sign in */}
+            {session?.user ? (
+              <>
+                <Link
+                  to="/settings"
+                  className="block px-6 py-3 text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150 no-underline"
+                  onClick={closeMobile}
+                >
+                  {t("user.settings")}
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMobile();
+                    signOut();
+                  }}
+                  data-testid="sign-out-btn-mobile"
+                  className="cursor-pointer block w-full text-left px-6 py-3 text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8] hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors duration-150"
+                >
+                  {t("user.signOut")}
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="px-6 py-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMobile();
+                      signIn("google");
+                    }}
+                    className="cursor-pointer text-sm font-medium text-[#0c0c0b] dark:text-[#f0ede8]"
+                  >
+                    {t("user.signIn")}
+                  </button>
+                </div>
+              </>
+            )}
             <div className="border-t border-black/[0.08] dark:border-white/[0.08] px-6 py-3 flex items-center gap-3">
               <button
                 type="button"
