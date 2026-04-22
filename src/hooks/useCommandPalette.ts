@@ -39,6 +39,9 @@ export function useCommandPalette({
       if ((e.metaKey || e.ctrlKey) && e.key === "f") {
         e.preventDefault();
         onSearch();
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
       }
     }
     document.addEventListener("keydown", onKeyDown);
