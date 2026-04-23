@@ -279,6 +279,7 @@ function MyListsPage() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortOption>("recent");
   const [visibility, setVisibility] = useState<VisibilityFilter>("all");
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } =
     useMyLists(search || undefined, sort, visibility);
@@ -363,34 +364,142 @@ function MyListsPage() {
             </div>
           )}
 
-          <div
-            className="flex items-center gap-1.5 mt-3 overflow-x-auto no-scrollbar"
-            data-testid="sort-options"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <FilterChip
-                key={opt.value}
-                label={opt.label}
-                active={sort === opt.value}
-                onClick={() => setSort(opt.value)}
-                testId={`sort-${opt.value}`}
-              />
-            ))}
-            <div className="w-px h-3.5 shrink-0 mx-0.5 bg-black/[0.08] dark:bg-white/[0.08]" />
+          {/* Filter toggle row */}
+          {(() => {
+            const hasNonDefault = sort !== "recent" || visibility !== "all";
+            const activeSortLabel = SORT_OPTIONS.find(
+              (o) => o.value === sort
+            )?.label;
+            const activeVisibilityLabel =
+              visibility !== "all"
+                ? VISIBILITY_OPTIONS.find((o) => o.value === visibility)?.label
+                : undefined;
+            return (
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  data-testid="filter-toggle"
+                  onClick={() => setFiltersOpen((v) => !v)}
+                  className={`cursor-pointer inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all duration-150 whitespace-nowrap shrink-0 ${
+                    hasNonDefault
+                      ? "border-black/[0.20] dark:border-white/[0.20] bg-black/[0.12] dark:bg-white/[0.12] text-[#0c0c0b] dark:text-[#f0ede8] font-semibold"
+                      : "border-black/[0.08] dark:border-white/[0.08] text-gray-500 font-normal hover:border-black/[0.20] dark:hover:border-white/[0.20] hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
+                  }`}
+                >
+                  <svg
+                    aria-hidden="true"
+                    className="w-2.5 h-2.5 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 4h18M7 9h10M11 14h2"
+                    />
+                  </svg>
+                  Filters
+                  {hasNonDefault && (
+                    <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-black/[0.15] dark:bg-white/[0.15] text-[10px] font-bold leading-none">
+                      {(sort !== "recent" ? 1 : 0) +
+                        (visibility !== "all" ? 1 : 0)}
+                    </span>
+                  )}
+                  <svg
+                    aria-hidden="true"
+                    className={`w-2.5 h-2.5 shrink-0 transition-transform duration-200 ${filtersOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {/* Active filter summary (collapsed) */}
+                {!filtersOpen && hasNonDefault && (
+                  <div className="flex items-center gap-1.5">
+                    {sort !== "recent" && (
+                      <button
+                        type="button"
+                        onClick={() => setSort("recent")}
+                        className="cursor-pointer inline-flex items-center gap-1 rounded-full border border-black/[0.10] dark:border-white/[0.10] px-2 py-0.5 text-xs text-gray-500 hover:border-black/[0.25] hover:text-gray-700 transition"
+                      >
+                        {activeSortLabel}
+                        <span
+                          aria-hidden
+                          className="text-gray-300 dark:text-gray-600 leading-none"
+                        >
+                          ×
+                        </span>
+                      </button>
+                    )}
+                    {visibility !== "all" && (
+                      <button
+                        type="button"
+                        onClick={() => setVisibility("all")}
+                        className="cursor-pointer inline-flex items-center gap-1 rounded-full border border-black/[0.10] dark:border-white/[0.10] px-2 py-0.5 text-xs text-gray-500 hover:border-black/[0.25] hover:text-gray-700 transition"
+                      >
+                        {activeVisibilityLabel}
+                        <span
+                          aria-hidden
+                          className="text-gray-300 dark:text-gray-600 leading-none"
+                        >
+                          ×
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Expanded filter panel */}
+          {filtersOpen && (
             <div
-              className="flex gap-1.5 shrink-0"
-              data-testid="visibility-filter"
+              className="mt-2 flex flex-col gap-2"
+              data-testid="sort-options"
             >
-              {VISIBILITY_OPTIONS.map((opt) => (
-                <FilterChip
-                  key={opt.value}
-                  label={opt.label}
-                  active={visibility === opt.value}
-                  onClick={() => setVisibility(opt.value)}
-                />
-              ))}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider w-10 shrink-0">
+                  Sort
+                </span>
+                {SORT_OPTIONS.map((opt) => (
+                  <FilterChip
+                    key={opt.value}
+                    label={opt.label}
+                    active={sort === opt.value}
+                    onClick={() => setSort(opt.value)}
+                    testId={`sort-${opt.value}`}
+                  />
+                ))}
+              </div>
+              <div
+                className="flex items-center gap-1.5 flex-wrap"
+                data-testid="visibility-filter"
+              >
+                <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider w-10 shrink-0">
+                  Show
+                </span>
+                {VISIBILITY_OPTIONS.map((opt) => (
+                  <FilterChip
+                    key={opt.value}
+                    label={opt.label}
+                    active={visibility === opt.value}
+                    onClick={() => setVisibility(opt.value)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {isLoading && (
