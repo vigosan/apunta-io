@@ -7,7 +7,11 @@ import {
 import { notFound } from "@tanstack/react-router";
 import { queryKeys } from "@/lib/query-keys";
 import type { ListWithParticipation } from "@/services/lists.service";
-import { listsService, statsService, usersService } from "@/services/lists.service";
+import {
+  listsService,
+  statsService,
+  usersService,
+} from "@/services/lists.service";
 
 export function useCollaborators(listId: string, enabled: boolean) {
   return useQuery({

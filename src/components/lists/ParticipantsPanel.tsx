@@ -19,10 +19,20 @@ interface Props {
   collaborators: Collaborator[];
 }
 
-function Avatar({ name, image }: { name: string | null; image: string | null }) {
+function Avatar({
+  name,
+  image,
+}: {
+  name: string | null;
+  image: string | null;
+}) {
   if (image) {
     return (
-      <img src={image} alt={name ?? ""} className="w-6 h-6 rounded-full shrink-0" />
+      <img
+        src={image}
+        alt={name ?? ""}
+        className="w-6 h-6 rounded-full shrink-0"
+      />
     );
   }
   return (
@@ -34,7 +44,11 @@ function Avatar({ name, image }: { name: string | null; image: string | null }) 
   );
 }
 
-export function ParticipantsPanel({ panel, challengers, collaborators }: Props) {
+export function ParticipantsPanel({
+  panel,
+  challengers,
+  collaborators,
+}: Props) {
   if (panel === "challengers" && challengers.length > 0) {
     return (
       <div className="mt-2 border border-gray-100 rounded-xl overflow-hidden order-6">

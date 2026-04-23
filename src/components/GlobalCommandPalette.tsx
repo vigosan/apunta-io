@@ -40,7 +40,9 @@ export function GlobalCommandPalette({ open, onClose }: Props) {
   }, [query]);
 
   useEffect(() => {
-    const el = document.getElementById(`global-list-${lists[selectedIndex]?.id}`);
+    const el = document.getElementById(
+      `global-list-${lists[selectedIndex]?.id}`
+    );
     el?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 

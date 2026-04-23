@@ -850,7 +850,11 @@ app.get("/stats", async (c) => {
       .where(sql`${participations.completedAt} is not null`)
       .then(([r]) => r?.count ?? 0),
   ]);
-  return c.json({ users: userCount, lists: listCount, challenges: challengeCount });
+  return c.json({
+    users: userCount,
+    lists: listCount,
+    challenges: challengeCount,
+  });
 });
 
 const USERS_PAGE_SIZE = 12;

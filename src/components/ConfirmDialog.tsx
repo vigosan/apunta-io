@@ -30,9 +30,8 @@ export function ConfirmDialog({
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") onCancel();
     if (e.key === "Tab") {
-      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-        "button"
-      );
+      const focusable =
+        dialogRef.current?.querySelectorAll<HTMLElement>("button");
       if (!focusable || focusable.length === 0) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
@@ -55,7 +54,10 @@ export function ConfirmDialog({
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       onClick={onCancel}
     >
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" aria-hidden />
+      <div
+        className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        aria-hidden
+      />
       <div
         role="dialog"
         aria-modal="true"

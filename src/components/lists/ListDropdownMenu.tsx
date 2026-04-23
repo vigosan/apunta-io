@@ -122,7 +122,15 @@ export function ListDropdownMenu({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <rect x="2" y="2" width="20" height="20" rx="3" ry="3" strokeWidth={2} />
+            <rect
+              x="2"
+              y="2"
+              width="20"
+              height="20"
+              rx="3"
+              ry="3"
+              strokeWidth={2}
+            />
             <circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none" />
             <circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none" />
             <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
