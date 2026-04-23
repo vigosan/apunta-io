@@ -27,6 +27,9 @@ const en: Translations = {
     step4Title: "Sell access",
     step4Desc:
       "Set a price and get paid directly. Connect Stripe and start earning.",
+    exploreHeadline: "Explore what others are already completing.",
+    exploreSubline: "Public lists created by the community.",
+    exploreCtaAll: "Browse all lists →",
   },
   list: {
     back: "← My lists",

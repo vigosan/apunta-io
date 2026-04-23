@@ -833,6 +833,26 @@ app.get("/explore", async (c) => {
   return c.json({ items: exploreItems, nextCursor });
 });
 
+app.get("/stats", async (c) => {
+  const [userCount, listCount, challengeCount] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .then(([r]) => r?.count ?? 0),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(lists)
+      .where(eq(lists.public, true))
+      .then(([r]) => r?.count ?? 0),
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(participations)
+      .where(sql`${participations.completedAt} is not null`)
+      .then(([r]) => r?.count ?? 0),
+  ]);
+  return c.json({ users: userCount, lists: listCount, challenges: challengeCount });
+});
+
 const USERS_PAGE_SIZE = 12;
 
 app.get("/users", async (c) => {

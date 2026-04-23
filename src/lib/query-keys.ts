@@ -15,4 +15,5 @@ export const queryKeys = {
   userDirectory: (q?: string) => ["user-directory", q ?? ""] as const,
   userMe: () => ["user-me"] as const,
   notifications: () => ["notifications"] as const,
+  stats: () => ["stats"] as const,
 };

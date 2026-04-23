@@ -15,7 +15,12 @@ vi.mock("@hono/auth-js/react", () => ({
 }));
 
 import { useSession } from "@hono/auth-js/react";
-import { useCreateList } from "@/hooks/useList";
+import {
+  useCreateList,
+  useExplore,
+  useStats,
+  useUserDirectory,
+} from "@/hooks/useList";
 
 function renderPage() {
   const qc = new QueryClient({
@@ -48,6 +53,20 @@ function setupMocks(mutateFn = vi.fn()) {
   vi.mocked(useCreateList).mockReturnValue({
     mutate: mutateFn,
     isPending: false,
+  } as never);
+  vi.mocked(useExplore).mockReturnValue({
+    data: undefined,
+    fetchNextPage: vi.fn(),
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    isLoading: false,
+  } as never);
+  vi.mocked(useStats).mockReturnValue({ data: undefined } as never);
+  vi.mocked(useUserDirectory).mockReturnValue({
+    data: undefined,
+    fetchNextPage: vi.fn(),
+    hasNextPage: false,
+    isFetchingNextPage: false,
   } as never);
 }
 

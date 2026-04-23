@@ -1,13 +1,40 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { AppFooter } from "@/components/AppFooter";
 import { AppNav } from "@/components/AppNav";
-import { useCreateList } from "@/hooks/useList";
+import {
+  useCreateList,
+  useExplore,
+  useStats,
+  useUserDirectory,
+} from "@/hooks/useList";
 import { useTranslation } from "@/i18n/service";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
+
+function useFadeIn() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.opacity = "0";
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.opacity = "";
+          el.style.animation = "fadeInUp 0.6s ease-out both";
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
 
 function CreateForm() {
   const navigate = useNavigate();
@@ -112,6 +139,180 @@ function HowItWorks() {
   );
 }
 
+function StatsBar() {
+  const ref = useFadeIn();
+  const { data } = useStats();
+
+  if (!data) return null;
+
+  const stats = [
+    { value: data.lists, label: "listas creadas" },
+    { value: data.users, label: "usuarios" },
+    { value: data.challenges, label: "retos completados" },
+  ];
+
+  return (
+    <div className="px-4 sm:px-12 py-16">
+      <div
+        ref={ref}
+        className="max-w-[1100px] mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-10 sm:gap-0 sm:justify-between"
+      >
+        {stats.map((s) => (
+          <div key={s.label} className="flex flex-col gap-1">
+            <span
+              className="font-bold text-[#0c0c0b] dark:text-[#f0ede8]"
+              style={{
+                fontSize: "clamp(32px, 4vw, 48px)",
+                letterSpacing: "-0.04em",
+                lineHeight: 1,
+              }}
+            >
+              {s.value.toLocaleString()}
+            </span>
+            <span
+              className="text-[11px] tracking-[0.08em] uppercase"
+              style={{
+                color: "#a0a09c",
+                fontFamily: "'Space Mono', monospace",
+              }}
+            >
+              {s.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CommunitySection() {
+  const ref = useFadeIn();
+  const { data } = useUserDirectory();
+  const users = (data?.pages[0]?.users ?? [])
+    .filter((u) => u.image)
+    .slice(0, 9);
+  const total = data?.pages[0]?.users.length ?? 0;
+
+  if (users.length === 0) return null;
+
+  return (
+    <div
+      ref={ref}
+      className="px-4 sm:px-12 py-14 w-full max-w-[1100px] mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-5"
+    >
+      <div className="flex -space-x-2.5">
+        {users.map((u) => (
+          <img
+            key={u.id}
+            src={u.image ?? ""}
+            alt={u.name ?? ""}
+            title={u.name ?? ""}
+            className="w-8 h-8 rounded-full outline outline-2 outline-[#f8f7f5] dark:outline-[#0c0c0b] object-cover"
+          />
+        ))}
+      </div>
+      <div className="flex flex-col gap-0.5">
+        <p className="text-[13px] font-medium text-[#0c0c0b] dark:text-[#f0ede8]">
+          Únete a {total > 9 ? `${total}+` : total} personas
+        </p>
+        <p className="text-[12px]" style={{ color: "#a0a09c" }}>
+          que ya crean y completan listas en welist
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ExploreSection() {
+  const { t } = useTranslation();
+  const ref = useFadeIn();
+  const { data } = useExplore();
+  const lists = data?.pages[0]?.items?.slice(0, 3) ?? [];
+
+  if (lists.length === 0) return null;
+
+  return (
+    <section className="bg-[#0c0c0b] dark:bg-[#000000] py-20 px-4 sm:px-12">
+      <div ref={ref} className="max-w-[1100px] mx-auto">
+        <div className="mb-10">
+          <p
+            className="text-[10px] tracking-[0.14em] uppercase mb-4"
+            style={{
+              color: "#4a4a47",
+              fontFamily: "'Space Mono', monospace",
+            }}
+          >
+            {t("home.exploreSubline")}
+          </p>
+          <h2
+            className="font-bold text-[#f0ede8]"
+            style={{
+              fontSize: "clamp(28px, 4vw, 44px)",
+              letterSpacing: "-0.03em",
+              lineHeight: 1.1,
+              maxWidth: "18ch",
+            }}
+          >
+            {t("home.exploreHeadline")}
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">
+          {lists.map((list) => (
+            <Link
+              key={list.id}
+              to="/explore/$listId"
+              params={{ listId: list.slug ?? list.id }}
+              className="no-underline block"
+            >
+              <div
+                className="h-full p-6 rounded-2xl border border-white/[0.07] hover:border-white/[0.18] transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+                style={{ background: "#161614" }}
+              >
+                <p className="text-[14px] font-semibold text-[#f0ede8] leading-snug tracking-[-0.01em] mb-2">
+                  {list.name}
+                </p>
+                {list.description && (
+                  <p
+                    className="text-[12px] leading-[1.6] mb-4"
+                    style={{ color: "#4a4a47" }}
+                  >
+                    {list.description}
+                  </p>
+                )}
+                <div className="flex gap-4 mt-auto">
+                  {[
+                    { label: list.itemCount, suffix: "items" },
+                    { label: list.participantCount, suffix: "retos" },
+                  ].map(({ label, suffix }) => (
+                    <span
+                      key={suffix}
+                      className="text-[11px]"
+                      style={{
+                        color: "#4a4a47",
+                        fontFamily: "'Space Mono', monospace",
+                      }}
+                    >
+                      {label} {suffix}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <Link
+          to="/explore"
+          className="no-underline text-[13px] font-medium text-[#a0a09c] hover:text-[#f0ede8] transition-colors duration-150"
+        >
+          {t("home.exploreCtaAll")}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function HomePage() {
   const { t } = useTranslation();
 
@@ -191,9 +392,13 @@ function HomePage() {
         </div>
 
         {/* Steps */}
-        <div className="pb-[72px]">
+        <div className="pb-0">
           <HowItWorks />
         </div>
+
+        <StatsBar />
+        <CommunitySection />
+        <ExploreSection />
       </main>
 
       <AppFooter />

@@ -25,6 +25,9 @@ const es = {
     step4Title: "Cobra por el acceso",
     step4Desc:
       "Pon precio a tu lista y cobra directamente. Conecta Stripe y empieza a ganar.",
+    exploreHeadline: "Explora lo que otros ya están completando.",
+    exploreSubline: "Listas públicas creadas por la comunidad.",
+    exploreCtaAll: "Ver todas las listas →",
   },
   list: {
     back: "← Mis listas",

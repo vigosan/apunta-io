@@ -101,6 +101,12 @@ export type DirectoryUser = {
   collaboratorCount: number;
 };
 
+export type AppStats = { users: number; lists: number; challenges: number };
+
+export const statsService = {
+  get: () => apiClient<AppStats>("/api/stats"),
+};
+
 export const usersService = {
   getProfile: (userId: string) =>
     apiClient<UserProfile>(`/api/users/${userId}/profile`),
