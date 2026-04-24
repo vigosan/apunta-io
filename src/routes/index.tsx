@@ -99,35 +99,35 @@ function HowItWorks() {
   ];
 
   return (
-    <div className="w-full max-w-[1100px] mx-auto">
+    <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-0">
       <div className="border-t border-black/[0.08] dark:border-white/[0.08]" />
       <div className="grid grid-cols-2 sm:grid-cols-4">
         {steps.map((step, i) => (
           <div
             key={step.number}
             className={[
-              "px-7 pt-6 pb-7 flex flex-col gap-4 cursor-default",
+              "px-7 pt-7 pb-8 flex flex-col gap-5 cursor-default group",
               i < 3
                 ? "border-r border-black/[0.08] dark:border-white/[0.08]"
                 : "",
             ].join(" ")}
           >
-            <div
-              className="text-[10px] tracking-[0.08em] transition-colors duration-200"
+            <span
+              className="text-[10px] tracking-[0.12em] tabular-nums"
               style={{
-                color: "#a0a09c",
+                color: "#c8c8c4",
                 fontFamily: "'Space Mono', monospace",
               }}
             >
               {step.number}
-            </div>
-            <div className="flex flex-col gap-2">
-              <p className="text-[14px] font-semibold text-[#0c0c0b] dark:text-[#f0ede8] leading-snug tracking-[-0.01em]">
+            </span>
+            <div className="flex flex-col gap-2.5">
+              <p className="text-[13px] font-semibold text-[#0c0c0b] dark:text-[#f0ede8] leading-snug tracking-[-0.01em]">
                 {step.title}
               </p>
               <p
-                className="text-[12px] leading-[1.65]"
-                style={{ color: "#a0a09c" }}
+                className="text-[12px] leading-[1.7]"
+                style={{ color: "#b0b0ac" }}
               >
                 {step.desc}
               </p>
@@ -152,17 +152,23 @@ function StatsBar() {
   ];
 
   return (
-    <div className="px-4 sm:px-12 py-16">
+    <div className="px-4 sm:px-0 border-t border-b border-black/[0.08] dark:border-white/[0.08]">
       <div
         ref={ref}
-        className="max-w-[1100px] mx-auto flex flex-col sm:flex-row items-start sm:items-center gap-10 sm:gap-0 sm:justify-between"
+        className="max-w-[1100px] mx-auto grid grid-cols-3"
       >
-        {stats.map((s) => (
-          <div key={s.label} className="flex flex-col gap-1">
+        {stats.map((s, i) => (
+          <div
+            key={s.label}
+            className={[
+              "flex flex-col gap-2 px-7 py-10",
+              i < 2 ? "border-r border-black/[0.08] dark:border-white/[0.08]" : "",
+            ].join(" ")}
+          >
             <span
-              className="font-bold text-[#0c0c0b] dark:text-[#f0ede8]"
+              className="font-bold text-[#0c0c0b] dark:text-[#f0ede8] tabular-nums"
               style={{
-                fontSize: "clamp(32px, 4vw, 48px)",
+                fontSize: "clamp(36px, 5vw, 56px)",
                 letterSpacing: "-0.04em",
                 lineHeight: 1,
               }}
@@ -170,7 +176,7 @@ function StatsBar() {
               {s.value.toLocaleString()}
             </span>
             <span
-              className="text-[11px] tracking-[0.08em] uppercase"
+              className="text-[11px] tracking-[0.10em] uppercase"
               style={{
                 color: "#a0a09c",
                 fontFamily: "'Space Mono', monospace",
